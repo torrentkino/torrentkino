@@ -1,0 +1,15 @@
+Source: masala
+Section: net
+Priority: extra
+Maintainer: Aiko Barz <aiko@chroot.de>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.2
+Homepage: https://github.com/torrentkino/masala
+#Vcs-Git: git://git.debian.org/collab-maint/torrentkino.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/torrentkino.git;a=summary
+
+Package: masala
+Architecture: all
+Depends: ${misc:Depends}
+Description: P2P DNS
+ This package includes a P2P DNS tool to map dynamic IPv6 addresses to static hostnames.

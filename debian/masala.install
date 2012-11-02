@@ -1,0 +1,2 @@
+./masala/masala /usr/bin
+./masala-nss/libnss_masala.so.2 /lib/

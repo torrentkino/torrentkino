@@ -1,0 +1,40 @@
+.TH MASALA 1 "25 October 12"
+.SH NAME
+masala - a P2P name resolution daemon
+.SH SYNOPSIS
+\fBmasala\fP  [\fB-dq\fP] [\fB-h\fP \fIhostname\fP] [\fB-k\fP \fIpassword\fP] [\fB-p\fP \fIport\fP] [\fB-x\fP \fIserver\fP] [\fB-y\fP \fIport\fP] [\fB-u\fP \fIusername\fP]
+.SH DESCRIPTION
+\fBmasala\fP is a P2P name resolution daemon. It organizes IPv6 addresses in a tree like routing table. The basic design has been inspired by the Kademlia DHT. The communication between nodes is realized by using bencode encoded messages on top of UDP. There are 4 message types: PING/PONG and FIND/NODE. It is possible to encrypt the traffic with a PSK to isolate your nodes from a bigger swarm. By default, masala sends the first packet to a multicast address. So, there is no configuration necessary within your broadcast domain (LAN). With a bootstrap server, it is also possible to connect nodes around the globe. A \fBNSS\fP module makes any hostname with \fB.p2p\fP at the end transparently available to your OS.
+.SH OPTIONS
+.TP
+\fB-h\fP \fIhostname\fP
+By default \fI/etc/hostname\fP is used to determine the hostname.
+.TP
+\fB-k\fP \fIpassword\fP
+Setting a password results in encrypting each packet with \fBAES256\fP. The encrypted packet is encapsulated in bencode.
+.TP
+\fB-p\fP \fIport\fP
+Listen to this port (Default: UDP/8337)
+.TP
+\fB-x\fP \fIserver\fP
+Use \fIserver\fP as a bootstrap server. The \fIserver\fP can be an IPv6 address, a FQHN like \fBwww.example.net\fP or even a IPv6 multicast address. (Default: ff0e::1)
+.TP
+\fB-y\fP \fIport\fP
+The bootstrap server will be addressed at this \fIport\fP. (Default: UDP/8337)
+.TP
+\fB-u\fP \fIusername\fP
+When starting as \fBroot\fP, use \fB-u\fP to change the UID.
+.TP
+\fB-d\fP
+Start as a daemon and run in background. The output will be redirected to syslog.
+.TP
+\fB-q\fP
+Be quiet and do not log anything.
+.SH "FILES"
+.TP
+\fI/etc/nsswitch.conf\fP
+masala gets attached to the \fBhosts:\fP line. The masala daemon is used to lookup an IPv6 address if the requested hostname ends on \fB.p2p\fP.
+.SH "SEE ALSO"
+nsswitch.conf(5)
+.SH BUGS
+Lack of IPv6 support by the providers.
