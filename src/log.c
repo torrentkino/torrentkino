@@ -107,7 +107,7 @@ void log_info(int code, const char *buffer ) {
 	}
 }
 
-#else
+#elif MASALA
 
 void log_udp(CIPV6 *c_addr, const char *buffer ) {
 	char v6buf[INET6_ADDRSTRLEN+1];

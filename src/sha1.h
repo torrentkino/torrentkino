@@ -20,4 +20,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define SHA_DIGEST_LENGTH 20
 
 void sha1_hash(unsigned char *hash, const char *buffer, long int bytes);
+#ifndef NSS
 unsigned char *sha1_hashfile(const char *filename);
+#endif

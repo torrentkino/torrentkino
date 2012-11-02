@@ -39,9 +39,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #define CONF_PORT 8080
 #define CONF_INDEX_NAME "index.html"
-#endif
-
-#ifdef MASALA
+#elif MASALA
 #define CONF_USERNAME "masala"
 #define CONF_EPOLL_WAIT 2000
 #define CONF_SRVNAME "masala"
@@ -50,6 +48,8 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_BOOTSTRAP_PORT "8337"
 #define CONF_BOOTSTRAP_PORT_BUF 5
 #define CONF_KEY "open.p2p"
+#else
+#define CONF_SRVNAME "nss-masala"
 #endif
 
 struct obj_conf {

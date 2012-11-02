@@ -49,6 +49,7 @@ void sha1_hash(unsigned char *hash, const char *buffer, long int bytes ) {
 #endif
 }
 
+#ifndef NSS
 unsigned char *sha1_hashfile(const char *filename ) {
 #ifdef OPENSSL
 	SHA_CTX ctx;
@@ -103,3 +104,4 @@ unsigned char *sha1_hashfile(const char *filename ) {
 	return md;
 #endif
 }
+#endif
