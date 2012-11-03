@@ -27,11 +27,11 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "aes.h"
 #include "str.h"
 
-struct obj_str *aes_encrypt(unsigned char *plain, int plainlen, unsigned char *salt, int saltlen, unsigned char *key, int keylen ) {
+struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen ) {
 	EVP_CIPHER_CTX ctx;
-	unsigned char rawkey[AES_KEY_SIZE];
-	unsigned char iv[AES_KEY_SIZE];
-	unsigned char *ciphertext = NULL;
+	UCHAR rawkey[AES_KEY_SIZE];
+	UCHAR iv[AES_KEY_SIZE];
+	UCHAR *ciphertext = NULL;
 	int ciphermax = 0;
 	int cipherlen = 0;
 	int tmplen = 0;
@@ -77,11 +77,11 @@ struct obj_str *aes_encrypt(unsigned char *plain, int plainlen, unsigned char *s
 	return NULL;
 }
 
-struct obj_str *aes_decrypt(unsigned char *cipher, int cipherlen, unsigned char *salt, int saltlen, unsigned char *key, int keylen ) {
+struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen ) {
 	EVP_CIPHER_CTX ctx;
-	unsigned char rawkey[AES_KEY_SIZE];
-	unsigned char iv[AES_KEY_SIZE];
-	unsigned char *plaintext = NULL;
+	UCHAR rawkey[AES_KEY_SIZE];
+	UCHAR iv[AES_KEY_SIZE];
+	UCHAR *plaintext = NULL;
 	int plainmax = 0;
 	int plainlen = 0;
 	int tmplen = 0;

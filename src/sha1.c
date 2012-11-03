@@ -40,17 +40,17 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "malloc.h"
 #include "log.h"
 
-void sha1_hash(unsigned char *hash, const char *buffer, long int bytes ) {
+void sha1_hash(UCHAR *hash, const char *buffer, long int bytes ) {
 	memset(hash, '\0', SHA_DIGEST_LENGTH);
 #ifdef OPENSSL
-	SHA1((unsigned char *)buffer, bytes, hash);
-#else
-	sha1((const unsigned char *)buffer, bytes, hash);
+	SHA1((UCHAR *)buffer, bytes, hash);
+#elif POLARSSL
+	sha1((const UCHAR *)buffer, bytes, hash);
 #endif
 }
 
 #ifndef NSS
-unsigned char *sha1_hashfile(const char *filename ) {
+UCHAR *sha1_hashfile(const char *filename ) {
 #ifdef OPENSSL
 	SHA_CTX ctx;
 	off_t off = 0;
@@ -58,7 +58,7 @@ unsigned char *sha1_hashfile(const char *filename ) {
 	size_t size = 0;
 	char *buf = NULL;
 	size_t fsize = file_size(filename);
-	unsigned char *md = (unsigned char *) myalloc((SHA_DIGEST_LENGTH+1)*sizeof(unsigned char), "sha1_hashfile");
+	UCHAR *md = (UCHAR *) myalloc((SHA_DIGEST_LENGTH+1)*sizeof(UCHAR), "sha1_hashfile");
 
 	if ( !SHA1_Init(&ctx) ) {
 		myfree(md, "sha1_hashfile");
@@ -93,8 +93,8 @@ unsigned char *sha1_hashfile(const char *filename ) {
 	}
 
 	return md;
-#else
-	unsigned char *md = (unsigned char *) myalloc((SHA_DIGEST_LENGTH+1)*sizeof(unsigned char), "sha1_hashfile");
+#elif POLARSSL
+	UCHAR *md = (UCHAR *) myalloc((SHA_DIGEST_LENGTH+1)*sizeof(UCHAR), "sha1_hashfile");
 	
 	if ( sha1_file(filename, md) != 0 ) {
 		myfree(md, "sha1_hashfile");

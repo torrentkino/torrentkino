@@ -22,5 +22,5 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define AES_KEY_SIZE 32
 #define AES_KEY_ROUNDS 5
 
-struct obj_str *aes_encrypt(unsigned char *plain, int plainlen, unsigned char *salt, int saltlen, unsigned char *key, int keylen);
-struct obj_str *aes_decrypt(unsigned char *cipher, int cipherlen, unsigned char *salt, int saltlen, unsigned char *key, int keylen);
+struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen);
+struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen);
