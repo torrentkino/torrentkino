@@ -5,3 +5,5 @@ debian/masala.debhelper.log
 debian/substvars
 debian/masala.postinst.debhelper
 debian/masala.postrm.debhelper
+debian/files
+debian/masala.substvars
