@@ -70,7 +70,7 @@ void bckt_free(LIST *thislist ) {
 	long int j = 0;
 
 	i = thislist->start;
-	for ( j=0; j<thislist->counter; j++ ) {
+	for( j=0; j<thislist->counter; j++ ) {
 		b = i->val;
 
 		/* Delete node references */
@@ -88,17 +88,17 @@ void bckt_put(LIST *l, struct obj_nodeItem *n ) {
 	ITEM *i = NULL;
 	struct obj_bckt *b = NULL;
 
-	if ( n == NULL ) {
+	if( n == NULL ) {
 		return;
 	}
 
-	if ( (i = bckt_find_best_match(l, n->id)) == NULL ) {
+	if(( i = bckt_find_best_match(l, n->id)) == NULL ) {
 		log_fail("Something is terribly broken: No appropriate bucket found for ID");
 		return;
 	}
 	b = i->val;
 
-	if ( bckt_find_node(l, n->id) != NULL ) {
+	if( bckt_find_node(l, n->id) != NULL ) {
 		/* Node node found */
 		return;
 	}
@@ -111,17 +111,17 @@ void bckt_del(LIST *l, struct obj_nodeItem *n ) {
 	ITEM *item_n = NULL;
 	struct obj_bckt *b = NULL;
 
-	if ( n == NULL ) {
+	if( n == NULL ) {
 		return;
 	}
 
-	if ( (item_b = bckt_find_best_match(l, n->id)) == NULL ) {
+	if(( item_b = bckt_find_best_match(l, n->id)) == NULL ) {
 		log_fail("Something is terribly broken: No appropriate bucket found for ID");
 		return;
 	}
 	b = item_b->val;
 
-	if ( (item_n = bckt_find_node(l, n->id)) == NULL ) {
+	if(( item_n = bckt_find_node(l, n->id)) == NULL ) {
 		/* Node node found */
 		return;
 	}
@@ -137,12 +137,12 @@ ITEM *bckt_find_best_match(LIST *thislist, const unsigned char *id ) {
 	long int i = 0;
 
 	item = thislist->start;
-	for ( i=0; i<thislist->counter-1; i++ ) {
+	for( i=0; i<thislist->counter-1; i++ ) {
 		next = list_next(item);
 		b = next->val;
 
 		/* Does this bucket fits better than the next one? */
-		if ( memcmp(id, b->id, SHA_DIGEST_LENGTH) < 0 ) {
+		if( memcmp(id, b->id, SHA_DIGEST_LENGTH) < 0 ) {
 			return item;
 		}
 
@@ -162,15 +162,15 @@ ITEM *bckt_find_any_match(LIST *thislist, const unsigned char *id ) {
 	b = i->val;
 
 	/* Success, */
-	if ( b->nodes->counter > 0 ) {
+	if( b->nodes->counter > 0 ) {
 		return i;
 	}
 
 	/* This bucket is empty: Find another one. */
-	for ( j=0; j<thislist->counter; j++ ) {
+	for( j=0; j<thislist->counter; j++ ) {
 
 		b = i->val;
-		if ( b->nodes->counter > 0 ) {
+		if( b->nodes->counter > 0 ) {
 			return i;
 		}
 		i = list_prev(i);
@@ -187,16 +187,16 @@ ITEM *bckt_find_node(LIST *thislist, const unsigned char *id ) {
 	struct obj_nodeItem *n = NULL;
 	long int i = 0;
 
-	if ( (item_b = bckt_find_best_match(thislist, id)) == NULL ) {
+	if(( item_b = bckt_find_best_match(thislist, id)) == NULL ) {
 		return NULL;
 	}
 	b = item_b->val;
 
 	list_n = b->nodes;
 	item_n = list_n->start;
-	for ( i=0; i<list_n->counter; i++ ) {
+	for( i=0; i<list_n->counter; i++ ) {
 		n = item_n->val;
-		if ( memcmp(n->id, id, SHA_DIGEST_LENGTH) == 0 ) {
+		if( memcmp(n->id, id, SHA_DIGEST_LENGTH) == 0 ) {
 			return item_n;
 		}
 		item_n = list_next(item_n);
@@ -218,18 +218,18 @@ int bckt_split(LIST *thislist, const unsigned char *id ) {
 	long int i = 0;
 
 	/* Search bucket we want to evolve */
-	if ( (item_b = bckt_find_best_match(thislist, id)) == NULL ) {
+	if(( item_b = bckt_find_best_match(thislist, id)) == NULL ) {
 		return 0;
 	}
 	b = item_b->val;
 
 	/* Split whenever there are more than 8 nodes within a bucket */
-	if ( b->nodes->counter <= 8 ) {
+	if( b->nodes->counter <= 8 ) {
 		return 0;
 	}
 
 	/* Compute id of the new bucket */
-	if ( bckt_compute_id(thislist, item_b, id_new) < 0 ) {
+	if( bckt_compute_id(thislist, item_b, id_new) < 0 ) {
 		return 0;
 	}
 	
@@ -249,7 +249,7 @@ int bckt_split(LIST *thislist, const unsigned char *id ) {
 
 	/* Walk through the existing nodes and find an adequate bucket */
 	item_n = list_n->start;
-	for ( i=0; i<list_n->counter; i++ ) {
+	for( i=0; i<list_n->counter; i++ ) {
 		n = item_n->val;
 		item_s = bckt_find_best_match(thislist, n->id);
 
@@ -275,7 +275,7 @@ int bckt_compute_id(LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
 	int bit = 0;
 
 	/* Is there a container next to this one? */
-	if ( item_b != thislist->stop ) {
+	if( item_b != thislist->stop ) {
 		item_next = list_next(item_b);
 		b_next = item_next->val;
 	}
@@ -284,12 +284,12 @@ int bckt_compute_id(LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
 	bit2 = (b_next != NULL) ? bckt_significant_bit(b_next->id) : -1;
 	bit = (bit1 >= bit2) ? bit1 : bit2; bit++;
 
-	if ( bit >= 160 ) {
+	if( bit >= 160 ) {
 		return -1;
 	}
 
 	memcpy(id_return, b->id, 20);
-	id_return[bit / 8] |= (0x80 >> (bit % 8));
+	id_return[bit / 8] |= (0x80 >>( bit % 8));
 
 	return 1;
 }
@@ -298,17 +298,17 @@ int bckt_significant_bit(const unsigned char *id ) {
 	int i=0, j=0;
 
 	for(i = 19; i >= 0; i-- ) {
-		if ( id[i] != 0 ) {
+		if( id[i] != 0 ) {
 			break;
 		}
 	}
 
-	if ( i < 0 ) {
+	if( i < 0 ) {
 		return -1;
 	}
 
 	for(j = 7; j >= 0; j-- ) {
-		if ( (id[i] & (0x80 >> j)) != 0 ) {
+		if(( id[i] &( 0x80 >> j)) != 0 ) {
 			break;
 		}
 	}

@@ -75,8 +75,8 @@ void nbhd_del(struct obj_nodeItem *n ) {
 
 void nbhd_split(void ) {
 	/* Do as many splits as neccessary */
-	for ( ;; ) {
-		if ( !bckt_split(_main->nbhd, _main->conf->host_id) ) {
+	for( ;; ) {
+		if( !bckt_split(_main->nbhd, _main->conf->host_id) ) {
 			return;
 		}
 		nbhd_print();
@@ -87,7 +87,7 @@ void nbhd_send(CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int war
 	ITEM *i = NULL;
 	struct obj_bckt *b = NULL;
 
-	if ( (i = bckt_find_any_match(_main->nbhd, node_id)) == NULL ) {
+	if(( i = bckt_find_any_match(_main->nbhd, node_id)) == NULL ) {
 		return;
 	}
 	b = i->val;
@@ -104,19 +104,19 @@ void nbhd_ping(void ) {
 
 	/* Cycle through all the buckets */
 	item_b = _main->nbhd->start;
-	for ( k=0; k<_main->nbhd->counter; k++ ) {
+	for( k=0; k<_main->nbhd->counter; k++ ) {
 		b = item_b->val;
 
 		/* Cycle through all the nodes */
 		item_n = b->nodes->start;
-		for ( j=0; j<b->nodes->counter; j++ ) {
+		for( j=0; j<b->nodes->counter; j++ ) {
 			n = item_n->val;
 
 			/* It's time for pinging */
-			if ( _main->p2p->time_now.tv_sec > n->time_ping ) {
+			if( _main->p2p->time_now.tv_sec > n->time_ping ) {
 
 				/* Ping the first 8 nodes. Sort out the rest. */
-				if ( j < 8 ) {
+				if( j < 8 ) {
 					send_ping(&n->c_addr, SEND_UNICAST);
 					node_pinged(n->id);
 				} else {
@@ -149,15 +149,15 @@ void nbhd_find(UCHAR *find_id ) {
 	struct obj_nodeItem *n = NULL;
 	long int j = 0;
 
-	if ( (item_b = bckt_find_any_match(_main->nbhd, find_id)) != NULL ) {
+	if(( item_b = bckt_find_any_match(_main->nbhd, find_id)) != NULL ) {
 		b = item_b->val;
 
 		item_n = b->nodes->start;
-		for ( j=0; j<b->nodes->counter; j++ ) {
+		for( j=0; j<b->nodes->counter; j++ ) {
 			n = item_n->val;
 
 			/* Maintainance search */
-			if ( _main->p2p->time_now.tv_sec > n->time_find ) {
+			if( _main->p2p->time_now.tv_sec > n->time_find ) {
 
 				send_find(&n->c_addr, find_id, _main->conf->null_id);
 				n->time_find = time_add_5_min_approx();
@@ -175,11 +175,11 @@ void nbhd_lookup(struct obj_lkp *l ) {
 	struct obj_nodeItem *n = NULL;
 	long int j = 0;
 
-	if ( (item_b = bckt_find_any_match(_main->nbhd, l->find_id)) != NULL ) {
+	if(( item_b = bckt_find_any_match(_main->nbhd, l->find_id)) != NULL ) {
 		b = item_b->val;
 
 		item_n = b->nodes->start;
-		for ( j=0; j<b->nodes->counter; j++ ) {
+		for( j=0; j<b->nodes->counter; j++ ) {
 			n = item_n->val;
 
 			/* Remember node */
@@ -206,7 +206,7 @@ void nbhd_print(void ) {
 
 	/* Cycle through all the buckets */
 	item_b = _main->nbhd->start;
-	for ( k=0; k<_main->nbhd->counter; k++ ) {
+	for( k=0; k<_main->nbhd->counter; k++ ) {
 		b = item_b->val;
 
 		hex_encode(hex, b->id);
@@ -215,7 +215,7 @@ void nbhd_print(void ) {
 
 		/* Cycle through all the nodes */
 		item_n = b->nodes->start;
-		for ( j=0; j<b->nodes->counter; j++ ) {
+		for( j=0; j<b->nodes->counter; j++ ) {
 			n = item_n->val;
 
 			hex_encode(hex, n->id);

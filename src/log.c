@@ -60,30 +60,28 @@ void log_complex(struct obj_nodeItem *nodeItem, int code, const char *buffer ) {
 	char buf[INET6_ADDRSTRLEN+1];
 #endif
 
-	if ( _main->node != NULL ) {
-		if ( verbosity == CONF_VERBOSE ) {
+	if( _main->node != NULL ) {
+		if( verbosity == CONF_VERBOSE ) {
 #ifndef IPV4
 			memset(buf, '\0', INET6_ADDRSTRLEN+1);
 #endif
-			if ( _main->conf->mode == CONF_FOREGROUND ) {
-				printf("[%.3li] <%.3u> %s (%s)\n",
+			if( _main->conf->mode == CONF_FOREGROUND ) {
+				printf("[%.3li] <%.3u> %s( %s)\n",
 					_main->node->list->counter, code, buffer,
 #ifdef IPV4
 					inet_ntoa(nodeItem->c_addr.sin_addr)
 #else
 					inet_ntop(AF_INET6, &nodeItem->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
-#endif
-				);
+#endif );
 			} else {
 				openlog(CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER);
-				syslog(LOG_INFO, "[%.3li] <%.3u> %s (%s)",
+				syslog(LOG_INFO, "[%.3li] <%.3u> %s( %s)",
 					_main->node->list->counter, code, buffer,
 #ifdef IPV4
 					inet_ntoa(nodeItem->c_addr.sin_addr)
 #else
 					inet_ntop(AF_INET6, &nodeItem->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
-#endif
-				);
+#endif );
 				closelog();
 			}
 		}
@@ -93,9 +91,9 @@ void log_complex(struct obj_nodeItem *nodeItem, int code, const char *buffer ) {
 void log_info(int code, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
 	
-	if ( _main->node != NULL ) {
-		if ( verbosity == CONF_VERBOSE ) {
-			if ( _main->conf->mode == CONF_FOREGROUND ) {
+	if( _main->node != NULL ) {
+		if( verbosity == CONF_VERBOSE ) {
+			if( _main->conf->mode == CONF_FOREGROUND ) {
 				printf("[%.3li] <%.3u> %s\n", _main->node->list->counter, code, buffer);
 			} else {
 				openlog(CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER);
@@ -113,20 +111,18 @@ void log_udp(CIPV6 *c_addr, const char *buffer ) {
 	
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
 
-	if ( verbosity == CONF_VERBOSE ) {
+	if( verbosity == CONF_VERBOSE ) {
 		memset(v6buf, '\0', INET6_ADDRSTRLEN+1);
 		
-		if ( _main->conf->mode == CONF_FOREGROUND ) {
+		if( _main->conf->mode == CONF_FOREGROUND ) {
 			printf("%s %s\n",
 				buffer,
-				inet_ntop(AF_INET6, &c_addr->sin6_addr, v6buf, INET6_ADDRSTRLEN)
-			);
+				inet_ntop(AF_INET6, &c_addr->sin6_addr, v6buf, INET6_ADDRSTRLEN) );
 		} else {
 			openlog(CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER);
 			syslog(LOG_INFO, "%s %s",
 				buffer,
-				inet_ntop(AF_INET6, &c_addr->sin6_addr, v6buf, INET6_ADDRSTRLEN)
-			);
+				inet_ntop(AF_INET6, &c_addr->sin6_addr, v6buf, INET6_ADDRSTRLEN) );
 			closelog();
 		}
 	}
@@ -135,8 +131,8 @@ void log_udp(CIPV6 *c_addr, const char *buffer ) {
 void log_info(const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
 	
-	if ( verbosity == CONF_VERBOSE ) {
-		if ( _main->conf->mode == CONF_FOREGROUND ) {
+	if( verbosity == CONF_VERBOSE ) {
+		if( _main->conf->mode == CONF_FOREGROUND ) {
 			printf("%s\n", buffer);
 		} else {
 			openlog(CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER);
@@ -152,7 +148,7 @@ void log_simple(const char *buffer ) {
 }
 
 void log_fail(const char *buffer ) {
-	if ( _main->conf->mode == CONF_FOREGROUND ) {
+	if( _main->conf->mode == CONF_FOREGROUND ) {
 		fprintf(stderr, "%s\n", buffer);
 	} else {
 		openlog(CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER|LOG_PERROR);
@@ -163,7 +159,7 @@ void log_fail(const char *buffer ) {
 }
 
 void log_memfail(const char *buffer, const char *caller ) {
-	if ( _main->conf->mode == CONF_FOREGROUND ) {
+	if( _main->conf->mode == CONF_FOREGROUND ) {
 		fprintf(stderr, "Memfail in %s: %s\n", caller, buffer);
 	} else {
 		openlog(CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER|LOG_PERROR);

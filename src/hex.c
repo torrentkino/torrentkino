@@ -43,7 +43,7 @@ void hex_encode(char *out, CUCHAR *in ) {
 
 	memset(out, '\0', HEX_LEN+1);
 
-	for ( i=0; i<SHA_DIGEST_LENGTH; i++ ) {
+	for( i=0; i<SHA_DIGEST_LENGTH; i++ ) {
 		snprintf(p1, 3, "%02x", *p0); 
 		p0++;
 		p1+=2;

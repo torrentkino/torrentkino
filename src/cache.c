@@ -74,7 +74,7 @@ void cache_put(UCHAR *id, int type ) {
 	ITEM *item_sk = NULL;
 	struct obj_key *sk = NULL;
 
-	if ( hash_exists(_main->cache->hash, id, SHA_DIGEST_LENGTH) ) {
+	if( hash_exists(_main->cache->hash, id, SHA_DIGEST_LENGTH) ) {
 		return;
 	}
 
@@ -97,7 +97,7 @@ void cache_del(UCHAR *id ) {
 	ITEM *item_sk = NULL;
 	struct obj_key *sk = item_sk->val;
 
-	if ( (item_sk = hash_get(_main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if(( item_sk = hash_get(_main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 	sk = item_sk->val;
@@ -114,12 +114,12 @@ void cache_expire(void ) {
 	long int i = 0;
 
 	item_sk = _main->cache->list->start;
-	for ( i=0; i<_main->cache->list->counter; i++ ) {
+	for( i=0; i<_main->cache->list->counter; i++ ) {
 		sk = item_sk->val;
 		next_sk = list_next(item_sk);
 
 		/* Bad cache */
-		if ( _main->p2p->time_now.tv_sec > sk->time ) {
+		if( _main->p2p->time_now.tv_sec > sk->time ) {
 			cache_del(sk->id);
 		}
 		item_sk = next_sk;
@@ -131,7 +131,7 @@ int cache_validate(UCHAR *id ) {
 	struct obj_key *sk = NULL;
 
 	/* Key not found */
-	if ( (item_sk = hash_get(_main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if(( item_sk = hash_get(_main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return 0;
 	}
 	sk = item_sk->val;
@@ -143,7 +143,7 @@ int cache_validate(UCHAR *id ) {
 	 *  Ignore session key, because we will receive multiple answers with same session key.
 	 *  The session key will timeout later...
 	 */
-	if ( sk->type == SEND_UNICAST ) {
+	if( sk->type == SEND_UNICAST ) {
 		cache_del(id);
 	}
 

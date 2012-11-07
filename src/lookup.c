@@ -120,11 +120,11 @@ void lkp_expire(void ) {
 	long int j = 0;
 
 	i = _main->lkps->list->start;
-	for ( j=0; j<_main->lkps->list->counter; j++ ) {
+	for( j=0; j<_main->lkps->list->counter; j++ ) {
 		l = i->val;
 		next = list_next(i);
 
-		if ( _main->p2p->time_now.tv_sec > l->time_find ) {
+		if( _main->p2p->time_now.tv_sec > l->time_find ) {
 			lkp_del(i);
 		}
 		i = next;
@@ -137,7 +137,7 @@ void lkp_resolve(UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
 	socklen_t addrlen = sizeof(struct sockaddr_in6);
 
 	/* Lookup the lookup ID */
-	if ( (i = hash_get(_main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if(( i = hash_get(_main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 	l = i->val;
@@ -145,10 +145,10 @@ void lkp_resolve(UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
 	/* Found the lookup ID */
 
 	/* Now look if this node has already been asked */
-	if ( !hash_exists(l->hash, node_id, SHA_DIGEST_LENGTH) ) {
+	if( !hash_exists(l->hash, node_id, SHA_DIGEST_LENGTH) ) {
 		
 		/* Ask the node just once */
-		if ( !node_me(node_id) ) {
+		if( !node_me(node_id) ) {
 			send_find(c_addr, l->find_id, lkp_id);
 		}
 
@@ -157,11 +157,11 @@ void lkp_resolve(UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
 	}
 
 	/* Compare node_id to the requested ID */
-	if ( memcmp(l->find_id, node_id, SHA_DIGEST_LENGTH) != 0 ) {
+	if( memcmp(l->find_id, node_id, SHA_DIGEST_LENGTH) != 0 ) {
 		return;
 	}
 
-	sendto(_main->udp->sockfd, &c_addr->sin6_addr, 16, 0, (const struct sockaddr *)&l->c_addr, addrlen);
+	sendto(_main->udp->sockfd, &c_addr->sin6_addr, 16, 0,( const struct sockaddr *)&l->c_addr, addrlen);
 
 	/* Done */
 	lkp_del(i);

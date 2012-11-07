@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define _public_ __attribute__ ((visibility("default")))
-#define _hidden_ __attribute__ ((visibility("hidden")))
+#define _public_ __attribute__(( visibility("default")))
+#define _hidden_ __attribute__(( visibility("hidden")))
 
 #define MAIN_BUF 1024
 #define BOOTSTRAP_PORT 8337

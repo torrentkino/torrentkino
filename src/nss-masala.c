@@ -60,19 +60,19 @@ enum nss_status _nss_masala_gethostbyname3_r(
 
 	af = (af == AF_UNSPEC) ? AF_INET6 : af;
 
-	if ( af != AF_INET6 ) {
+	if( af != AF_INET6 ) {
 		*errnop = EAFNOSUPPORT;
 		*h_errnop = NO_DATA;
 		return NSS_STATUS_UNAVAIL;
 	}
 
-	if ( !_nss_masala_valid_hostname(hostname) ) {
+	if( !_nss_masala_valid_hostname(hostname) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if ( !_nss_masala_valid_tld(hostname) ) {
+	if( !_nss_masala_valid_tld(hostname) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
@@ -92,13 +92,13 @@ enum nss_status _nss_masala_gethostbyname4_r(
 		int *errnop, int *h_errnop,
 		int32_t *ttlp ) {
 
-	if ( !_nss_masala_valid_hostname(hostname) ) {
+	if( !_nss_masala_valid_hostname(hostname) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if ( !_nss_masala_valid_tld(hostname) ) {
+	if( !_nss_masala_valid_tld(hostname) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
@@ -125,13 +125,13 @@ enum nss_status _nss_masala_hostent(
 	size_t s_total = 0;
 
 	s_total = s_hostname + 1 + sizeof(char*) + sizeof(struct in6_addr) + 2 * sizeof(char*);
-	if ( buflen < s_total ) {
+	if( buflen < s_total ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	if ( !_nss_masala_lookup(hostname, address) ) {
+	if( !_nss_masala_lookup(hostname, address) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
@@ -161,11 +161,11 @@ enum nss_status _nss_masala_hostent(
 	host->h_length = sizeof(struct in6_addr);
 	host->h_addr_list = (char**) p_addr_list;
 
-	if ( ttlp != NULL ) {
+	if( ttlp != NULL ) {
 		*ttlp = 0;
 	}
 
-	if ( canonp != NULL ) {
+	if( canonp != NULL ) {
 		*canonp = p_name;
 	}
 
@@ -185,13 +185,13 @@ enum nss_status _nss_masala_gaih_tuple(
 	size_t s_total = 0;
 
 	s_total = s_hostname + 1 + sizeof(struct gaih_addrtuple);
-	if ( buflen < s_total ) {
+	if( buflen < s_total ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	if ( !_nss_masala_lookup(hostname, address) ) {
+	if( !_nss_masala_lookup(hostname, address) ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
@@ -211,7 +211,7 @@ enum nss_status _nss_masala_gaih_tuple(
 
 	*pat = p_tuple;
 
-	if ( ttlp != NULL ) {
+	if( ttlp != NULL ) {
 		*ttlp = 0;
 	}
 
@@ -222,18 +222,18 @@ int _nss_masala_valid_hostname(const char *hostname ) {
 
 	unsigned int i = 0;
 	
-	for ( i=0; i<strlen(hostname); i++ ) {
-		if ( hostname[i] >= '0' && hostname[i] <= '9' ) {
+	for( i=0; i<strlen(hostname); i++ ) {
+		if( hostname[i] >= '0' && hostname[i] <= '9' ) {
 			continue;
-		} else if ( hostname[i] >= 'A' && hostname[i] <= 'Z' ) {
+		} else if( hostname[i] >= 'A' && hostname[i] <= 'Z' ) {
 			continue;
-		} else if ( hostname[i] >= 'a' && hostname[i] <= 'z' ) {
+		} else if( hostname[i] >= 'a' && hostname[i] <= 'z' ) {
 			continue;
-		} else if ( hostname[i] == '-' ) {
+		} else if( hostname[i] == '-' ) {
 			continue;
-		} else if ( hostname[i] == '_' ) {
+		} else if( hostname[i] == '_' ) {
 			continue;
-		} else if ( hostname[i] == '.' ) {
+		} else if( hostname[i] == '.' ) {
 			continue;
 		} else {
 			return 0;
@@ -249,18 +249,18 @@ int _nss_masala_valid_tld(const char *hostname ) {
 	const char *p1 = NULL;
 
 	/* "x.p2p" */
-	if ( strlen(hostname) < 5 ) {
+	if( strlen(hostname) < 5 ) {
 		return 0;
 	}
 
 	/* Jump to the last '.' */
 	p0 = hostname;
-	while ( (p1 = strchr(p0, '.')) != NULL ) {
+	while(( p1 = strchr(p0, '.')) != NULL ) {
 		p0 = p1+1;
 	}
 
 	/* TLD must be ".p2p" */
-	if ( strcmp(p0,"p2p") != 0 ) {
+	if( strcmp(p0,"p2p") != 0 ) {
 		return 0;
 	}
 
@@ -285,29 +285,29 @@ int _nss_masala_lookup(const char *hostname, unsigned char *address ) {
 
 	/* Setup UDP */
 	sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
-	if ( sockfd < 0 ) {
+	if( sockfd < 0 ) {
 		return 0;
 	}
 
 	/* Set receive timeout */
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
-	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,( char *)&tv, sizeof(struct timeval));
 
 	/* Setup IPv6 */
 	sa.sin6_family = AF_INET6;
 	sa.sin6_port = htons(BOOTSTRAP_PORT);
-	if ( !inet_pton(AF_INET6, "::1", &(sa.sin6_addr)) ) {
+	if( !inet_pton(AF_INET6, "::1", &(sa.sin6_addr)) ) {
 		return 0;
 	}
 
-	n = sendto(sockfd, hash, SHA_DIGEST_LENGTH, 0, (struct sockaddr *)&sa, salen);
-	if ( n != 20 ) {
+	n = sendto(sockfd, hash, SHA_DIGEST_LENGTH, 0,( struct sockaddr *)&sa, salen);
+	if( n != 20 ) {
 		return 0;
 	}
 
-	n = recvfrom(sockfd, buffer, MAIN_BUF, 0, (struct sockaddr *)&sa, &salen);
-	if ( n != 16 ) {
+	n = recvfrom(sockfd, buffer, MAIN_BUF, 0,( struct sockaddr *)&sa, &salen);
+	if( n != 16 ) {
 		return 0;
 	}
 

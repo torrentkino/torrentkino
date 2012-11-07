@@ -33,7 +33,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "aes.h"
 #include "str.h"
 
-struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen) {
+struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
 	UCHAR ciphertext[AES_PLAINSIZE];
 	UCHAR digest[32];
 	UCHAR plain_padded[AES_PLAINSIZE];
@@ -44,23 +44,23 @@ struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UC
 	int i = 0;
 	struct obj_str *cipher = NULL;
 
-	if ( ivlen != AES_SALT_SIZE ) {
+	if( ivlen != AES_SALT_SIZE ) {
 		log_info("aes2_encrypt: Broken salt");
 		return NULL;
 	}
 
 	/* Plaintext out of boundary */
-	if ( plainlen <= 0 || plainlen > AES_PLAINSIZE ) {
+	if( plainlen <= 0 || plainlen > AES_PLAINSIZE ) {
 		log_info("aes2_encrypt: Broken plaintext");
 		return NULL;
 	}
 
 	/* Compute padded plaintext length */
 	i = plainlen % 16;
-	plainlen_padded = ( i == 0 ) ? plainlen : plainlen - i + 16;
+	plainlen_padded = (i == 0 ) ? plainlen : plainlen - i + 16;
 
 	/* Plaintext out of boundary */
-	if ( plainlen_padded <= 0 || plainlen_padded > AES_PLAINSIZE ) {
+	if( plainlen_padded <= 0 || plainlen_padded > AES_PLAINSIZE ) {
 		log_info("aes2_encrypt: Broken plaintext");
 		return NULL;
 	}
@@ -81,7 +81,7 @@ struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UC
 		sha2_update( &sha_ctx, key, keylen );
 		sha2_finish( &sha_ctx, digest );
 	}
-	if ( aes_setkey_enc( &aes_ctx, digest, 256 ) != 0 ) {
+	if( aes_setkey_enc( &aes_ctx, digest, 256 ) != 0 ) {
 		log_info("aes_setkey_enc() failed");
 		return NULL;
 	}
@@ -96,7 +96,7 @@ struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UC
 	return cipher;
 }
 
-struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen) {
+struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
 	UCHAR plaintext[AES_PLAINSIZE];
 	UCHAR digest[32];
 	aes_context aes_ctx;
@@ -104,12 +104,12 @@ struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, 
 	int i = 0;
 	struct obj_str *plain = NULL;
 
-	if ( ivlen != AES_SALT_SIZE ) {
+	if( ivlen != AES_SALT_SIZE ) {
 		log_info("aes2_decrypt: Broken salt");
 		return NULL;
 	}
 
-	if ( cipherlen % 16 != 0 ) {
+	if( cipherlen % 16 != 0 ) {
 		log_info("aes2_decrypt: Broken cipher");
 		return NULL;
 	}
@@ -123,7 +123,7 @@ struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, 
 		sha2_update( &sha_ctx, key, keylen );
 		sha2_finish( &sha_ctx, digest );
 	}
-	if ( aes_setkey_dec( &aes_ctx, digest, 256 ) != 0 ) {
+	if( aes_setkey_dec( &aes_ctx, digest, 256 ) != 0 ) {
 		log_info("aes_setkey_enc() failed");
 		return NULL;
 	}

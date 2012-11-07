@@ -38,15 +38,15 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 void *myalloc(long int size, const char *caller ) {
 	void *memory = NULL;
 
-	if ( size == 0 ) {
+	if( size == 0 ) {
 		log_memfail("myalloc(): Zero size?!", caller);
-	} else if ( size < 0 ) {
+	} else if( size < 0 ) {
 		log_memfail("myalloc(): Negative size?!", caller);
 	}
 
 	memory = (void *) malloc(size);
 	
-	if ( memory == NULL ) {
+	if( memory == NULL ) {
 		log_memfail("malloc() failed.", caller);
 	}
 
@@ -60,15 +60,15 @@ void *myalloc(long int size, const char *caller ) {
 }
 
 void *myrealloc(void *arg, long int size, const char *caller ) {
-	if ( size == 0 ) {
+	if( size == 0 ) {
 		log_memfail("myrealloc(): Zero size?!", caller);
-	} else if ( size < 0 ) {
+	} else if( size < 0 ) {
 		log_memfail("myrealloc(): Negative size?!", caller);
 	}
 
 	arg = (void *) realloc(arg, size);
 	
-	if ( arg == NULL ) {
+	if( arg == NULL ) {
 		log_memfail("realloc() failed.", caller);
 	}
 
@@ -76,7 +76,7 @@ void *myrealloc(void *arg, long int size, const char *caller ) {
 }
 
 void myfree(void *arg, const char *caller ) {
-	if ( arg != NULL ) {
+	if( arg != NULL ) {
 		free(arg);
 		/*
 		printf("free(%s)\n", caller);

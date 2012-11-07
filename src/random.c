@@ -39,7 +39,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 void rand_urandom(void *buffer, size_t size ) {
 	UCHAR *random = NULL;
 
-	if ( (random = (UCHAR *)file_load("/dev/urandom", 0, size)) == NULL ) {
+	if(( random = (UCHAR *)file_load("/dev/urandom", 0, size)) == NULL ) {
 		log_fail("Failed to read /dev/urandom");
 	}
 

@@ -74,12 +74,12 @@ struct obj_nodeItem *node_put(UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 	struct obj_nodeItem *n = NULL;
 
 	/* It's me */
-	if ( node_me(id) ) {
+	if( node_me(id) ) {
 		return NULL;
 	}
 
 	/* Find the node or create a new one */
-	if ( (i = hash_get(_main->node->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
+	if(( i = hash_get(_main->node->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
 		n = i->val;
 	} else {
 		n = (struct obj_nodeItem *) myalloc(sizeof(struct obj_nodeItem), "node_put");
@@ -118,12 +118,12 @@ void node_del(ITEM *i ) {
 }
 
 void node_update_address(struct obj_nodeItem *node, CIPV6 *sa ) {
-	if ( node == NULL ) {
+	if( node == NULL ) {
 		return;
 	}
 
 	/* Update address */
-	if ( memcmp(&node->c_addr, sa, sizeof(struct sockaddr_in6)) != 0 ) {
+	if( memcmp(&node->c_addr, sa, sizeof(struct sockaddr_in6)) != 0 ) {
 		memcpy(&node->c_addr, sa, sizeof(struct sockaddr_in6));
 	}
 }
@@ -131,12 +131,12 @@ void node_update_address(struct obj_nodeItem *node, CIPV6 *sa ) {
 int node_update_risk_id(struct obj_nodeItem *node, unsigned char *risk_id ) {
 	int warning = NODE_NOERROR;
 
-	if ( node == NULL ) {
+	if( node == NULL ) {
 		return NODE_NOERROR;
 	}
 
 	/* Update the Collision ID. We must generate a warning too: There might be a duplicate hostname. */
-	if ( memcmp(node->risk_id, risk_id, SHA_DIGEST_LENGTH) != 0 ) {
+	if( memcmp(node->risk_id, risk_id, SHA_DIGEST_LENGTH) != 0 ) {
 		memcpy(node->risk_id, risk_id, SHA_DIGEST_LENGTH);
 		warning = NODE_COLLISION;
 	}
@@ -148,7 +148,7 @@ void node_pinged(UCHAR *id ) {
 	ITEM *l = NULL;
 	struct obj_nodeItem *n = NULL;
 
-	if ( (l = hash_get(_main->node->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if(( l = hash_get(_main->node->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 
@@ -163,7 +163,7 @@ void node_ponged(UCHAR *id, CIPV6 *sa ) {
 	ITEM *l = NULL;
 	struct obj_nodeItem *n = NULL;
 
-	if ( (l = hash_get(_main->node->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if(( l = hash_get(_main->node->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 
@@ -183,12 +183,12 @@ void node_expire(void ) {
 	long int j = 0;
 
 	i = _main->node->list->start;
-	for ( j=0; j<_main->node->list->counter; j++ ) {
+	for( j=0; j<_main->node->list->counter; j++ ) {
 		n = i->val;
 		next = list_next(i);
 
 		/* Bad node */
-		if ( n->pinged >= 4 ) {
+		if( n->pinged >= 4 ) {
 			/* Delete references */
 #ifdef MASALA
 			nbhd_del(n);
@@ -205,7 +205,7 @@ long int node_counter(void ) {
 }
 
 int node_me(UCHAR *node_id ) {
-	if ( memcmp(node_id, _main->conf->host_id, SHA_DIGEST_LENGTH) == 0 ) {
+	if( memcmp(node_id, _main->conf->host_id, SHA_DIGEST_LENGTH) == 0 ) {
 		return 1;
 	}
 

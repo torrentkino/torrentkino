@@ -37,12 +37,12 @@ void hash_free(struct obj_hash *map ) {
 	unsigned int i;
 	struct obj_bucket *bucket = NULL;
 
-	if ( map == NULL ) {
+	if( map == NULL ) {
 		return;
 	}
 
 	bucket = map->buckets;
-	for ( i=0; i<map->count; i++ ) {
+	for( i=0; i<map->count; i++ ) {
 		myfree(bucket->pairs, "hash_free");
 		bucket++;
 	}
@@ -53,11 +53,11 @@ void hash_free(struct obj_hash *map ) {
 }
 
 int hash_exists(const struct obj_hash *map, UCHAR *key, long int keysize ) {
-	if ( map == NULL ) {
+	if( map == NULL ) {
 		return 0;
 	}
 
-	if ( hash_get(map,key,keysize) != NULL ) {
+	if( hash_get(map,key,keysize) != NULL ) {
 		return 1;
 	}
 	
@@ -69,7 +69,7 @@ void *hash_get(const struct obj_hash *map, UCHAR *key, long int keysize ) {
 	struct obj_bucket *bucket = NULL;
 	struct obj_pair *pair = NULL;
 
-	if ( map == NULL || key == NULL ) {
+	if( map == NULL || key == NULL ) {
 		return NULL;
 	}
 
@@ -77,7 +77,7 @@ void *hash_get(const struct obj_hash *map, UCHAR *key, long int keysize ) {
 	bucket = &(map->buckets[index]);
 	pair = hash_getpair(bucket,key,keysize);
 
-	if ( pair == NULL ) {
+	if( pair == NULL ) {
 		return NULL;
 	}
 
@@ -89,7 +89,7 @@ int hash_put(struct obj_hash *map, UCHAR *key, long int keysize, void *value ) {
 	struct obj_bucket *bucket = NULL;
 	struct obj_pair *pair = NULL;
 
-	if ( map == NULL || key == NULL || value == NULL ) {
+	if( map == NULL || key == NULL || value == NULL ) {
 		return 0;
 	}
 	
@@ -97,17 +97,17 @@ int hash_put(struct obj_hash *map, UCHAR *key, long int keysize, void *value ) {
 	bucket = &(map->buckets[index]);
 	
 	/* Key already exists */
-	if ( (pair = hash_getpair(bucket, key, keysize)) != NULL ) {
+	if(( pair = hash_getpair(bucket, key, keysize)) != NULL ) {
 		pair->value = value;
 		return 1;
 	}
 
 	/* Create new obj_pair */
-	if ( bucket->count == 0 ) {
+	if( bucket->count == 0 ) {
 		bucket->pairs = myalloc(sizeof(struct obj_pair), "hash_put");
 		bucket->count = 1;
 	} else  {
-		bucket->pairs = myrealloc(bucket->pairs, (bucket->count + 1) * sizeof(struct obj_pair), "hash_put");
+		bucket->pairs = myrealloc(bucket->pairs,( bucket->count + 1) * sizeof(struct obj_pair), "hash_put");
 		bucket->count++;
 	}
 	
@@ -130,7 +130,7 @@ void hash_del(struct obj_hash *map, UCHAR *key, long int keysize ) {
 	struct obj_pair *p_new = NULL;
 	unsigned int i = 0;
 
-	if ( map == NULL || key == NULL ) {
+	if( map == NULL || key == NULL ) {
 		return;
 	}
 	
@@ -139,15 +139,15 @@ void hash_del(struct obj_hash *map, UCHAR *key, long int keysize ) {
 	bucket = &(map->buckets[index]);
 
 	/* Not found */
-	if ( (thispair = hash_getpair(bucket,key,keysize)) == NULL ) {
+	if(( thispair = hash_getpair(bucket,key,keysize)) == NULL ) {
 		return;
 	}
 	
-	if ( bucket->count == 1 ) {
+	if( bucket->count == 1 ) {
 		myfree(bucket->pairs, "hash_rem");
 		bucket->pairs = NULL;
 		bucket->count = 0;
-	} else if ( bucket->count > 1 ) {
+	} else if( bucket->count > 1 ) {
 		/* Get new memory and remember the old one */
 		oldpair = bucket->pairs;
 		newpair = myalloc((bucket->count - 1) * sizeof(struct obj_pair), "hash_rem");
@@ -155,8 +155,8 @@ void hash_del(struct obj_hash *map, UCHAR *key, long int keysize ) {
 		/* Copy pairs except the one to delete */
 		p_old = oldpair;
 		p_new = newpair;
-		for ( i=0; i<bucket->count; i++ ) {
-			if ( p_old != thispair ) {
+		for( i=0; i<bucket->count; i++ ) {
+			if( p_old != thispair ) {
 				memcpy(p_new++, p_old, sizeof(struct obj_pair));
 			}
 
@@ -173,15 +173,15 @@ struct obj_pair *hash_getpair(struct obj_bucket *bucket, UCHAR *key, long int ke
 	unsigned int i;
 	struct obj_pair *pair = NULL;
 
-	if ( bucket->count == 0 ) {
+	if( bucket->count == 0 ) {
 		return NULL;
 	}
 
 	pair = bucket->pairs;
-	for ( i=0; i<bucket->count; i++ ) {
-		if ( pair->keysize == keysize ) {
-			if ( pair->key != NULL && pair->value != NULL ) {
-				if ( memcmp(pair->key, key, keysize) == 0 ) {
+	for( i=0; i<bucket->count; i++ ) {
+		if( pair->keysize == keysize ) {
+			if( pair->key != NULL && pair->value != NULL ) {
+				if( memcmp(pair->key, key, keysize) == 0 ) {
 					return pair;
 				}
 			}
@@ -196,7 +196,7 @@ unsigned long hash_this(UCHAR *p, long int keysize ) {
 	unsigned long result = 5381;
 	long int i = 0;
 
-	for ( i=0; i<keysize; i++ ) {
+	for( i=0; i<keysize; i++ ) {
 		result = ((result << 5) + result) + *(p++);
 	}
 

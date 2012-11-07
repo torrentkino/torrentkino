@@ -59,14 +59,14 @@ void unix_signal(void ) {
 	/* STRG+C aka SIGINT => Stop the program */
 	_main->sig_stop.sa_handler = unix_sig_stop;
 	_main->sig_stop.sa_flags = 0;
-	if ( (sigemptyset(&_main->sig_stop.sa_mask) == -1) || (sigaction(SIGINT, &_main->sig_stop, NULL) != 0) ) {
+	if(( sigemptyset(&_main->sig_stop.sa_mask) == -1) ||( sigaction(SIGINT, &_main->sig_stop, NULL) != 0) ) {
 		log_fail("Failed to set SIGINT to handle Ctrl-C");
 	}
 
 	/* ALARM */
 	_main->sig_time.sa_handler = unix_sig_time;
 	_main->sig_time.sa_flags = 0;
-	if ( (sigemptyset(&_main->sig_time.sa_mask) == -1) || (sigaction(SIGALRM, &_main->sig_time, NULL) != 0) ) {
+	if(( sigemptyset(&_main->sig_time.sa_mask) == -1) ||( sigaction(SIGALRM, &_main->sig_time, NULL) != 0) ) {
 		log_fail("Failed to set SIGINT to handle Ctrl-C");
 	}
 
@@ -90,14 +90,14 @@ void unix_set_time(int seconds ) {
 void unix_fork(void ) {
 	pid_t pid = 0;
 
-	if ( _main->conf->mode == CONF_FOREGROUND ) {
+	if( _main->conf->mode == CONF_FOREGROUND ) {
 		return;
 	}
 
 	pid = fork();
-	if ( pid < 0 ) {
+	if( pid < 0 ) {
 		log_fail("fork() failed");
-	} else if ( pid != 0 ) {
+	} else if( pid != 0 ) {
 	   exit(0);
 	}
 
@@ -118,14 +118,14 @@ void unix_limits(void ) {
 	int limit = (guess < 4096) ? 4096 : guess; /* RLIM_INFINITY; */
 	char buffer[MAIN_BUF+1];
 	
-	if ( getuid() != 0 ) {
+	if( getuid() != 0 ) {
 		return;
 	}
 
 	rl.rlim_cur = limit;
 	rl.rlim_max = limit;
 
-	if ( setrlimit(RLIMIT_NOFILE, &rl) == -1 ) {
+	if( setrlimit(RLIMIT_NOFILE, &rl) == -1 ) {
 		log_fail(strerror(errno));
 	}
 
@@ -141,33 +141,33 @@ void unix_dropuid0(void ) {
 	struct passwd *pw = NULL;
 	char buffer[MAIN_BUF+1];
 	
-	if ( getuid() != 0 ) {
+	if( getuid() != 0 ) {
 		return;
 	}
 
 	/* Process is running as root, drop privileges */
-	if ( (pw = getpwnam(_main->conf->username)) == NULL ) {
+	if(( pw = getpwnam(_main->conf->username)) == NULL ) {
 		log_fail("Dropping uid 0 failed. Use \"-u\" to set a valid username.");
 	}
-	if ( setenv("HOME", pw->pw_dir, 1) != 0 ) {
+	if( setenv("HOME", pw->pw_dir, 1) != 0 ) {
 		log_fail("setenv: Setting new $HOME failed.");
 	}
-	if ( setgid(pw->pw_gid) != 0 ) {
+	if( setgid(pw->pw_gid) != 0 ) {
 		log_fail("setgid: Unable to drop group privileges");
 	}
-	if ( setuid(pw->pw_uid) != 0 ) {
+	if( setuid(pw->pw_uid) != 0 ) {
 		log_fail("setuid: Unable to drop user privileges");
 	}
 
 	/* Test permissions */
-	if ( setuid(0) != -1 ) {
+	if( setuid(0) != -1 ) {
 		log_fail("ERROR: Managed to regain root privileges?");
 	}
-	if ( setgid(0) != -1 ) {
+	if( setgid(0) != -1 ) {
 		log_fail("ERROR: Managed to regain root privileges?");
 	}
 
-	snprintf(buffer, MAIN_BUF+1, "uid: %i, gid: %i (-u)", pw->pw_uid, pw->pw_gid);
+	snprintf(buffer, MAIN_BUF+1, "uid: %i, gid: %i( -u)", pw->pw_uid, pw->pw_gid);
 #ifdef VINEGAR
 	log_info(0, buffer);
 #else

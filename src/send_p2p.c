@@ -68,33 +68,33 @@ void send_ping(CIPV6 *sa, int type ) {
 	/* Collision ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"c", 1);
+	ben_str(key,( UCHAR *)"c", 1);
 	ben_str(val, _main->conf->risk_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"i", 1);
+	ben_str(key,( UCHAR *)"i", 1);
 	ben_str(val, _main->conf->host_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Session key */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"k", 1);
+	ben_str(key,( UCHAR *)"k", 1);
 	ben_str(val, skey, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Query type */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"q", 1);
-	ben_str(val, (UCHAR *)"p", 1);
+	ben_str(key,( UCHAR *)"q", 1);
+	ben_str(val,( UCHAR *)"p", 1);
 	ben_dict(dict, key, val);
 
 	raw = ben_enc(dict);
-	if ( _main->conf->encryption ) {
+	if( _main->conf->encryption ) {
 		send_aes(sa, raw);
 	} else {
 		send_exec(sa, raw);
@@ -123,43 +123,43 @@ void send_pong(CIPV6 *sa, UCHAR *node_sk, int warning ) {
 	/* Collision ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"c", 1);
+	ben_str(key,( UCHAR *)"c", 1);
 	ben_str(val, _main->conf->risk_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"i", 1);
+	ben_str(key,( UCHAR *)"i", 1);
 	ben_str(val, _main->conf->host_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Session key */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"k", 1);
+	ben_str(key,( UCHAR *)"k", 1);
 	ben_str(val, node_sk, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Query Type */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"q", 1);
-	ben_str(val, (UCHAR *)"o", 1);
+	ben_str(key,( UCHAR *)"q", 1);
+	ben_str(val,( UCHAR *)"o", 1);
 	ben_dict(dict, key, val);
 
 	/* Collision detected */
-	if ( warning == NODE_COLLISION ) {
+	if( warning == NODE_COLLISION ) {
 		/* Error */
 		key = ben_init(BEN_STR);
 		val = ben_init(BEN_STR);
-		ben_str(key, (UCHAR *)"e", 1);
-		ben_str(val, (UCHAR *)"c", 1);
+		ben_str(key,( UCHAR *)"e", 1);
+		ben_str(val,( UCHAR *)"c", 1);
 		ben_dict(dict, key, val);
 	}
 
 	raw = ben_enc(dict);
-	if ( _main->conf->encryption ) {
+	if( _main->conf->encryption ) {
 		send_aes(sa, raw);
 	} else {
 		send_exec(sa, raw);
@@ -195,47 +195,47 @@ void send_find(CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	/* Collision ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"c", 1);
+	ben_str(key,( UCHAR *)"c", 1);
 	ben_str(val, _main->conf->risk_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"i", 1);
+	ben_str(key,( UCHAR *)"i", 1);
 	ben_str(val, _main->conf->host_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Session key */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"k", 1);
+	ben_str(key,( UCHAR *)"k", 1);
 	ben_str(val, skey, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Lookup ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"l", 1);
+	ben_str(key,( UCHAR *)"l", 1);
 	ben_str(val, lkp_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Target */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"f", 1);
+	ben_str(key,( UCHAR *)"f", 1);
 	ben_str(val, node_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Query Type */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"q", 1);
-	ben_str(val, (UCHAR *)"f", 1);
+	ben_str(key,( UCHAR *)"q", 1);
+	ben_str(val,( UCHAR *)"f", 1);
 	ben_dict(dict, key, val);
 
 	raw = ben_enc(dict);
-	if ( _main->conf->encryption ) {
+	if( _main->conf->encryption ) {
 		send_aes(sa, raw);
 	} else {
 		send_exec(sa, raw);
@@ -278,44 +278,44 @@ void send_node(CIPV6 *sa, struct obj_bckt *b, UCHAR *node_sk, UCHAR *lkp_id, int
 	/* Collision ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"c", 1);
+	ben_str(key,( UCHAR *)"c", 1);
 	ben_str(val, _main->conf->risk_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"i", 1);
+	ben_str(key,( UCHAR *)"i", 1);
 	ben_str(val, _main->conf->host_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Session key */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"k", 1);
+	ben_str(key,( UCHAR *)"k", 1);
 	ben_str(val, node_sk, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Lookup ID */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"l", 1);
+	ben_str(key,( UCHAR *)"l", 1);
 	ben_str(val, lkp_id, SHA_DIGEST_LENGTH);
 	ben_dict(dict, key, val);
 
 	/* Nodes */
 	key = ben_init(BEN_STR);
 	list_id = ben_init(BEN_LIST);
-	ben_str(key, (UCHAR *)"n", 1);
+	ben_str(key,( UCHAR *)"n", 1);
 	ben_dict(dict, key, list_id);
 
 	/* Insert nodes */
 	item_n = b->nodes->start;
-	for ( i=0; i<b->nodes->counter; i++ ) {
+	for( i=0; i<b->nodes->counter; i++ ) {
 		n = item_n->val;
 
 		/* Do not include nodes, that are questionable */
-		if ( n->pinged > 0 ) {
+		if( n->pinged > 0 ) {
 			item_n = list_next(item_n);
 			continue;
 		}
@@ -330,29 +330,29 @@ void send_node(CIPV6 *sa, struct obj_bckt *b, UCHAR *node_sk, UCHAR *lkp_id, int
 		/* Collision */
 		key = ben_init(BEN_STR);
 		val = ben_init(BEN_STR);
-		ben_str(key, (UCHAR *)"c", 1);
+		ben_str(key,( UCHAR *)"c", 1);
 		ben_str(val, n->risk_id, SHA_DIGEST_LENGTH);
 		ben_dict(dict_node, key, val);
 
 		/* ID Dictionary */
 		key = ben_init(BEN_STR);
 		val = ben_init(BEN_STR);
-		ben_str(key, (UCHAR *)"i", 1);
+		ben_str(key,( UCHAR *)"i", 1);
 		ben_str(val, n->id, SHA_DIGEST_LENGTH);
 		ben_dict(dict_node, key, val);
 
 		/* IP */
 		key = ben_init(BEN_STR);
 		val = ben_init(BEN_STR);
-		ben_str(key, (UCHAR *)"a", 1);
-		ben_str(val, (UCHAR *)&sin->sin6_addr, 16);
+		ben_str(key,( UCHAR *)"a", 1);
+		ben_str(val,( UCHAR *)&sin->sin6_addr, 16);
 		ben_dict(dict_node, key, val);
 
 		/* Port */
 		key = ben_init(BEN_STR);
 		val = ben_init(BEN_STR);
-		ben_str(key, (UCHAR *)"p", 1);
-		ben_str(val, (UCHAR *)&sin->sin6_port, 2);
+		ben_str(key,( UCHAR *)"p", 1);
+		ben_str(val,( UCHAR *)&sin->sin6_port, 2);
 		ben_dict(dict_node, key, val);
 
 		item_n = list_next(item_n);
@@ -361,22 +361,22 @@ void send_node(CIPV6 *sa, struct obj_bckt *b, UCHAR *node_sk, UCHAR *lkp_id, int
 	/* Query */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"q", 1);
-	ben_str(val, (UCHAR *)"n", 1);
+	ben_str(key,( UCHAR *)"q", 1);
+	ben_str(val,( UCHAR *)"n", 1);
 	ben_dict(dict, key, val);
 
 	/* Collision detected */
-	if ( warning == NODE_COLLISION ) {
+	if( warning == NODE_COLLISION ) {
 		/* Error */
 		key = ben_init(BEN_STR);
 		val = ben_init(BEN_STR);
-		ben_str(key, (UCHAR *)"e", 1);
-		ben_str(val, (UCHAR *)"c", 1);
+		ben_str(key,( UCHAR *)"e", 1);
+		ben_str(val,( UCHAR *)"c", 1);
 		ben_dict(dict, key, val);
 	}
 
 	raw = ben_enc(dict);
-	if ( _main->conf->encryption ) {
+	if( _main->conf->encryption ) {
 		send_aes(sa, raw);
 	} else {
 		send_exec(sa, raw);
@@ -406,8 +406,8 @@ void send_aes(CIPV6 *sa, struct obj_raw *raw ) {
 
 	/* Encrypt message */
 	aes = aes_encrypt(raw->code, raw->size, salt, AES_SALT_SIZE, 
-					  (unsigned char *)_main->conf->key, strlen(_main->conf->key));
-	if ( aes == NULL ) {
+					( unsigned char *)_main->conf->key, strlen(_main->conf->key));
+	if( aes == NULL ) {
 		log_info("Encoding AES message failed");
 		ben_free(dict);
 		return;
@@ -416,14 +416,14 @@ void send_aes(CIPV6 *sa, struct obj_raw *raw ) {
 	/* AES */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"a", 1);
+	ben_str(key,( UCHAR *)"a", 1);
 	ben_str(val, aes->s, aes->i);
 	ben_dict(dict, key, val);
 
 	/* Salt */
 	key = ben_init(BEN_STR);
 	val = ben_init(BEN_STR);
-	ben_str(key, (UCHAR *)"s", 1);
+	ben_str(key,( UCHAR *)"s", 1);
 	ben_str(val, salt, AES_SALT_SIZE);
 	ben_dict(dict, key, val);
 
@@ -437,9 +437,9 @@ void send_aes(CIPV6 *sa, struct obj_raw *raw ) {
 void send_exec(CIPV6 *sa, struct obj_raw *raw ) {
 	socklen_t addrlen = sizeof(struct sockaddr_in6);
 
-	if ( _main->udp->sockfd < 0 ) {
+	if( _main->udp->sockfd < 0 ) {
 		return;
 	}
 
-	sendto(_main->udp->sockfd, raw->code, raw->size, 0, (const struct sockaddr *)sa, addrlen);
+	sendto(_main->udp->sockfd, raw->code, raw->size, 0,( const struct sockaddr *)sa, addrlen);
 }

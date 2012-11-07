@@ -61,7 +61,7 @@ struct obj_conf *conf_init(void ) {
 	conf->port = CONF_PORT;
 
 #ifdef VINEGAR
-	if ( (getenv("HOME")) == NULL ) {
+	if(( getenv("HOME")) == NULL ) {
 		strncpy(conf->home, "/var/www", MAIN_BUF);
 	} else {
 		snprintf(conf->home, MAIN_BUF+1, "%s/%s", getenv("HOME"), "Public");
@@ -71,9 +71,9 @@ struct obj_conf *conf_init(void ) {
 #ifdef MASALA
 	/* /etc/hostname */
 	strncpy(conf->hostname, "bulk.p2p", MAIN_BUF);
-	if ( file_isreg(CONF_HOSTFILE) ) {
-		if ( (fbuf = (char *) file_load(CONF_HOSTFILE, 0, file_size(CONF_HOSTFILE))) != NULL ) {
-			if ( (p = strchr(fbuf, '\n')) != NULL ) {
+	if( file_isreg(CONF_HOSTFILE) ) {
+		if(( fbuf = (char *) file_load(CONF_HOSTFILE, 0, file_size(CONF_HOSTFILE))) != NULL ) {
+			if(( p = strchr(fbuf, '\n')) != NULL ) {
 				*p = '\0';
 			}
 			snprintf(conf->hostname, MAIN_BUF+1, "%s.p2p", fbuf);
@@ -126,7 +126,7 @@ struct obj_conf *conf_init(void ) {
 }
 
 void conf_free(void ) {
-	if ( _main->conf != NULL ) {
+	if( _main->conf != NULL ) {
 		myfree(_main->conf, "conf_free");
 	}
 }
@@ -138,7 +138,7 @@ void conf_check(void ) {
 #endif
 
 #ifdef MASALA
-	snprintf(buf, MAIN_BUF+1, "Hostname: %s (-h)", _main->conf->hostname);
+	snprintf(buf, MAIN_BUF+1, "Hostname: %s( -h)", _main->conf->hostname);
 	log_info(buf);
 #endif
 
@@ -153,34 +153,34 @@ void conf_check(void ) {
 #endif
 
 #ifdef MASALA
-	snprintf(buf, MAIN_BUF+1, "Bootstrap Node: %s (-x)", _main->conf->bootstrap_node);
+	snprintf(buf, MAIN_BUF+1, "Bootstrap Node: %s( -x)", _main->conf->bootstrap_node);
 	log_info(buf);
-	snprintf(buf, MAIN_BUF+1, "Bootstrap Port: UDP/%s (-y)", _main->conf->bootstrap_port);
+	snprintf(buf, MAIN_BUF+1, "Bootstrap Port: UDP/%s( -y)", _main->conf->bootstrap_port);
 	log_info(buf);
 #endif
 
 #ifdef VINEGAR
-	snprintf(buf, MAIN_BUF+1, "Shared: %s (-s)", _main->conf->home);
+	snprintf(buf, MAIN_BUF+1, "Shared: %s( -s)", _main->conf->home);
 	log_info(0, buf);
 	
-	if ( !file_isdir(_main->conf->home) ) {
+	if( !file_isdir(_main->conf->home) ) {
 		log_fail("The shared directory does not exist");
 	}
 #endif
 
 #ifdef VINEGAR
-	snprintf(buf, MAIN_BUF+1, "Index file: %s (-i)", _main->conf->index_name);
+	snprintf(buf, MAIN_BUF+1, "Index file: %s( -i)", _main->conf->index_name);
 	log_info(0, buf);
-	if ( !str_isValidFilename(_main->conf->index_name) ) {
+	if( !str_isValidFilename(_main->conf->index_name) ) {
 		snprintf(buf, MAIN_BUF+1, "%s looks suspicious", _main->conf->index_name);
 		log_fail(buf);
 	}
 #endif
 
-	if ( _main->conf->mode == CONF_FOREGROUND ) {
-		snprintf(buf, MAIN_BUF+1, "Mode: Foreground (-d)");
+	if( _main->conf->mode == CONF_FOREGROUND ) {
+		snprintf(buf, MAIN_BUF+1, "Mode: Foreground( -d)");
 	} else {
-		snprintf(buf, MAIN_BUF+1, "Mode: Daemon (-d)");
+		snprintf(buf, MAIN_BUF+1, "Mode: Daemon( -d)");
 	}
 #ifdef VINEGAR
 	log_info(0, buf);
@@ -188,10 +188,10 @@ void conf_check(void ) {
 	log_info(buf);
 #endif
 
-	if ( _main->conf->quiet == CONF_BEQUIET ) {
-		snprintf(buf, MAIN_BUF+1, "Verbosity: Quiet (-q)");
+	if( _main->conf->quiet == CONF_BEQUIET ) {
+		snprintf(buf, MAIN_BUF+1, "Verbosity: Quiet( -q)");
 	} else {
-		snprintf(buf, MAIN_BUF+1, "Verbosity: Verbose (-q)");
+		snprintf(buf, MAIN_BUF+1, "Verbosity: Verbose( -q)");
 	}
 #ifdef VINEGAR
 	log_info(0, buf);
@@ -200,32 +200,32 @@ void conf_check(void ) {
 #endif
 
 #ifdef VINEGAR
-	snprintf(buf, MAIN_BUF+1, "Listen to TCP/%i (-p)", _main->conf->port);
+	snprintf(buf, MAIN_BUF+1, "Listen to TCP/%i( -p)", _main->conf->port);
 	log_info(0, buf);
 #elif MASALA
-	snprintf(buf, MAIN_BUF+1, "Listen to UDP/%i (-p)", _main->conf->port);
+	snprintf(buf, MAIN_BUF+1, "Listen to UDP/%i( -p)", _main->conf->port);
 	log_info(buf);
 #endif
 
 	/* Port == 0 => Random source port */
-	if ( _main->conf->port < CONF_PORTMIN || _main->conf->port > CONF_PORTMAX ) {
-		log_fail("Invalid www port number. (-p)");
+	if( _main->conf->port < CONF_PORTMIN || _main->conf->port > CONF_PORTMAX ) {
+		log_fail("Invalid www port number.( -p)");
 	}
 
 	/* Check bootstrap server port */
 #ifndef VINEGAR
-	if ( str_isSafePort(_main->conf->bootstrap_port) < 0 ) {
-		log_fail("Invalid bootstrap port number. (-y)");
+	if( str_isSafePort(_main->conf->bootstrap_port) < 0 ) {
+		log_fail("Invalid bootstrap port number.( -y)");
 	}
 #endif
 
 	/* Encryption */
 #ifdef MASALA
-	if ( _main->conf->encryption == 1 ) {
-		snprintf(buf, MAIN_BUF+1, "Encryption key: %s (-k)", _main->conf->key);
+	if( _main->conf->encryption == 1 ) {
+		snprintf(buf, MAIN_BUF+1, "Encryption key: %s( -k)", _main->conf->key);
 		log_info(buf);
 	} else {
-		snprintf(buf, MAIN_BUF+1, "Encryption key: None (-k)");
+		snprintf(buf, MAIN_BUF+1, "Encryption key: None( -k)");
 		log_info(buf);
 	}
 #endif
@@ -236,7 +236,7 @@ void conf_check(void ) {
 #else
 	log_info(buf);
 #endif
-	if ( _main->conf->cores < 1 || _main->conf->cores > 128 ) {
+	if( _main->conf->cores < 1 || _main->conf->cores > 128 ) {
 		log_fail("Invalid core number.");
 	}
 }
