@@ -22,21 +22,21 @@ struct obj_str {
 	long int i;
 };
 
-struct obj_str *str_init(UCHAR *buf, long int len);
-void str_free(struct obj_str *str);
+struct obj_str *str_init( UCHAR *buf, long int len );
+void str_free( struct obj_str *str );
 
-int str_isValidUTF8(char *string);
-int str_isNumber(char *string);
-int str_isSafePort(char *string);
-/* int str_isHex(char *string); */
-int str_isValidFilename(char *string);
+int str_isValidUTF8( char *string );
+int str_isNumber( char *string );
+int str_isSafePort( char *string );
+/* int str_isHex( char *string ); */
+int str_isValidFilename( char *string );
 
-/*void str_htmlDisarmInput(char *string);*/
+/*void str_htmlDisarmInput( char *string );*/
 
-int str_count(char *buffer, const char *search);
+int str_count( char *buffer, const char *search );
 
-void str_GMTtime(char *buffer, int size);
-void str_gmttime(char *buffer, int size, time_t timestamp);
-void str_prettySize(char *buffer, int size, unsigned long filesize);
+void str_GMTtime( char *buffer, int size );
+void str_gmttime( char *buffer, int size, time_t timestamp );
+void str_prettySize( char *buffer, int size, unsigned long filesize );
 
-char *str_append(char *buf1, long int size1, char *buf2, long int size2);
+char *str_append( char *buf1, long int size1, char *buf2, long int size2 );

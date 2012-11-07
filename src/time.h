@@ -24,7 +24,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define TIME_5_MINUTES 300
 #define TIME_15_MINUTES 900
 
-time_t time_add_1_min(void);
-time_t time_add_15_min(void);
-time_t time_add_2_min_approx(void);
-time_t time_add_5_min_approx(void);
+time_t time_add_1_min( void );
+time_t time_add_15_min( void );
+time_t time_add_2_min_approx( void );
+time_t time_add_5_min_approx( void );

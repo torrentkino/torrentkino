@@ -56,32 +56,32 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "time.h"
 #include "send_p2p.h"
 
-struct obj_cache *cache_init(void ) {
-	struct obj_cache *cache = (struct obj_cache *) myalloc(sizeof(struct obj_cache), "cache_init");
+struct obj_cache *cache_init( void ) {
+	struct obj_cache *cache = (struct obj_cache *) myalloc( sizeof( struct obj_cache), "cache_init" );
 	cache->list = list_init();
-	cache->hash = hash_init(100);
+	cache->hash = hash_init( 100 );
 	return cache;
 }
 
-void cache_free(void ) {
-	list_clear(_main->cache->list);
-	list_free(_main->cache->list);
-	hash_free(_main->cache->hash);
-	myfree(_main->cache, "cache_free");
+void cache_free( void ) {
+	list_clear( _main->cache->list );
+	list_free( _main->cache->list );
+	hash_free( _main->cache->hash );
+	myfree( _main->cache, "cache_free" );
 }
 
-void cache_put(UCHAR *id, int type ) {
+void cache_put( UCHAR *id, int type ) {
 	ITEM *item_sk = NULL;
 	struct obj_key *sk = NULL;
 
-	if( hash_exists(_main->cache->hash, id, SHA_DIGEST_LENGTH) ) {
+	if( hash_exists( _main->cache->hash, id, SHA_DIGEST_LENGTH) ) {
 		return;
 	}
 
-	sk = (struct obj_key *) myalloc(sizeof(struct obj_key), "cache_put");
+	sk = (struct obj_key *) myalloc( sizeof( struct obj_key), "cache_put" );
 
 	/* ID */
-	memcpy(sk->id, id, SHA_DIGEST_LENGTH);
+	memcpy( sk->id, id, SHA_DIGEST_LENGTH );
 
 	/* Multicast or Unicast */
 	sk->type = type;
@@ -89,25 +89,25 @@ void cache_put(UCHAR *id, int type ) {
 	/* Availability */
 	sk->time = time_add_1_min();
 
-	item_sk = list_put(_main->cache->list, sk);
-	hash_put(_main->cache->hash, sk->id, SHA_DIGEST_LENGTH, item_sk);
+	item_sk = list_put( _main->cache->list, sk );
+	hash_put( _main->cache->hash, sk->id, SHA_DIGEST_LENGTH, item_sk );
 }
 
-void cache_del(UCHAR *id ) {
+void cache_del( UCHAR *id ) {
 	ITEM *item_sk = NULL;
 	struct obj_key *sk = item_sk->val;
 
-	if(( item_sk = hash_get(_main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if( ( item_sk = hash_get( _main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 	sk = item_sk->val;
 
-	hash_del(_main->cache->hash, id, SHA_DIGEST_LENGTH);
-	list_del(_main->cache->list, item_sk);
-	myfree(sk, "cache_del");
+	hash_del( _main->cache->hash, id, SHA_DIGEST_LENGTH );
+	list_del( _main->cache->list, item_sk );
+	myfree( sk, "cache_del" );
 }
 
-void cache_expire(void ) {
+void cache_expire( void ) {
 	ITEM *item_sk = NULL;
 	ITEM *next_sk = NULL;
 	struct obj_key *sk = NULL;
@@ -116,22 +116,22 @@ void cache_expire(void ) {
 	item_sk = _main->cache->list->start;
 	for( i=0; i<_main->cache->list->counter; i++ ) {
 		sk = item_sk->val;
-		next_sk = list_next(item_sk);
+		next_sk = list_next( item_sk );
 
 		/* Bad cache */
 		if( _main->p2p->time_now.tv_sec > sk->time ) {
-			cache_del(sk->id);
+			cache_del( sk->id );
 		}
 		item_sk = next_sk;
 	}
 }
 
-int cache_validate(UCHAR *id ) {
+int cache_validate( UCHAR *id ) {
 	ITEM *item_sk = NULL;
 	struct obj_key *sk = NULL;
 
 	/* Key not found */
-	if(( item_sk = hash_get(_main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if( ( item_sk = hash_get( _main->cache->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return 0;
 	}
 	sk = item_sk->val;
@@ -144,7 +144,7 @@ int cache_validate(UCHAR *id ) {
 	 *  The session key will timeout later...
 	 */
 	if( sk->type == SEND_UNICAST ) {
-		cache_del(id);
+		cache_del( id );
 	}
 
 	return 1;

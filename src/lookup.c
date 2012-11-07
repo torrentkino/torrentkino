@@ -55,65 +55,65 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "bucket.h"
 #include "send_p2p.h"
 
-struct obj_lkps *lkp_init(void ) {
-	struct obj_lkps *find = (struct obj_lkps *) myalloc(sizeof(struct obj_lkps), "lkp_init");
+struct obj_lkps *lkp_init( void ) {
+	struct obj_lkps *find = (struct obj_lkps *) myalloc( sizeof( struct obj_lkps), "lkp_init" );
 	find->list = list_init();
-	find->hash = hash_init(4096);
+	find->hash = hash_init( 4096 );
 	return find;
 }
 
-void lkp_free(void ) {
-	list_clear(_main->lkps->list);
-	list_free(_main->lkps->list);
-	hash_free(_main->lkps->hash);
-	myfree(_main->lkps, "lkp_free");
+void lkp_free( void ) {
+	list_clear( _main->lkps->list );
+	list_free( _main->lkps->list );
+	hash_free( _main->lkps->hash );
+	myfree( _main->lkps, "lkp_free" );
 }
 
-struct obj_lkp *lkp_put(UCHAR *find_id, UCHAR *lkp_id, CIPV6 *from ) {
+struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, CIPV6 *from ) {
 	ITEM *i = NULL;
 	struct obj_lkp *l = NULL;
 
-	l = (struct obj_lkp *) myalloc(sizeof(struct obj_lkp), "lkp_put");
+	l = (struct obj_lkp *) myalloc( sizeof( struct obj_lkp), "lkp_put" );
 
 	/* Remember nodes that have been asked */
 	l->list = list_init();
-	l->hash = hash_init(100);
+	l->hash = hash_init( 100 );
 
 	/* ID */
-	memcpy(l->find_id, find_id, SHA_DIGEST_LENGTH);
-	memcpy(l->lkp_id, lkp_id, SHA_DIGEST_LENGTH);
+	memcpy( l->find_id, find_id, SHA_DIGEST_LENGTH );
+	memcpy( l->lkp_id, lkp_id, SHA_DIGEST_LENGTH );
 
 	/* Socket */
-	memcpy(&l->c_addr, from, sizeof(struct sockaddr_in6));
+	memcpy( &l->c_addr, from, sizeof( struct sockaddr_in6) );
 
 	/* Timings */
 	l->time_find = 0;
 
 	/* Remember lookup request */
-	i = list_put(_main->lkps->list, l);
-	hash_put(_main->lkps->hash, l->lkp_id, SHA_DIGEST_LENGTH, i);
+	i = list_put( _main->lkps->list, l );
+	hash_put( _main->lkps->hash, l->lkp_id, SHA_DIGEST_LENGTH, i );
 
 	/* Search the requested name */
-	nbhd_lookup(l);
+	nbhd_lookup( l );
 
 	return l;
 }
 
-void lkp_del(ITEM *i ) {
+void lkp_del( ITEM *i ) {
 	struct obj_lkp *l = i->val;
 
 	/* Free lookup cache */
-	list_clear(l->list);
-	list_free(l->list);
-	hash_free(l->hash);
+	list_clear( l->list );
+	list_free( l->list );
+	hash_free( l->hash );
 
 	/* Delete lookup item */
-	hash_del(_main->lkps->hash, l->lkp_id, SHA_DIGEST_LENGTH);
-	list_del(_main->lkps->list, i);
-	myfree(l, "lkp_del");
+	hash_del( _main->lkps->hash, l->lkp_id, SHA_DIGEST_LENGTH );
+	list_del( _main->lkps->list, i );
+	myfree( l, "lkp_del" );
 }
 
-void lkp_expire(void ) {
+void lkp_expire( void ) {
 	ITEM *i = NULL;
 	ITEM *next = NULL;
 	struct obj_lkp *l = NULL;
@@ -122,22 +122,22 @@ void lkp_expire(void ) {
 	i = _main->lkps->list->start;
 	for( j=0; j<_main->lkps->list->counter; j++ ) {
 		l = i->val;
-		next = list_next(i);
+		next = list_next( i );
 
 		if( _main->p2p->time_now.tv_sec > l->time_find ) {
-			lkp_del(i);
+			lkp_del( i );
 		}
 		i = next;
 	}
 }
 
-void lkp_resolve(UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
+void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
 	ITEM *i = NULL;
 	struct obj_lkp *l = NULL;
-	socklen_t addrlen = sizeof(struct sockaddr_in6);
+	socklen_t addrlen = sizeof( struct sockaddr_in6 );
 
 	/* Lookup the lookup ID */
-	if(( i = hash_get(_main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if( ( i = hash_get( _main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 	l = i->val;
@@ -145,34 +145,34 @@ void lkp_resolve(UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
 	/* Found the lookup ID */
 
 	/* Now look if this node has already been asked */
-	if( !hash_exists(l->hash, node_id, SHA_DIGEST_LENGTH) ) {
+	if( !hash_exists( l->hash, node_id, SHA_DIGEST_LENGTH) ) {
 		
 		/* Ask the node just once */
-		if( !node_me(node_id) ) {
-			send_find(c_addr, l->find_id, lkp_id);
+		if( !node_me( node_id) ) {
+			send_find( c_addr, l->find_id, lkp_id );
 		}
 
 		/* Remember that node */
-		lkp_remember(l, node_id);
+		lkp_remember( l, node_id );
 	}
 
 	/* Compare node_id to the requested ID */
-	if( memcmp(l->find_id, node_id, SHA_DIGEST_LENGTH) != 0 ) {
+	if( memcmp( l->find_id, node_id, SHA_DIGEST_LENGTH) != 0 ) {
 		return;
 	}
 
-	sendto(_main->udp->sockfd, &c_addr->sin6_addr, 16, 0,( const struct sockaddr *)&l->c_addr, addrlen);
+	sendto( _main->udp->sockfd, &c_addr->sin6_addr, 16, 0,( const struct sockaddr *)&l->c_addr, addrlen );
 
 	/* Done */
-	lkp_del(i);
+	lkp_del( i );
 }
 
-void lkp_remember(struct obj_lkp *l, UCHAR *node_id ) {
+void lkp_remember( struct obj_lkp *l, UCHAR *node_id ) {
 	unsigned char *buffer = NULL;
 
 	/* Remember that node */
-	buffer = (unsigned char *) myalloc(SHA_DIGEST_LENGTH*sizeof(char), "lkp_remember");
-	memcpy(buffer, node_id, SHA_DIGEST_LENGTH);
-	list_put(l->list, buffer);
-	hash_put(l->hash, buffer, SHA_DIGEST_LENGTH, buffer);
+	buffer = (unsigned char *) myalloc( SHA_DIGEST_LENGTH*sizeof( char), "lkp_remember" );
+	memcpy( buffer, node_id, SHA_DIGEST_LENGTH );
+	list_put( l->list, buffer );
+	hash_put( l->hash, buffer, SHA_DIGEST_LENGTH, buffer );
 }

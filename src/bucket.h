@@ -22,16 +22,16 @@ struct obj_bckt {
 	LIST *nodes;
 };
 
-LIST *bckt_init(void);
-void bckt_free(LIST *thislist);
-void bckt_put(LIST *l, struct obj_nodeItem *n);
-void bckt_del(LIST *l, struct obj_nodeItem *n);
+LIST *bckt_init( void );
+void bckt_free( LIST *thislist );
+void bckt_put( LIST *l, struct obj_nodeItem *n );
+void bckt_del( LIST *l, struct obj_nodeItem *n );
 
-ITEM *bckt_find_best_match(LIST *thislist, const unsigned char *id);
-ITEM *bckt_find_any_match(LIST *thislist, const unsigned char *id);
-ITEM *bckt_find_node(LIST *thislist, const unsigned char *id);
+ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id );
+ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id );
+ITEM *bckt_find_node( LIST *thislist, const unsigned char *id );
 
-int bckt_split(LIST *thislist, const unsigned char *id);
+int bckt_split( LIST *thislist, const unsigned char *id );
 
-int bckt_compute_id(LIST *thislist, ITEM *item_b, unsigned char *id_return);
-int bckt_significant_bit(const unsigned char *id);
+int bckt_compute_id( LIST *thislist, ITEM *item_b, unsigned char *id_return );
+int bckt_significant_bit( const unsigned char *id );

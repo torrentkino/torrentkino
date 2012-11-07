@@ -18,15 +18,15 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifdef VINEGAR
-void log_complex(struct obj_nodeItem *nodeItem, int code, const char *buffer);
-void log_info(int code, const char *buffer);
+void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer );
+void log_info( int code, const char *buffer );
 #endif
 
 #ifdef MASALA
-void log_udp(CIPV6 *c_addr, const char *buffer);
-void log_info(const char *buffer);
+void log_udp( CIPV6 *c_addr, const char *buffer );
+void log_info( const char *buffer );
 #endif
 
-void log_simple(const char *buffer);
-void log_fail(const char *buffer);
-void log_memfail(const char *buffer, const char *caller);
+void log_simple( const char *buffer );
+void log_fail( const char *buffer );
+void log_memfail( const char *buffer, const char *caller );

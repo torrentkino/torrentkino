@@ -50,21 +50,21 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "node_p2p.h"
 #include "bucket.h"
 
-LIST *bckt_init(void ) {
-	struct obj_bckt *b = (struct obj_bckt *) myalloc(sizeof(struct obj_bckt), "bckt_init");
+LIST *bckt_init( void ) {
+	struct obj_bckt *b = (struct obj_bckt *) myalloc( sizeof( struct obj_bckt), "bckt_init" );
 	LIST *l = (LIST *) list_init();
 	
 	/* First bucket */
-	memset(b->id, '\0', SHA_DIGEST_LENGTH);
+	memset( b->id, '\0', SHA_DIGEST_LENGTH );
 	b->nodes = list_init();
 
 	/* Connect bucket */
-	list_put(l, b);
+	list_put( l, b );
 	
 	return l;
 }
 
-void bckt_free(LIST *thislist ) {
+void bckt_free( LIST *thislist ) {
 	ITEM *i = NULL;
 	struct obj_bckt *b = NULL;
 	long int j = 0;
@@ -74,17 +74,17 @@ void bckt_free(LIST *thislist ) {
 		b = i->val;
 
 		/* Delete node references */
-		list_free(b->nodes);
+		list_free( b->nodes );
 
 		/* Delete bucket */
-		myfree(b, "bckt_free");
+		myfree( b, "bckt_free" );
 
-		i = list_next(i);
+		i = list_next( i );
 	}
-	list_free(thislist);
+	list_free( thislist );
 }
 
-void bckt_put(LIST *l, struct obj_nodeItem *n ) {
+void bckt_put( LIST *l, struct obj_nodeItem *n ) {
 	ITEM *i = NULL;
 	struct obj_bckt *b = NULL;
 
@@ -92,21 +92,21 @@ void bckt_put(LIST *l, struct obj_nodeItem *n ) {
 		return;
 	}
 
-	if(( i = bckt_find_best_match(l, n->id)) == NULL ) {
-		log_fail("Something is terribly broken: No appropriate bucket found for ID");
+	if( ( i = bckt_find_best_match( l, n->id)) == NULL ) {
+		log_fail( "Something is terribly broken: No appropriate bucket found for ID" );
 		return;
 	}
 	b = i->val;
 
-	if( bckt_find_node(l, n->id) != NULL ) {
+	if( bckt_find_node( l, n->id) != NULL ) {
 		/* Node node found */
 		return;
 	}
 
-	list_put(b->nodes, n);
+	list_put( b->nodes, n );
 }
 
-void bckt_del(LIST *l, struct obj_nodeItem *n ) {
+void bckt_del( LIST *l, struct obj_nodeItem *n ) {
 	ITEM *item_b = NULL;
 	ITEM *item_n = NULL;
 	struct obj_bckt *b = NULL;
@@ -115,22 +115,22 @@ void bckt_del(LIST *l, struct obj_nodeItem *n ) {
 		return;
 	}
 
-	if(( item_b = bckt_find_best_match(l, n->id)) == NULL ) {
-		log_fail("Something is terribly broken: No appropriate bucket found for ID");
+	if( ( item_b = bckt_find_best_match( l, n->id)) == NULL ) {
+		log_fail( "Something is terribly broken: No appropriate bucket found for ID" );
 		return;
 	}
 	b = item_b->val;
 
-	if(( item_n = bckt_find_node(l, n->id)) == NULL ) {
+	if( ( item_n = bckt_find_node( l, n->id)) == NULL ) {
 		/* Node node found */
 		return;
 	}
 
 	/* Delete reference to node */
-	list_del(b->nodes, item_n);
+	list_del( b->nodes, item_n );
 }
 
-ITEM *bckt_find_best_match(LIST *thislist, const unsigned char *id ) {
+ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
 	struct obj_bckt *b = NULL;
@@ -138,11 +138,11 @@ ITEM *bckt_find_best_match(LIST *thislist, const unsigned char *id ) {
 
 	item = thislist->start;
 	for( i=0; i<thislist->counter-1; i++ ) {
-		next = list_next(item);
+		next = list_next( item );
 		b = next->val;
 
 		/* Does this bucket fits better than the next one? */
-		if( memcmp(id, b->id, SHA_DIGEST_LENGTH) < 0 ) {
+		if( memcmp( id, b->id, SHA_DIGEST_LENGTH) < 0 ) {
 			return item;
 		}
 
@@ -153,12 +153,12 @@ ITEM *bckt_find_best_match(LIST *thislist, const unsigned char *id ) {
 	return thislist->stop;
 }
 
-ITEM *bckt_find_any_match(LIST *thislist, const unsigned char *id ) {
+ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id ) {
 	ITEM *i = NULL;
 	struct obj_bckt *b = NULL;
 	long int j=0;
 
-	i = bckt_find_best_match(thislist, id);
+	i = bckt_find_best_match( thislist, id );
 	b = i->val;
 
 	/* Success, */
@@ -173,13 +173,13 @@ ITEM *bckt_find_any_match(LIST *thislist, const unsigned char *id ) {
 		if( b->nodes->counter > 0 ) {
 			return i;
 		}
-		i = list_prev(i);
+		i = list_prev( i );
 	}
 
 	return NULL;
 }
 
-ITEM *bckt_find_node(LIST *thislist, const unsigned char *id ) {
+ITEM *bckt_find_node( LIST *thislist, const unsigned char *id ) {
 	ITEM *item_b = NULL;
 	ITEM *item_n = NULL;
 	struct obj_bckt *b = NULL;
@@ -187,7 +187,7 @@ ITEM *bckt_find_node(LIST *thislist, const unsigned char *id ) {
 	struct obj_nodeItem *n = NULL;
 	long int i = 0;
 
-	if(( item_b = bckt_find_best_match(thislist, id)) == NULL ) {
+	if( ( item_b = bckt_find_best_match( thislist, id)) == NULL ) {
 		return NULL;
 	}
 	b = item_b->val;
@@ -196,16 +196,16 @@ ITEM *bckt_find_node(LIST *thislist, const unsigned char *id ) {
 	item_n = list_n->start;
 	for( i=0; i<list_n->counter; i++ ) {
 		n = item_n->val;
-		if( memcmp(n->id, id, SHA_DIGEST_LENGTH) == 0 ) {
+		if( memcmp( n->id, id, SHA_DIGEST_LENGTH) == 0 ) {
 			return item_n;
 		}
-		item_n = list_next(item_n);
+		item_n = list_next( item_n );
 	}
 
 	return NULL;
 }
 
-int bckt_split(LIST *thislist, const unsigned char *id ) {
+int bckt_split( LIST *thislist, const unsigned char *id ) {
 	ITEM *item_b = NULL;
 	struct obj_bckt *b = NULL;
 	LIST *list_n = NULL;
@@ -218,7 +218,7 @@ int bckt_split(LIST *thislist, const unsigned char *id ) {
 	long int i = 0;
 
 	/* Search bucket we want to evolve */
-	if(( item_b = bckt_find_best_match(thislist, id)) == NULL ) {
+	if( ( item_b = bckt_find_best_match( thislist, id)) == NULL ) {
 		return 0;
 	}
 	b = item_b->val;
@@ -229,17 +229,17 @@ int bckt_split(LIST *thislist, const unsigned char *id ) {
 	}
 
 	/* Compute id of the new bucket */
-	if( bckt_compute_id(thislist, item_b, id_new) < 0 ) {
+	if( bckt_compute_id( thislist, item_b, id_new) < 0 ) {
 		return 0;
 	}
 	
 	/* Create new bucket */
-	b_new = (struct obj_bckt *) myalloc(sizeof(struct obj_bckt), "split_bucket");
-	memcpy(b_new->id, id_new, SHA_DIGEST_LENGTH);
+	b_new = (struct obj_bckt *) myalloc( sizeof( struct obj_bckt), "split_bucket" );
+	memcpy( b_new->id, id_new, SHA_DIGEST_LENGTH );
 	b_new->nodes = list_init();
 	
 	/* Insert new bucket */
-	list_ins(thislist, item_b, b_new);
+	list_ins( thislist, item_b, b_new );
 
 	/* Remember nodes */
 	list_n = b->nodes;
@@ -251,22 +251,22 @@ int bckt_split(LIST *thislist, const unsigned char *id ) {
 	item_n = list_n->start;
 	for( i=0; i<list_n->counter; i++ ) {
 		n = item_n->val;
-		item_s = bckt_find_best_match(thislist, n->id);
+		item_s = bckt_find_best_match( thislist, n->id );
 
 		s = item_s->val;
-		list_put(s->nodes, n);
+		list_put( s->nodes, n );
 
-		item_n = list_next(item_n);
+		item_n = list_next( item_n );
 	}
 
 	/* Delete the old list but not its payload */
-	list_free(list_n);
+	list_free( list_n );
 
 	/* Bucket successfully split */
 	return 1;
 }
 
-int bckt_compute_id(LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
+int bckt_compute_id( LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
 	struct obj_bckt *b = item_b->val;
 	ITEM *item_next = NULL;
 	struct obj_bckt *b_next = NULL;
@@ -276,28 +276,28 @@ int bckt_compute_id(LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
 
 	/* Is there a container next to this one? */
 	if( item_b != thislist->stop ) {
-		item_next = list_next(item_b);
+		item_next = list_next( item_b );
 		b_next = item_next->val;
 	}
 
-	bit1 = bckt_significant_bit(b->id);
-	bit2 = (b_next != NULL) ? bckt_significant_bit(b_next->id) : -1;
+	bit1 = bckt_significant_bit( b->id );
+	bit2 = (b_next != NULL) ? bckt_significant_bit( b_next->id) : -1;
 	bit = (bit1 >= bit2) ? bit1 : bit2; bit++;
 
 	if( bit >= 160 ) {
 		return -1;
 	}
 
-	memcpy(id_return, b->id, 20);
-	id_return[bit / 8] |= (0x80 >>( bit % 8));
+	memcpy( id_return, b->id, 20 );
+	id_return[bit / 8] |= (0x80 >>( bit % 8) );
 
 	return 1;
 }
 
-int bckt_significant_bit(const unsigned char *id ) {
+int bckt_significant_bit( const unsigned char *id ) {
 	int i=0, j=0;
 
-	for(i = 19; i >= 0; i-- ) {
+	for( i = 19; i >= 0; i-- ) {
 		if( id[i] != 0 ) {
 			break;
 		}
@@ -307,8 +307,8 @@ int bckt_significant_bit(const unsigned char *id ) {
 		return -1;
 	}
 
-	for(j = 7; j >= 0; j-- ) {
-		if(( id[i] &( 0x80 >> j)) != 0 ) {
+	for( j = 7; j >= 0; j-- ) {
+		if( ( id[i] &( 0x80 >> j)) != 0 ) {
 			break;
 		}
 	}

@@ -36,7 +36,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "malloc.h"
 #include "log.h"
 
-void sha1_hash(UCHAR *hash, const char *buffer, long int bytes ) {
-	memset(hash, '\0', SHA_DIGEST_LENGTH);
-	sha1((const UCHAR *)buffer, bytes, hash);
+void sha1_hash( UCHAR *hash, const char *buffer, long int bytes ) {
+	memset( hash, '\0', SHA_DIGEST_LENGTH );
+	sha1( (const UCHAR *)buffer, bytes, hash );
 }

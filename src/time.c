@@ -44,18 +44,18 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 #include "time.h"
 
-time_t time_add_1_min(void ) {
+time_t time_add_1_min( void ) {
 	return _main->p2p->time_now.tv_sec + TIME_1_MINUTE;
 }
 
-time_t time_add_15_min(void ) {
+time_t time_add_15_min( void ) {
 	return _main->p2p->time_now.tv_sec + TIME_15_MINUTES;
 }
 
-time_t time_add_2_min_approx(void ) {
+time_t time_add_2_min_approx( void ) {
 	return _main->p2p->time_now.tv_sec + TIME_1_MINUTE + random() % TIME_2_MINUTES;
 }
 
-time_t time_add_5_min_approx(void ) {
+time_t time_add_5_min_approx( void ) {
 	return _main->p2p->time_now.tv_sec + TIME_4_MINUTES + random() % TIME_2_MINUTES;
 }

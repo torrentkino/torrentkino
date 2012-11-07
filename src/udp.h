@@ -40,22 +40,22 @@ struct obj_udp {
 	pthread_attr_t attr;
 };
 
-struct obj_udp *udp_init(void);
-void udp_free(void);
+struct obj_udp *udp_init( void );
+void udp_free( void );
 
-void udp_start(void);
-void udp_stop(void);
+void udp_start( void );
+void udp_stop( void );
 
-int udp_nonblocking(int sock);
-void udp_event(void);
+int udp_nonblocking( int sock );
+void udp_event( void );
 
-void udp_pool(void);
-void *udp_thread(void *arg);
-void *udp_client(void *arg);
-void udp_worker(struct epoll_event *events, int nfds, int thrd_id);
-void udp_rearm(int sockfd);
+void udp_pool( void );
+void *udp_thread( void *arg );
+void *udp_client( void *arg );
+void udp_worker( struct epoll_event *events, int nfds, int thrd_id );
+void udp_rearm( int sockfd );
 
-void udp_input(int sockfd);
-void udp_cron(void);
+void udp_input( int sockfd );
+void udp_cron( void );
 
-void udp_multicast(void);
+void udp_multicast( void );

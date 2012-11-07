@@ -52,7 +52,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "search.h"
 #endif
 
-void opts_load(int argc, char **argv ) {
+void opts_load( int argc, char **argv ) {
 	unsigned int i;
 
 	/* ./program blabla */
@@ -67,73 +67,73 @@ void opts_load(int argc, char **argv ) {
 		if( argv[i] != NULL && argv[i][0] == '-' ) {
 			
 			/* -x */
-			if( strlen(argv[i]) == 2 ) {
+			if( strlen( argv[i]) == 2 ) {
 				if( i+1 < argc && argv[i+1] != NULL && argv[i+1][0] != '-' ) {
 					
 					/* -x abc */
-					opts_interpreter(argv[i], argv[i+1]);
+					opts_interpreter( argv[i], argv[i+1] );
 					i++;
 				} else {
 					
 					/* -x -y => -x */
-					opts_interpreter(argv[i], NULL);
+					opts_interpreter( argv[i], NULL );
 				}
 			}
 		}
 	}
 }
 
-void opts_interpreter(char *var, char *val ) {
+void opts_interpreter( char *var, char *val ) {
 #ifdef VINEGAR
 	char *p0 = NULL, *p1 = NULL;
 
 	/* WWW Directory */
-	if( strcmp(var, "-s") == 0 && val != NULL && strlen(val) > 1 ) {
+	if( strcmp( var, "-s") == 0 && val != NULL && strlen( val) > 1 ) {
 		p0 = val;
 
 		if( *p0 == '/' ) {
 			/* Absolute path? */
-			snprintf(_main->conf->home, MAIN_BUF+1, "%s", p0);
+			snprintf( _main->conf->home, MAIN_BUF+1, "%s", p0 );
 		} else {
 			/* Relative path? */
-			if(( p1 = getenv("PWD")) != NULL ) {
-				snprintf(_main->conf->home, MAIN_BUF+1, "%s/%s", p1, p0);
+			if( ( p1 = getenv( "PWD")) != NULL ) {
+				snprintf( _main->conf->home, MAIN_BUF+1, "%s/%s", p1, p0 );
 			} else {
-				snprintf(_main->conf->home, MAIN_BUF+1, "/notexistant");
+				snprintf( _main->conf->home, MAIN_BUF+1, "/notexistant" );
 			}
 		}
 	}
 
 	/* Create HTML index */
-	if( strcmp(var, "-i") == 0 && val != NULL && strlen(val) > 1 ) {
-		snprintf(_main->conf->index_name, MAIN_BUF+1, "%s", val);
+	if( strcmp( var, "-i") == 0 && val != NULL && strlen( val) > 1 ) {
+		snprintf( _main->conf->index_name, MAIN_BUF+1, "%s", val );
 	}
 #endif
 
 #ifdef MASALA
-	if( strcmp(var, "-x") == 0 && val != NULL && strlen(val) > 1 ) {
-		strncpy(_main->conf->bootstrap_node, val, MAIN_BUF);
-	} else if( strcmp(var, "-y") == 0 && val != NULL && strlen(val) > 1 ) {
-		snprintf(_main->conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", val);
-	} else if( strcmp(var, "-k") == 0 && val != NULL && strlen(val) > 1 ) {
-		snprintf(_main->conf->key, MAIN_BUF+1, "%s", val);
+	if( strcmp( var, "-x") == 0 && val != NULL && strlen( val) > 1 ) {
+		strncpy( _main->conf->bootstrap_node, val, MAIN_BUF );
+	} else if( strcmp( var, "-y") == 0 && val != NULL && strlen( val) > 1 ) {
+		snprintf( _main->conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", val );
+	} else if( strcmp( var, "-k") == 0 && val != NULL && strlen( val) > 1 ) {
+		snprintf( _main->conf->key, MAIN_BUF+1, "%s", val );
 		_main->conf->encryption = 1;
 
-	} else if( strcmp(var, "-h") == 0 && val != NULL && strlen(val) > 1 ) {
-		snprintf(_main->conf->hostname, MAIN_BUF+1, "%s", val);
-		sha1_hash((unsigned char *)_main->conf->host_id, val, strlen(val));
+	} else if( strcmp( var, "-h") == 0 && val != NULL && strlen( val) > 1 ) {
+		snprintf( _main->conf->hostname, MAIN_BUF+1, "%s", val );
+		sha1_hash( (unsigned char *)_main->conf->host_id, val, strlen( val) );
 
-	} else if( strcmp(var, "-q") == 0 && val == NULL ) {
+	} else if( strcmp( var, "-q") == 0 && val == NULL ) {
 		_main->conf->quiet = CONF_BEQUIET;
 	}
 #endif
 
 	/* Port number */
-	if( strcmp(var, "-p") == 0 && val != NULL ) {
-		_main->conf->port = atoi(val);
-	} else if( strcmp(var, "-u") == 0 && val != NULL ) {
-		snprintf(_main->conf->username, MAIN_BUF+1, "%s", val);
-	} else if( strcmp(var, "-d") == 0 && val == NULL ) {
+	if( strcmp( var, "-p") == 0 && val != NULL ) {
+		_main->conf->port = atoi( val );
+	} else if( strcmp( var, "-u") == 0 && val != NULL ) {
+		snprintf( _main->conf->username, MAIN_BUF+1, "%s", val );
+	} else if( strcmp( var, "-d") == 0 && val == NULL ) {
 		_main->conf->mode = CONF_DAEMON;
 	}
 }

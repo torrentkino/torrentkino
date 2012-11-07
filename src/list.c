@@ -42,8 +42,8 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 #endif
 
-LIST *list_init(void ) {
-	LIST *list = (LIST *) myalloc(sizeof(LIST), "list_init");
+LIST *list_init( void ) {
+	LIST *list = (LIST *) myalloc( sizeof( LIST), "list_init" );
 
 	list->start   = NULL;
 	list->stop	= NULL;
@@ -52,28 +52,28 @@ LIST *list_init(void ) {
 	return list;
 }
 
-void list_free(LIST *list ) {
+void list_free( LIST *list ) {
 	if( list != NULL ) {
 		while( list->start != NULL ) {
-			list_del(list, list->start);
+			list_del( list, list->start );
 		}
-		myfree(list, "list_free");
+		myfree( list, "list_free" );
 	}
 }
 
-void list_clear(LIST *list ) {
+void list_clear( LIST *list ) {
 	ITEM *i = NULL;
 	long int j = 0;
 
 	/* Free payload */
 	i = list->start;
 	for( j=0; j<list->counter; j++ ) {
-		myfree(i->val, "list_clear");
-		i = list_next(i);
+		myfree( i->val, "list_clear" );
+		i = list_next( i );
 	}
 }
 
-ITEM *list_put(LIST *list, void *payload ) {
+ITEM *list_put( LIST *list, void *payload ) {
 	/* Variables */
 	ITEM *newItem = NULL;
 
@@ -83,7 +83,7 @@ ITEM *list_put(LIST *list, void *payload ) {
 	}
 
 	/* Get memory */
-	newItem = (ITEM *) myalloc(sizeof(ITEM), "list_put");
+	newItem = (ITEM *) myalloc( sizeof( ITEM), "list_put" );
 
 	/* Data container */
 	newItem->val = payload;
@@ -112,7 +112,7 @@ ITEM *list_put(LIST *list, void *payload ) {
 	return newItem;
 }
 
-ITEM *list_ins(LIST *list, ITEM *here, void *payload ) {
+ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
 	/* Variables */
 	ITEM *new = NULL;
 	ITEM *next = NULL;
@@ -124,11 +124,11 @@ ITEM *list_ins(LIST *list, ITEM *here, void *payload ) {
 
 	/* This insert is like a normal list_put */
 	if( list->counter <= 1 ) {
-		return list_put(list, payload);
+		return list_put( list, payload );
 	}
 
 	/* Data */
-	new = (ITEM *) myalloc(sizeof(ITEM), "list_app");
+	new = (ITEM *) myalloc( sizeof( ITEM), "list_app" );
 	new->val = payload;
 
 	/* Setup pointer */
@@ -152,7 +152,7 @@ ITEM *list_ins(LIST *list, ITEM *here, void *payload ) {
 	return new;
 }
 
-ITEM *list_del(LIST *list, ITEM *item ) {
+ITEM *list_del( LIST *list, ITEM *item ) {
 	/* Variables */
 	ITEM *next = NULL;
 
@@ -191,12 +191,12 @@ ITEM *list_del(LIST *list, ITEM *item ) {
 	list->counter--;
 
 	/* item is not linked anymore. Free it */
-	myfree(item, "list_del");
+	myfree( item, "list_del" );
 
 	return next;
 }
 
-ITEM *list_next(ITEM *item ) {
+ITEM *list_next( ITEM *item ) {
 	/* Variables */
 	ITEM *next = NULL;
 
@@ -209,7 +209,7 @@ ITEM *list_next(ITEM *item ) {
 	return next;
 }
 
-ITEM *list_prev(ITEM *item ) {
+ITEM *list_prev( ITEM *item ) {
 	/* Variables */
 	ITEM *prev = NULL;
 
@@ -222,7 +222,7 @@ ITEM *list_prev(ITEM *item ) {
 	return prev;
 }
 
-void list_swap(LIST *list, ITEM *item1, ITEM *item2 ) {
+void list_swap( LIST *list, ITEM *item1, ITEM *item2 ) {
 	ITEM *a = item1->prev;
 	ITEM *b = item1;
 	ITEM *c = item1->next;
@@ -240,14 +240,14 @@ void list_swap(LIST *list, ITEM *item1, ITEM *item2 ) {
 	/*
 	key1 = b->key;
 	key2 = y->key;
-	printf("#Vertausche: %s <> %s\n", key1->v.s->s, key2->v.s->s);
+	printf( "#Vertausche: %s <> %s\n", key1->v.s->s, key2->v.s->s );
 	*/
 
 	/*
 	key1 = b->prev->key;
 	key2 = b->key;
 	key3 = b->next->key;
-	printf("#Vorher: %s > %s > %s\n", key1->v.s->s, key2->v.s->s, key3->v.s->s);
+	printf( "#Vorher: %s > %s > %s\n", key1->v.s->s, key2->v.s->s, key3->v.s->s );
 	*/
 
 	if( list->counter < 2 ) {
@@ -303,7 +303,7 @@ void list_swap(LIST *list, ITEM *item1, ITEM *item2 ) {
 		key1 = b->prev->key;
 		key2 = b->key;
 		key3 = b->next->key;
-		printf("#Nachher: %s > %s > %s\n", key1->v.s->s, key2->v.s->s, key3->v.s->s);
+		printf( "#Nachher: %s > %s > %s\n", key1->v.s->s, key2->v.s->s, key3->v.s->s );
 		*/
 	}
 }

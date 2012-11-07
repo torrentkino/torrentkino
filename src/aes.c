@@ -33,7 +33,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "aes.h"
 #include "str.h"
 
-struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
+struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
 	UCHAR ciphertext[AES_PLAINSIZE];
 	UCHAR digest[32];
 	UCHAR plain_padded[AES_PLAINSIZE];
@@ -45,13 +45,13 @@ struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UC
 	struct obj_str *cipher = NULL;
 
 	if( ivlen != AES_SALT_SIZE ) {
-		log_info("aes2_encrypt: Broken salt");
+		log_info( "aes2_encrypt: Broken salt" );
 		return NULL;
 	}
 
 	/* Plaintext out of boundary */
 	if( plainlen <= 0 || plainlen > AES_PLAINSIZE ) {
-		log_info("aes2_encrypt: Broken plaintext");
+		log_info( "aes2_encrypt: Broken plaintext" );
 		return NULL;
 	}
 
@@ -61,16 +61,16 @@ struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UC
 
 	/* Plaintext out of boundary */
 	if( plainlen_padded <= 0 || plainlen_padded > AES_PLAINSIZE ) {
-		log_info("aes2_encrypt: Broken plaintext");
+		log_info( "aes2_encrypt: Broken plaintext" );
 		return NULL;
 	}
 
 	/* Store padded message */
-	memset(plain_padded, '\0', AES_PLAINSIZE);
-	memcpy(plain_padded, plain, plainlen);
+	memset( plain_padded, '\0', AES_PLAINSIZE );
+	memcpy( plain_padded, plain, plainlen );
 
 	/* Store iv locally because it gets modified by aes_crypt_cbc() */
-	memcpy(iv_local, iv, ivlen);
+	memcpy( iv_local, iv, ivlen );
 
 	/* Setup AES context with the key and the IV */
 	memset( digest, '\0',  32 );
@@ -82,21 +82,21 @@ struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UC
 		sha2_finish( &sha_ctx, digest );
 	}
 	if( aes_setkey_enc( &aes_ctx, digest, 256 ) != 0 ) {
-		log_info("aes_setkey_enc() failed");
+		log_info( "aes_setkey_enc() failed" );
 		return NULL;
 	}
 
 	/* Encrypt message */
 	if( aes_crypt_cbc( &aes_ctx, AES_ENCRYPT, plainlen_padded, iv_local, plain_padded, ciphertext ) != 0 ) {
-		log_info("aes_crypt_cbc() failed");
+		log_info( "aes_crypt_cbc() failed" );
 		return NULL;
 	}
-	cipher = str_init(ciphertext, plainlen_padded);
+	cipher = str_init( ciphertext, plainlen_padded );
 
 	return cipher;
 }
 
-struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
+struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
 	UCHAR plaintext[AES_PLAINSIZE];
 	UCHAR digest[32];
 	aes_context aes_ctx;
@@ -105,12 +105,12 @@ struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, 
 	struct obj_str *plain = NULL;
 
 	if( ivlen != AES_SALT_SIZE ) {
-		log_info("aes2_decrypt: Broken salt");
+		log_info( "aes2_decrypt: Broken salt" );
 		return NULL;
 	}
 
 	if( cipherlen % 16 != 0 ) {
-		log_info("aes2_decrypt: Broken cipher");
+		log_info( "aes2_decrypt: Broken cipher" );
 		return NULL;
 	}
 
@@ -124,17 +124,17 @@ struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, 
 		sha2_finish( &sha_ctx, digest );
 	}
 	if( aes_setkey_dec( &aes_ctx, digest, 256 ) != 0 ) {
-		log_info("aes_setkey_enc() failed");
+		log_info( "aes_setkey_enc() failed" );
 		return NULL;
 	}
 
 	/* Decrypt message */
-	memset(plaintext, '\0', AES_PLAINSIZE);
+	memset( plaintext, '\0', AES_PLAINSIZE );
 	if( aes_crypt_cbc( &aes_ctx, AES_DECRYPT, cipherlen, iv, cipher, plaintext ) != 0 ) {
-		log_info("aes_crypt_cbc() failed");
+		log_info( "aes_crypt_cbc() failed" );
 		return NULL;
 	}
-	plain = str_init(plaintext, cipherlen);
+	plain = str_init( plaintext, cipherlen );
 
 	return plain;
 }

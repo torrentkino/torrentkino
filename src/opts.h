@@ -17,5 +17,5 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void opts_load(int argc, char **argv);
-void opts_interpreter(char *var, char *val);
+void opts_load( int argc, char **argv );
+void opts_interpreter( char *var, char *val );

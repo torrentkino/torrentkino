@@ -28,11 +28,11 @@ struct obj_key {
 	int type;
 };
 
-struct obj_cache *cache_init(void);
-void cache_free(void);
+struct obj_cache *cache_init( void );
+void cache_free( void );
 
-void cache_put(UCHAR *id, int type);
-void cache_del(UCHAR *id);
+void cache_put( UCHAR *id, int type );
+void cache_del( UCHAR *id );
 
-void cache_expire(void);
-int cache_validate(UCHAR *id);
+void cache_expire( void );
+int cache_validate( UCHAR *id );

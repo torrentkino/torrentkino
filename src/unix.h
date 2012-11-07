@@ -17,12 +17,12 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void unix_signal(void);
-void unix_sig_stop(int signo);
-void unix_sig_time(int signo);
-void unix_set_time(int seconds);
-void unix_fork(void);
-void unix_limits(void);
-void unix_dropuid0(void);
-void unix_environment(void);
-int unix_cpus(void);
+void unix_signal( void );
+void unix_sig_stop( int signo );
+void unix_sig_time( int signo );
+void unix_set_time( int seconds );
+void unix_fork( void );
+void unix_limits( void );
+void unix_dropuid0( void );
+void unix_environment( void );
+int unix_cpus( void );

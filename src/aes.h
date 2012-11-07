@@ -24,5 +24,5 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 #define AES_PLAINSIZE 1456
 
-struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen);
-struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen);
+struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen );
+struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen );

@@ -17,18 +17,18 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-int file_isdir(const char *dirname);
-int file_isreg(const char *filename);
-int file_islink(const char *filename);
-int file_mkdir(const char *dirname);
+int file_isdir( const char *dirname );
+int file_isreg( const char *filename );
+int file_islink( const char *filename );
+int file_mkdir( const char *dirname );
 
-int file_rm(const char *filename);
-int file_rmdir(const char *dirname);
-int file_rmrf(char *filename);
+int file_rm( const char *filename );
+int file_rmdir( const char *dirname );
+int file_rmrf( char *filename );
 
-size_t file_size(const char *filename);
-time_t file_mod(const char *filename);
+size_t file_size( const char *filename );
+time_t file_mod( const char *filename );
 
-char *file_load(const char *filename, long int offset, size_t size);
-int file_write(const char *filename, char *buffer, size_t size);
-size_t file_append(const char *filename, char *buffer, size_t size);
+char *file_load( const char *filename, long int offset, size_t size );
+int file_write( const char *filename, char *buffer, size_t size );
+size_t file_append( const char *filename, char *buffer, size_t size );

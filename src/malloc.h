@@ -17,6 +17,6 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void *myalloc(long int size, const char *caller);
-void *myrealloc(void *arg, long int size, const char *caller);
-void myfree(void *arg, const char *caller);
+void *myalloc( long int size, const char *caller );
+void *myrealloc( void *arg, long int size, const char *caller );
+void myfree( void *arg, const char *caller );

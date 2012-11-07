@@ -35,51 +35,51 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "log.h"
 
-void *myalloc(long int size, const char *caller ) {
+void *myalloc( long int size, const char *caller ) {
 	void *memory = NULL;
 
 	if( size == 0 ) {
-		log_memfail("myalloc(): Zero size?!", caller);
+		log_memfail( "myalloc(): Zero size?!", caller );
 	} else if( size < 0 ) {
-		log_memfail("myalloc(): Negative size?!", caller);
+		log_memfail( "myalloc(): Negative size?!", caller );
 	}
 
-	memory = (void *) malloc(size);
+	memory = (void *) malloc( size );
 	
 	if( memory == NULL ) {
-		log_memfail("malloc() failed.", caller);
+		log_memfail( "malloc() failed.", caller );
 	}
 
-	memset(memory, '\0', size);
+	memset( memory, '\0', size );
 
 	/*
-	printf("malloc(%s)\n", caller);
+	printf( "malloc( %s)\n", caller );
 	*/
 
 	return memory;
 }
 
-void *myrealloc(void *arg, long int size, const char *caller ) {
+void *myrealloc( void *arg, long int size, const char *caller ) {
 	if( size == 0 ) {
-		log_memfail("myrealloc(): Zero size?!", caller);
+		log_memfail( "myrealloc(): Zero size?!", caller );
 	} else if( size < 0 ) {
-		log_memfail("myrealloc(): Negative size?!", caller);
+		log_memfail( "myrealloc(): Negative size?!", caller );
 	}
 
-	arg = (void *) realloc(arg, size);
+	arg = (void *) realloc( arg, size );
 	
 	if( arg == NULL ) {
-		log_memfail("realloc() failed.", caller);
+		log_memfail( "realloc() failed.", caller );
 	}
 
 	return arg;
 }
 
-void myfree(void *arg, const char *caller ) {
+void myfree( void *arg, const char *caller ) {
 	if( arg != NULL ) {
-		free(arg);
+		free( arg );
 		/*
-		printf("free(%s)\n", caller);
+		printf( "free( %s)\n", caller );
 		*/
 	}
 }

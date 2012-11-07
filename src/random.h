@@ -17,4 +17,4 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void rand_urandom(void *buffer, size_t size);
+void rand_urandom( void *buffer, size_t size );

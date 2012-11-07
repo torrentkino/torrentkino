@@ -20,11 +20,11 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define SEND_UNICAST 0
 #define SEND_MULTICAST 1
 
-void send_ping(CIPV6 *sa, int type);
-void send_pong(CIPV6 *sa, UCHAR *node_sk, int warning);
+void send_ping( CIPV6 *sa, int type );
+void send_pong( CIPV6 *sa, UCHAR *node_sk, int warning );
 
-void send_find(CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id);
-void send_node(CIPV6 *sa, struct obj_bckt *b, UCHAR *node_sk, UCHAR *lkp_id, int warning);
+void send_find( CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id );
+void send_node( CIPV6 *sa, struct obj_bckt *b, UCHAR *node_sk, UCHAR *lkp_id, int warning );
 
-void send_aes(CIPV6 *sa, struct obj_raw *raw);
-void send_exec(CIPV6 *sa, struct obj_raw *raw);
+void send_aes( CIPV6 *sa, struct obj_raw *raw );
+void send_exec( CIPV6 *sa, struct obj_raw *raw );

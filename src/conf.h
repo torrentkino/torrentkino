@@ -84,7 +84,7 @@ struct obj_conf {
 	int port;
 };
 
-struct obj_conf *conf_init(void);
-void conf_free(void);
+struct obj_conf *conf_init( void );
+void conf_free( void );
 
-void conf_check(void);
+void conf_check( void );

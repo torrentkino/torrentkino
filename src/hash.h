@@ -33,13 +33,13 @@ struct obj_hash {
 	struct obj_bucket *buckets;
 };
 
-struct obj_hash *hash_init(unsigned int capacity);
-void hash_free(struct obj_hash *map);
+struct obj_hash *hash_init( unsigned int capacity );
+void hash_free( struct obj_hash *map );
 
-unsigned long hash_this(UCHAR *str, long int keysize);
-struct obj_pair *hash_getpair(struct obj_bucket *bucket, UCHAR *key, long int keysize);
+unsigned long hash_this( UCHAR *str, long int keysize );
+struct obj_pair *hash_getpair( struct obj_bucket *bucket, UCHAR *key, long int keysize );
 
-void *hash_get(const struct obj_hash *map, UCHAR *key, long int keysize);
-int hash_put(struct obj_hash *map, UCHAR *key, long int keysize, void *value);
-void hash_del(struct obj_hash *map, UCHAR *key, long int keysize);
-int hash_exists(const struct obj_hash *map, UCHAR *key, long int keysize);
+void *hash_get( const struct obj_hash *map, UCHAR *key, long int keysize );
+int hash_put( struct obj_hash *map, UCHAR *key, long int keysize, void *value );
+void hash_del( struct obj_hash *map, UCHAR *key, long int keysize );
+int hash_exists( const struct obj_hash *map, UCHAR *key, long int keysize );

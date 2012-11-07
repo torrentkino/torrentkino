@@ -36,19 +36,19 @@ struct obj_nodeItem {
 	int pinged;
 };
 
-struct obj_node *node_init(void);
-void node_free(void);
+struct obj_node *node_init( void );
+void node_free( void );
 
-struct obj_nodeItem *node_put(UCHAR *id, UCHAR *risk_id, CIPV6 *sa);
-void node_del(ITEM *i);
+struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa );
+void node_del( ITEM *i );
 
-void node_update_address(struct obj_nodeItem *node, CIPV6 *sa);
-int node_update_risk_id(struct obj_nodeItem *node, unsigned char *risk_id);
+void node_update_address( struct obj_nodeItem *node, CIPV6 *sa );
+int node_update_risk_id( struct obj_nodeItem *node, unsigned char *risk_id );
 
-void node_pinged(UCHAR *id);
-void node_ponged(UCHAR *id, CIPV6 *sa);
+void node_pinged( UCHAR *id );
+void node_ponged( UCHAR *id, CIPV6 *sa );
 
-void node_expire(void);
-long int node_counter(void);
+void node_expire( void );
+long int node_counter( void );
 
-int node_me(UCHAR *node_id);
+int node_me( UCHAR *node_id );

@@ -19,4 +19,4 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 #define SHA_DIGEST_LENGTH 20
 
-void sha1_hash(UCHAR *hash, const char *buffer, long int bytes);
+void sha1_hash( UCHAR *hash, const char *buffer, long int bytes );
