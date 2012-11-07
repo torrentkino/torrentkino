@@ -30,7 +30,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <signal.h>
 #include <sys/epoll.h>
-#include <openssl/ssl.h>
 
 #include "malloc.h"
 #include "main.h"
@@ -406,7 +405,7 @@ void send_aes(CIPV6 *sa, struct obj_raw *raw ) {
 	rand_urandom(salt, AES_SALT_SIZE);
 
 	/* Encrypt message */
-	aes = aes_encrypt((unsigned char *)raw->code, raw->size, salt, AES_SALT_SIZE, 
+	aes = aes_encrypt(raw->code, raw->size, salt, AES_SALT_SIZE, 
 					  (unsigned char *)_main->conf->key, strlen(_main->conf->key));
 	if ( aes == NULL ) {
 		log_info("Encoding AES message failed");

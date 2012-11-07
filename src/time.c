@@ -29,7 +29,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
-#include <openssl/ssl.h>
 
 #include "malloc.h"
 #include "thrd.h"

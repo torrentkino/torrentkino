@@ -26,11 +26,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <semaphore.h>
 #include <signal.h>
 #include <netinet/in.h>
-#ifdef OPENSSL
-#include <openssl/ssl.h>
-#else
 #include <polarssl/sha1.h>
-#endif
 
 #include "main.h"
 #include "str.h"
@@ -42,66 +38,5 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 void sha1_hash(UCHAR *hash, const char *buffer, long int bytes ) {
 	memset(hash, '\0', SHA_DIGEST_LENGTH);
-#ifdef OPENSSL
-	SHA1((UCHAR *)buffer, bytes, hash);
-#elif POLARSSL
 	sha1((const UCHAR *)buffer, bytes, hash);
-#endif
 }
-
-#ifndef NSS
-UCHAR *sha1_hashfile(const char *filename ) {
-#ifdef OPENSSL
-	SHA_CTX ctx;
-	off_t off = 0;
-	size_t chunk = 33554432; /* 32 MB */
-	size_t size = 0;
-	char *buf = NULL;
-	size_t fsize = file_size(filename);
-	UCHAR *md = (UCHAR *) myalloc((SHA_DIGEST_LENGTH+1)*sizeof(UCHAR), "sha1_hashfile");
-
-	if ( !SHA1_Init(&ctx) ) {
-		myfree(md, "sha1_hashfile");
-		return NULL;
-	}
-
-	for ( off=0; off<fsize; off+=chunk ) {
-		if ( off+chunk > fsize )
-			size = fsize - off;
-		else
-			size = chunk;
-		
-		buf = file_load(filename, off, size);
-
-		if ( buf == NULL ) {
-			myfree(md, "sha1_hashfile");
-			return NULL;
-		}
-
-		if ( !SHA1_Update(&ctx, buf, size) ) {
-			myfree(md, "sha1_hashfile");
-			myfree(buf, "sha1_hashfile");
-			return NULL;
-		}
-
-		myfree(buf, "sha1_hashfile");
-	}
-
-	if ( !SHA1_Final(md, &ctx) ) {
-		myfree(md, "sha1_hashfile");
-		return NULL;
-	}
-
-	return md;
-#elif POLARSSL
-	UCHAR *md = (UCHAR *) myalloc((SHA_DIGEST_LENGTH+1)*sizeof(UCHAR), "sha1_hashfile");
-	
-	if ( sha1_file(filename, md) != 0 ) {
-		myfree(md, "sha1_hashfile");
-		return NULL;
-	}
-
-	return md;
-#endif
-}
-#endif

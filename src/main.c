@@ -32,9 +32,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <sys/epoll.h>
 #include <sys/un.h>
-#ifndef VINEGAR
-#include <openssl/ssl.h>
-#endif
 
 #include "malloc.h"
 #include "main.h"

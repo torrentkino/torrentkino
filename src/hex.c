@@ -26,11 +26,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <semaphore.h>
 #include <signal.h>
 #include <netinet/in.h>
-#ifdef OPENSSL
-#include <openssl/ssl.h>
-#else
-#include <polarssl/sha1.h>
-#endif
 
 #include "main.h"
 #include "str.h"

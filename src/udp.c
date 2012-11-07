@@ -33,7 +33,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <sys/epoll.h>
 #include <sys/resource.h>
-#include <openssl/ssl.h>
 #include <netdb.h>
 
 #include "malloc.h"

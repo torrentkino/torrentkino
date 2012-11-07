@@ -6,10 +6,9 @@ export CFLAGS = -O2
 CFLAGS += -std=gnu99 -fPIC -DPIC
 CFLAGS += -Wall -Wwrite-strings -pedantic
 CFLAGS += -DNSS
-CFLAGS += -DOPENSSL
 #CFLAGS += $(shell dpkg-buildflags --get CFLAGS)
 #CFLAGS += $(HARDENING_CFLAGS)
-export POST_LINKING = -lpthread -lcrypto
+export POST_LINKING = -lpthread -lpolarssl
 #POST_LINKING += $(shell dpkg-buildflags --get LDFLAGS)
 #POST_LINKING += $(HARDENING_LDFLAGS)
 

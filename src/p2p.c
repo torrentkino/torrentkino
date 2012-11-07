@@ -34,7 +34,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
-#include <openssl/ssl.h>
 
 #include "malloc.h"
 #include "thrd.h"
@@ -190,9 +189,9 @@ void p2p_decrypt(UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 	}
 
 	/* Decrypt message */
-	plain = aes_decrypt((unsigned char *)aes->v.s->s, aes->v.s->i,
-		(unsigned char *)salt->v.s->s, salt->v.s->i,
-		(unsigned char *)_main->conf->key, strlen(_main->conf->key));
+	plain = aes_decrypt(aes->v.s->s, aes->v.s->i,
+		salt->v.s->s, salt->v.s->i,
+		(UCHAR *)_main->conf->key, strlen(_main->conf->key));
 	if ( plain == NULL ) {
 		log_info("Decoding AES message failed");
 		ben_free(packet);

@@ -36,7 +36,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "conf.h"
 #include "unix.h"
 #else
-#include <openssl/ssl.h>
 #include "main.h"
 #include "str.h"
 #include "malloc.h"

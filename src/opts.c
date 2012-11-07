@@ -38,7 +38,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "file.h"
 #include "opts.h"
 #else
-#include <openssl/ssl.h>
 #include "malloc.h"
 #include "main.h"
 #include "conf.h"

@@ -20,108 +20,121 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <openssl/evp.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <time.h>
 #include <signal.h>
+#include <polarssl/sha2.h>
+#include <polarssl/aes.h>
+
 #include "main.h"
 #include "malloc.h"
+#include "log.h"
 #include "aes.h"
 #include "str.h"
 
-struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen ) {
-	EVP_CIPHER_CTX ctx;
-	UCHAR rawkey[AES_KEY_SIZE];
-	UCHAR iv[AES_KEY_SIZE];
-	UCHAR *ciphertext = NULL;
-	int ciphermax = 0;
-	int cipherlen = 0;
-	int tmplen = 0;
+struct obj_str *aes_encrypt(UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen) {
+	UCHAR ciphertext[AES_PLAINSIZE];
+	UCHAR digest[32];
+	UCHAR plain_padded[AES_PLAINSIZE];
+	UCHAR iv_local[AES_SALT_SIZE];
+	aes_context aes_ctx;
+	sha2_context sha_ctx;
+	int plainlen_padded = 0;
+	int i = 0;
 	struct obj_str *cipher = NULL;
 
-	if ( saltlen != 8 ) {
-		goto EXIT;
+	if ( ivlen != AES_SALT_SIZE ) {
+		log_info("aes2_encrypt: Broken salt");
+		return NULL;
 	}
 
-	/* Size: plainlen + AES_BLOCK_SIZE - 1 */
-	ciphermax = plainlen + AES_BLOCK_SIZE;
-	ciphertext = myalloc(ciphermax * sizeof(char), "aes_encrypt");
-	
-	if ( EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), salt, key, keylen, AES_KEY_ROUNDS, rawkey, iv) != AES_KEY_SIZE ) {
-		goto EXIT;
+	/* Plaintext out of boundary */
+	if ( plainlen <= 0 || plainlen > AES_PLAINSIZE ) {
+		log_info("aes2_encrypt: Broken plaintext");
+		return NULL;
 	}
 
-	EVP_CIPHER_CTX_init(&ctx);
-	
-	if ( !EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, rawkey, iv) ) {
-		goto EXIT;
-	}
-	if ( !EVP_EncryptInit_ex(&ctx, NULL, NULL, NULL, NULL) ) {
-		goto EXIT;
-	}
-	if ( !EVP_EncryptUpdate(&ctx, ciphertext, &cipherlen, plain, plainlen) ) {
-		goto EXIT;
-	}
-	if ( !EVP_EncryptFinal_ex(&ctx, ciphertext+cipherlen, &tmplen) ) {
-		goto EXIT;
-	}
-	cipherlen += tmplen;
-	if ( !EVP_CIPHER_CTX_cleanup(&ctx) ) {
-		goto EXIT;
+	/* Compute padded plaintext length */
+	i = plainlen % 16;
+	plainlen_padded = ( i == 0 ) ? plainlen : plainlen - i + 16;
+
+	/* Plaintext out of boundary */
+	if ( plainlen_padded <= 0 || plainlen_padded > AES_PLAINSIZE ) {
+		log_info("aes2_encrypt: Broken plaintext");
+		return NULL;
 	}
 
-	cipher = str_init(ciphertext, cipherlen);
-	myfree(ciphertext, "aes_encrypt");
+	/* Store padded message */
+	memset(plain_padded, '\0', AES_PLAINSIZE);
+	memcpy(plain_padded, plain, plainlen);
+
+	/* Store iv locally because it gets modified by aes_crypt_cbc() */
+	memcpy(iv_local, iv, ivlen);
+
+	/* Setup AES context with the key and the IV */
+	memset( digest, '\0',  32 );
+	memcpy( digest, iv_local, ivlen );
+	for( i = 0; i < 8192; i++ ) {
+		sha2_starts( &sha_ctx, 0 );
+		sha2_update( &sha_ctx, digest, 32 );
+		sha2_update( &sha_ctx, key, keylen );
+		sha2_finish( &sha_ctx, digest );
+	}
+	if ( aes_setkey_enc( &aes_ctx, digest, 256 ) != 0 ) {
+		log_info("aes_setkey_enc() failed");
+		return NULL;
+	}
+
+	/* Encrypt message */
+	if( aes_crypt_cbc( &aes_ctx, AES_ENCRYPT, plainlen_padded, iv_local, plain_padded, ciphertext ) != 0 ) {
+		log_info("aes_crypt_cbc() failed");
+		return NULL;
+	}
+	cipher = str_init(ciphertext, plainlen_padded);
+
 	return cipher;
-
-	EXIT:
-	myfree(ciphertext, "aes_encrypt");
-	return NULL;
 }
 
-struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen ) {
-	EVP_CIPHER_CTX ctx;
-	UCHAR rawkey[AES_KEY_SIZE];
-	UCHAR iv[AES_KEY_SIZE];
-	UCHAR *plaintext = NULL;
-	int plainmax = 0;
-	int plainlen = 0;
-	int tmplen = 0;
+struct obj_str *aes_decrypt(UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen) {
+	UCHAR plaintext[AES_PLAINSIZE];
+	UCHAR digest[32];
+	aes_context aes_ctx;
+	sha2_context sha_ctx;
+	int i = 0;
 	struct obj_str *plain = NULL;
 
-	if ( saltlen != 8 ) {
-		goto EXIT;
+	if ( ivlen != AES_SALT_SIZE ) {
+		log_info("aes2_decrypt: Broken salt");
+		return NULL;
 	}
 
-	/* Size <= cipherlen */
-	plainmax = cipherlen;
-	plaintext = myalloc(plainmax * sizeof(char), "aes_decrypt");
-
-	if ( EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), salt, key, keylen, AES_KEY_ROUNDS, rawkey, iv) != AES_KEY_SIZE ) {
-		goto EXIT;
+	if ( cipherlen % 16 != 0 ) {
+		log_info("aes2_decrypt: Broken cipher");
+		return NULL;
 	}
 
-	EVP_CIPHER_CTX_init(&ctx);
-	if ( !EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, rawkey, iv) ) {
-		goto EXIT;
+	/* Setup AES context with the key and the IV */
+	memset( digest, '\0',  32 );
+	memcpy( digest, iv, ivlen );
+	for( i = 0; i < 8192; i++ ) {
+		sha2_starts( &sha_ctx, 0 );
+		sha2_update( &sha_ctx, digest, 32 );
+		sha2_update( &sha_ctx, key, keylen );
+		sha2_finish( &sha_ctx, digest );
 	}
-	if ( !EVP_DecryptInit_ex(&ctx, NULL, NULL, NULL, NULL) ) {
-		goto EXIT;
-	}
-	if ( !EVP_DecryptUpdate(&ctx, plaintext, &plainlen, cipher, cipherlen) ) {
-		goto EXIT;
-	}
-	if ( !EVP_DecryptFinal_ex(&ctx, plaintext+plainlen, &tmplen) ) {
-		goto EXIT;
-	}
-	plainlen += tmplen;
-	if ( !EVP_CIPHER_CTX_cleanup(&ctx) ) {
-		goto EXIT;
+	if ( aes_setkey_dec( &aes_ctx, digest, 256 ) != 0 ) {
+		log_info("aes_setkey_enc() failed");
+		return NULL;
 	}
 
-	plain = str_init(plaintext, plainlen);
-	myfree(plaintext, "aes_decrypt");
+	/* Decrypt message */
+	memset(plaintext, '\0', AES_PLAINSIZE);
+	if( aes_crypt_cbc( &aes_ctx, AES_DECRYPT, cipherlen, iv, cipher, plaintext ) != 0 ) {
+		log_info("aes_crypt_cbc() failed");
+		return NULL;
+	}
+	plain = str_init(plaintext, cipherlen);
+
 	return plain;
-
-	EXIT:
-	myfree(plaintext, "aes_decrypt");
-	return NULL;
 }

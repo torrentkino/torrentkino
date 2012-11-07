@@ -43,7 +43,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "tcp.h"
 #include "hash.h"
 #else
-#include <openssl/ssl.h>
 #include "main.h"
 #include "str.h"
 #include "malloc.h"
