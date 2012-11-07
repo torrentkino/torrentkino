@@ -57,5 +57,5 @@ struct obj_main {
 
 extern struct obj_main *_main;
 
-struct obj_main *main_init( int argc, char **argv );
-void main_free( void );
+struct obj_main *main_init(int argc, char **argv);
+void main_free(void);

@@ -72,7 +72,8 @@ void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) 
 					inet_ntoa( nodeItem->c_addr.sin_addr)
 #else
 					inet_ntop( AF_INET6, &nodeItem->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
-#endif );
+#endif
+				);
 			} else {
 				openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
 				syslog( LOG_INFO, "[%.3li] <%.3u> %s( %s)",
@@ -81,7 +82,8 @@ void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) 
 					inet_ntoa( nodeItem->c_addr.sin_addr)
 #else
 					inet_ntop( AF_INET6, &nodeItem->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
-#endif );
+#endif
+				);
 				closelog();
 			}
 		}

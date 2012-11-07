@@ -66,8 +66,8 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 struct obj_main *_main = NULL;
 
 /* Init main object */
-struct obj_main *main_init( int argc, char **argv ) {
-	struct obj_main *_main = (struct obj_main *) myalloc( sizeof( struct obj_main), "main_init" );
+struct obj_main *main_init(int argc, char **argv ) {
+	struct obj_main *_main = (struct obj_main *) myalloc(sizeof(struct obj_main), "main_init");
 
 	_main->argc = argc;
 	_main->argv = argv;
@@ -92,13 +92,13 @@ struct obj_main *main_init( int argc, char **argv ) {
 	return _main;
 }
 
-void main_free( void ) {
-	myfree( _main, "main_free" );
+void main_free(void ) {
+	myfree(_main, "main_free");
 }
 
-int main( int argc, char **argv ) {
+int main(int argc, char **argv ) {
 	/* Init */
-	_main = main_init( argc,argv );
+	_main = main_init(argc,argv);
 #ifdef VINEGAR
 	_main->conf = conf_init();
 	_main->tcp = tcp_init();
@@ -117,7 +117,7 @@ int main( int argc, char **argv ) {
 #endif
 
 	/* Load options */
-	opts_load( argc, argv );
+	opts_load(argc, argv);
 
 	/* Catch SIG INT */
 	unix_signal();
