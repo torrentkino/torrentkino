@@ -157,17 +157,17 @@ void tuple_free( struct obj_tuple *tuple ) {
 void ben_dict( struct obj_ben *node, struct obj_ben *key, struct obj_ben *val ) {
 	struct obj_tuple *tuple = NULL;
 
-	if( node == NULL)
+	if( node == NULL )
 		log_fail( "ben_dict( 1)" );
 	if( node->t != BEN_DICT)
 		log_fail( "ben_dict( 2)" );
-	if( node->v.d == NULL)
+	if( node->v.d == NULL )
 		log_fail( "ben_dict( 3)" );
-	if( key == NULL)
+	if( key == NULL )
 		log_fail( "ben_dict( 4)" );
 	if( key->t != BEN_STR)
 		log_fail( "ben_dict( 5)" );
-	if( val == NULL)
+	if( val == NULL )
 		log_fail( "ben_dict( 6)" );
 
 	tuple = tuple_init( key, val );
@@ -177,13 +177,13 @@ void ben_dict( struct obj_ben *node, struct obj_ben *key, struct obj_ben *val ) 
 }
 
 void ben_list( struct obj_ben *node, struct obj_ben *val ) {
-	if( node == NULL)
+	if( node == NULL )
 		log_fail( "ben_list( 1)" );
 	if( node->t != BEN_LIST)
 		log_fail( "ben_list( 2)" );
-	if( node->v.l == NULL)
+	if( node->v.l == NULL )
 		log_fail( "ben_list( 3)" );
-	if( val == NULL)
+	if( val == NULL )
 		log_fail( "ben_list( 4)" );
 
 	if( list_put( node->v.l, val) == NULL )
@@ -191,11 +191,11 @@ void ben_list( struct obj_ben *node, struct obj_ben *val ) {
 }
 
 void ben_str( struct obj_ben *node, UCHAR *str, long int len ) {
-	if( node == NULL)
+	if( node == NULL )
 		log_fail( "ben_str( 1)" );
 	if( node->t != BEN_STR)
 		log_fail( "ben_str( 2)" );
-	if( str == NULL)
+	if( str == NULL )
 		log_fail( "ben_str( 3)" );
 	if( len <= 0)
 		log_fail( "ben_str( 4)" );
@@ -204,7 +204,7 @@ void ben_str( struct obj_ben *node, UCHAR *str, long int len ) {
 }
 
 void ben_int( struct obj_ben *node, long int i ) {
-	if( node == NULL)
+	if( node == NULL )
 		log_fail( "ben_int( 1)" );
 	if( node->t != BEN_INT)
 		log_fail( "ben_int( 2)" );
@@ -797,7 +797,7 @@ void ben_sort( struct obj_ben *node ) {
 	long int switchcounter = 0;
 	int result = 0;
 	
-	if( node == NULL)
+	if( node == NULL )
 		log_fail( "ben_sort( 1)" );
 	if( node->t != BEN_DICT)
 		log_fail( "ben_sort( 2)" );
