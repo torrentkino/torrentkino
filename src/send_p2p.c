@@ -394,7 +394,7 @@ void send_aes( CIPV6 *sa, struct obj_raw *raw ) {
 	struct obj_ben *val = NULL;
 	struct obj_str *aes = NULL;
 	struct obj_raw *enc = NULL;
-	UCHAR salt[AES_SALT_SIZE];
+	UCHAR salt[AES_IV_SIZE];
 
 	/*
 		1:a[es] XX:LENGTH
@@ -402,11 +402,11 @@ void send_aes( CIPV6 *sa, struct obj_raw *raw ) {
 	*/
 
 	/* Create random salt */
-	rand_urandom( salt, AES_SALT_SIZE );
+	rand_urandom( salt, AES_IV_SIZE );
 
 	/* Encrypt message */
-	aes = aes_encrypt( raw->code, raw->size, salt, AES_SALT_SIZE, 
-					( unsigned char *)_main->conf->key, strlen( _main->conf->key) );
+	aes = aes_encrypt( raw->code, raw->size, salt, 
+			_main->conf->key, strlen( _main->conf->key) );
 	if( aes == NULL ) {
 		log_info( "Encoding AES message failed" );
 		ben_free( dict );
@@ -424,7 +424,7 @@ void send_aes( CIPV6 *sa, struct obj_raw *raw ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"s", 1 );
-	ben_str( val, salt, AES_SALT_SIZE );
+	ben_str( val, salt, AES_IV_SIZE );
 	ben_dict( dict, key, val );
 
 	enc = ben_enc( dict );

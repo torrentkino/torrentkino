@@ -17,12 +17,12 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define AES_BLOCK_SIZE 256
-#define AES_SALT_SIZE 16
+#define AES_IV_SIZE 16
 #define AES_KEY_SIZE 32
-#define AES_KEY_ROUNDS 5
+#define AES_MSG_SIZE 1456
+#define AES_BLOCK_SIZE 16
+#define AES_KEY_ROUNDS 8192
 
-#define AES_PLAINSIZE 1456
-
-struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen );
-struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *salt, int saltlen, UCHAR *key, int keylen );
+struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, char *key, int keylen );
+struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *iv, char *key, int keylen );
+void aes_key_setup( UCHAR *digest, UCHAR *iv, char *key, int keylen );

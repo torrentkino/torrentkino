@@ -174,7 +174,7 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 
 	/* Salt */
 	salt = ben_searchDictStr( packet, "s" );
-	if( salt == NULL || salt->t != BEN_STR || salt->v.s->i != AES_SALT_SIZE ) {
+	if( salt == NULL || salt->t != BEN_STR || salt->v.s->i != AES_IV_SIZE ) {
 		log_info( "Salt missing or broken" );
 		ben_free( packet );
 		return;
@@ -190,8 +190,8 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 
 	/* Decrypt message */
 	plain = aes_decrypt( aes->v.s->s, aes->v.s->i,
-		salt->v.s->s, salt->v.s->i,
-		(UCHAR *)_main->conf->key, strlen( _main->conf->key) );
+		salt->v.s->s,
+		_main->conf->key, strlen( _main->conf->key) );
 	if( plain == NULL ) {
 		log_info( "Decoding AES message failed" );
 		ben_free( packet );

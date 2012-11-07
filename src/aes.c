@@ -33,54 +33,41 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "aes.h"
 #include "str.h"
 
-struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
-	UCHAR ciphertext[AES_PLAINSIZE];
-	UCHAR digest[32];
-	UCHAR plain_padded[AES_PLAINSIZE];
-	UCHAR iv_local[AES_SALT_SIZE];
+struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, char *key, int keylen ) {
+	UCHAR ciphertext[AES_MSG_SIZE];
+	UCHAR digest[AES_KEY_SIZE];
+	UCHAR plain_padded[AES_MSG_SIZE];
+	UCHAR iv_local[AES_IV_SIZE];
 	aes_context aes_ctx;
-	sha2_context sha_ctx;
 	int plainlen_padded = 0;
 	int i = 0;
 	struct obj_str *cipher = NULL;
 
-	if( ivlen != AES_SALT_SIZE ) {
-		log_info( "aes2_encrypt: Broken salt" );
-		return NULL;
-	}
-
 	/* Plaintext out of boundary */
-	if( plainlen <= 0 || plainlen > AES_PLAINSIZE ) {
+	if( plainlen <= 0 || plainlen > AES_MSG_SIZE ) {
 		log_info( "aes2_encrypt: Broken plaintext" );
 		return NULL;
 	}
 
 	/* Compute padded plaintext length */
-	i = plainlen % 16;
-	plainlen_padded = (i == 0 ) ? plainlen : plainlen - i + 16;
+	i = plainlen % AES_BLOCK_SIZE;
+	plainlen_padded = (i == 0 ) ? plainlen : plainlen - i + AES_BLOCK_SIZE;
 
 	/* Plaintext out of boundary */
-	if( plainlen_padded <= 0 || plainlen_padded > AES_PLAINSIZE ) {
+	if( plainlen_padded <= 0 || plainlen_padded > AES_MSG_SIZE ) {
 		log_info( "aes2_encrypt: Broken plaintext" );
 		return NULL;
 	}
 
 	/* Store padded message */
-	memset( plain_padded, '\0', AES_PLAINSIZE );
+	memset( plain_padded, '\0', AES_MSG_SIZE );
 	memcpy( plain_padded, plain, plainlen );
 
-	/* Store iv locally because it gets modified by aes_crypt_cbc() */
-	memcpy( iv_local, iv, ivlen );
+	/* Store iv locally because it gets modified by aes_crypt_cbc() later */
+	memcpy( iv_local, iv, AES_IV_SIZE );
 
 	/* Setup AES context with the key and the IV */
-	memset( digest, '\0',  32 );
-	memcpy( digest, iv_local, ivlen );
-	for( i = 0; i < 8192; i++ ) {
-		sha2_starts( &sha_ctx, 0 );
-		sha2_update( &sha_ctx, digest, 32 );
-		sha2_update( &sha_ctx, key, keylen );
-		sha2_finish( &sha_ctx, digest );
-	}
+	aes_key_setup( digest, iv_local, key, keylen );
 	if( aes_setkey_enc( &aes_ctx, digest, 256 ) != 0 ) {
 		log_info( "aes_setkey_enc() failed" );
 		return NULL;
@@ -96,45 +83,47 @@ struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, int ivlen, U
 	return cipher;
 }
 
-struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *iv, int ivlen, UCHAR *key, int keylen ) {
-	UCHAR plaintext[AES_PLAINSIZE];
-	UCHAR digest[32];
+struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *iv, char *key, int keylen ) {
+	UCHAR plaintext[AES_MSG_SIZE];
+	UCHAR digest[AES_KEY_SIZE];
 	aes_context aes_ctx;
-	sha2_context sha_ctx;
-	int i = 0;
 	struct obj_str *plain = NULL;
 
-	if( ivlen != AES_SALT_SIZE ) {
-		log_info( "aes2_decrypt: Broken salt" );
-		return NULL;
-	}
-
-	if( cipherlen % 16 != 0 ) {
+	if( cipherlen % AES_BLOCK_SIZE != 0 ) {
 		log_info( "aes2_decrypt: Broken cipher" );
 		return NULL;
 	}
 
 	/* Setup AES context with the key and the IV */
-	memset( digest, '\0',  32 );
-	memcpy( digest, iv, ivlen );
-	for( i = 0; i < 8192; i++ ) {
-		sha2_starts( &sha_ctx, 0 );
-		sha2_update( &sha_ctx, digest, 32 );
-		sha2_update( &sha_ctx, key, keylen );
-		sha2_finish( &sha_ctx, digest );
-	}
+	aes_key_setup( digest, iv, key, keylen );
 	if( aes_setkey_dec( &aes_ctx, digest, 256 ) != 0 ) {
 		log_info( "aes_setkey_enc() failed" );
 		return NULL;
 	}
 
 	/* Decrypt message */
-	memset( plaintext, '\0', AES_PLAINSIZE );
+	memset( plaintext, '\0', AES_MSG_SIZE );
 	if( aes_crypt_cbc( &aes_ctx, AES_DECRYPT, cipherlen, iv, cipher, plaintext ) != 0 ) {
 		log_info( "aes_crypt_cbc() failed" );
 		return NULL;
 	}
 	plain = str_init( plaintext, cipherlen );
 
+	/* The decrypted message may be bigger than the original message, but
+	 * the bencode parser can handle that. */
 	return plain;
+}
+
+void aes_key_setup( UCHAR *digest, UCHAR *iv, char *key, int keylen ) {
+	sha2_context sha_ctx;
+	int i = 0;
+
+	memset( digest, '\0', AES_KEY_SIZE );
+	memcpy( digest, iv, AES_IV_SIZE );
+	for( i = 0; i < AES_KEY_ROUNDS; i++ ) {
+		sha2_starts( &sha_ctx, 0 );
+		sha2_update( &sha_ctx, digest, AES_KEY_SIZE );
+		sha2_update( &sha_ctx, (UCHAR *)key, keylen );
+		sha2_finish( &sha_ctx, digest );
+	}
 }
