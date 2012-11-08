@@ -66,7 +66,7 @@ void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) 
 			memset( buf, '\0', INET6_ADDRSTRLEN+1 );
 #endif
 			if( _main->conf->mode == CONF_FOREGROUND ) {
-				printf( "[%.3li] <%.3u> %s( %s)\n",
+				printf( "[%.3li] <%.3u> %s (%s)\n",
 					_main->node->list->counter, code, buffer,
 #ifdef IPV4
 					inet_ntoa( nodeItem->c_addr.sin_addr)
@@ -76,7 +76,7 @@ void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) 
 				);
 			} else {
 				openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-				syslog( LOG_INFO, "[%.3li] <%.3u> %s( %s)",
+				syslog( LOG_INFO, "[%.3li] <%.3u> %s (%s)",
 					_main->node->list->counter, code, buffer,
 #ifdef IPV4
 					inet_ntoa( nodeItem->c_addr.sin_addr)
