@@ -112,9 +112,9 @@ void p2p_bootstrap( void ) {
 
 		/* Send PING to a bootstrap node */
 		if( strcmp( _main->conf->bootstrap_node, CONF_BOOTSTRAP_NODE) == 0 ) {
-			send_ping( (struct sockaddr_in6 *)p->ai_addr, SEND_MULTICAST );
+			send_ping( (IP *)p->ai_addr, SEND_MULTICAST );
 		} else {
-			send_ping( (struct sockaddr_in6 *)p->ai_addr, SEND_UNICAST );
+			send_ping( (IP *)p->ai_addr, SEND_UNICAST );
 		}
 		
 		p = p->ai_next;	i++;
@@ -279,13 +279,13 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 	}
 
 	/* Remember node. This does not update the IP address or the risk ID. */
-	n = node_put( id->v.s->s,( UCHAR *)c->v.s->s,( struct sockaddr_in6 *)from );
+	n = node_put( id->v.s->s,( UCHAR *)c->v.s->s,( IP *)from );
 
 	/* The neighboorhood */
 	nbhd_put( n );
 
 	/* Update IP if necessary. */
-	node_update_address( n,( struct sockaddr_in6 *)from );
+	node_update_address( n,( IP *)from );
 
 	/* Collision detection */
 	warning = node_update_risk_id( n,( UCHAR *)c->v.s->s );
@@ -442,7 +442,7 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from 
 	struct obj_ben *ben_lkp_id = NULL;
 	ITEM *item = NULL;
 	NODE *n = NULL;
-	struct sockaddr_in6 sin;
+	IP sin;
 	long int i = 0;
 
 	if( !cache_validate( node_sk) ) {
@@ -511,7 +511,7 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from 
 		}
 
 		/* Compute source */
-		memset( &sin, '\0', sizeof(struct sockaddr_in6) );
+		memset( &sin, '\0', sizeof(IP) );
 		sin.sin6_family = AF_INET6;
 		memcpy( &sin.sin6_addr, ip->v.s->s, 16 );
 		memcpy( &sin.sin6_port, po->v.s->s, 2 );
@@ -521,8 +521,8 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from 
 
 		/* Store node */
 		if( !node_me( id->v.s->s) ) {
-			n = node_put( id->v.s->s, c->v.s->s,( struct sockaddr_in6 *)&sin );
-			node_update_address( n,( struct sockaddr_in6 *)&sin );
+			n = node_put( id->v.s->s, c->v.s->s,( IP *)&sin );
+			node_update_address( n,( IP *)&sin );
 			nbhd_put( n );
 		}
 

@@ -22,7 +22,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_udp {
 	/* Socket data */
-	struct sockaddr_in6 s_addr;
+	IP s_addr;
 	socklen_t s_addrlen;
 	int sockfd;
 

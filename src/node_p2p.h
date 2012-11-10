@@ -27,7 +27,7 @@ struct obj_nodes {
 typedef struct obj_nodes NODES;
 
 struct obj_node {
-	struct sockaddr_in6 c_addr;
+	IP c_addr;
 	
 	UCHAR id[SHA_DIGEST_LENGTH];
 	UCHAR risk_id[SHA_DIGEST_LENGTH];

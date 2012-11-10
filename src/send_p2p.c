@@ -260,7 +260,7 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning ) {
 	ITEM *item_n = NULL;
 	NODE *n = NULL;
 	long int i=0;
-	struct sockaddr_in6 *sin = NULL;
+	IP *sin = NULL;
 
 	/*
 		1:c 20:COLLISION_ID
@@ -322,7 +322,7 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning ) {
 		}
 
 		/* Network data */
-		sin = (struct sockaddr_in6*)&n->c_addr;
+		sin = (IP*)&n->c_addr;
 
 		/* List object */
 		dict_node = ben_init( BEN_DICT );
@@ -436,7 +436,7 @@ void send_aes( IP *sa, struct obj_raw *raw ) {
 }
 
 void send_exec( IP *sa, struct obj_raw *raw ) {
-	socklen_t addrlen = sizeof(struct sockaddr_in6 );
+	socklen_t addrlen = sizeof(IP );
 
 	if( _main->udp->sockfd < 0 ) {
 		return;

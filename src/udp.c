@@ -56,7 +56,7 @@ struct obj_udp *udp_init( void ) {
 	struct obj_udp *udp = (struct obj_udp *) myalloc( sizeof(struct obj_udp), "udp_init" );
 
 	/* Init server structure */
-	udp->s_addrlen = sizeof(struct sockaddr_in6 );
+	udp->s_addrlen = sizeof(IP );
 	memset( (char *) &udp->s_addr, '\0', udp->s_addrlen );
 	udp->sockfd = -1;
 
@@ -266,8 +266,8 @@ int udp_nonblocking( int sock ) {
 void udp_input( int sockfd ) {
 	UCHAR buffer[UDP_BUF+1];
 	ssize_t bytes = 0;
-	struct sockaddr_in6 c_addr;
-	socklen_t c_addrlen = sizeof(struct sockaddr_in6 );
+	IP c_addr;
+	socklen_t c_addrlen = sizeof(IP );
 
 	while( _main->status == MAIN_ONLINE ) {
 		/* Clean Source */
@@ -311,7 +311,7 @@ void udp_multicast( void ) {
 		log_fail( "getaddrinfo failed" );
 	}
 	memset( &mreq, '\0', sizeof(mreq) );
-	memcpy( &mreq.ipv6mr_multiaddr, &((struct sockaddr_in6 *) multicast->ai_addr)->sin6_addr, sizeof(mreq.ipv6mr_multiaddr) );
+	memcpy( &mreq.ipv6mr_multiaddr, &((IP *) multicast->ai_addr)->sin6_addr, sizeof(mreq.ipv6mr_multiaddr) );
 	mreq.ipv6mr_interface = 0;
 	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq)) == 0 ) {
 		_main->udp->multicast = 1;

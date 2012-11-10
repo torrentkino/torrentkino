@@ -259,8 +259,8 @@ int _nss_masala_valid_tld( const char *hostname ) {
 
 int _nss_masala_lookup( const char *hostname, UCHAR *address ) {
 
-	struct sockaddr_in6 sa;
-	socklen_t salen = sizeof(struct sockaddr_in6 );
+	IP sa;
+	socklen_t salen = sizeof(IP );
 	char buffer[MAIN_BUF+1];
 	UCHAR hash[SHA_DIGEST_LENGTH];
 	int sockfd = -1;

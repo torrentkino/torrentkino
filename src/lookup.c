@@ -84,7 +84,7 @@ struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from ) {
 	memcpy( l->lkp_id, lkp_id, SHA_DIGEST_LENGTH );
 
 	/* Socket */
-	memcpy( &l->c_addr, from, sizeof(struct sockaddr_in6) );
+	memcpy( &l->c_addr, from, sizeof(IP) );
 
 	/* Timings */
 	l->time_find = 0;
@@ -134,7 +134,7 @@ void lkp_expire( void ) {
 void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	ITEM *i = NULL;
 	struct obj_lkp *l = NULL;
-	socklen_t addrlen = sizeof(struct sockaddr_in6 );
+	socklen_t addrlen = sizeof(IP );
 
 	/* Lookup the lookup ID */
 	if( ( i = hash_get( _main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {

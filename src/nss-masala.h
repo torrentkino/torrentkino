@@ -24,6 +24,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define BOOTSTRAP_PORT 8337
 
 typedef unsigned char UCHAR;
+typedef struct sockaddr_in6 IP;
 
 enum nss_status _nss_masala_gethostbyname_r( const char *hostname, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,

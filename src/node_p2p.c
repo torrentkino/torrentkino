@@ -123,8 +123,8 @@ void node_update_address( NODE *node, IP *sa ) {
 	}
 
 	/* Update address */
-	if( memcmp( &node->c_addr, sa, sizeof(struct sockaddr_in6)) != 0 ) {
-		memcpy( &node->c_addr, sa, sizeof(struct sockaddr_in6) );
+	if( memcmp( &node->c_addr, sa, sizeof(IP)) != 0 ) {
+		memcpy( &node->c_addr, sa, sizeof(IP) );
 	}
 }
 
@@ -173,7 +173,7 @@ void node_ponged( UCHAR *id, IP *sa ) {
 	/* ~5 minutes */
 	n->time_ping = time_add_5_min_approx();
  
-	memcpy( &n->c_addr, sa, sizeof(struct sockaddr_in6) );
+	memcpy( &n->c_addr, sa, sizeof(IP) );
 }
 
 void node_expire( void ) {

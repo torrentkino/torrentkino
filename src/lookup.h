@@ -29,7 +29,7 @@ struct obj_lkp {
 	UCHAR find_id[SHA_DIGEST_LENGTH+1];
 	UCHAR lkp_id[SHA_DIGEST_LENGTH+1];
 
-	struct sockaddr_in6 c_addr;
+	IP c_addr;
 	time_t time_find;
 
 };
