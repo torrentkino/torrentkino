@@ -134,7 +134,7 @@ void lkp_expire( void ) {
 void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	ITEM *i = NULL;
 	LOOKUP *l = NULL;
-	socklen_t addrlen = sizeof(IP );
+	socklen_t addrlen = sizeof(IP);
 
 	/* Lookup the lookup ID */
 	if( ( i = hash_get( _main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
@@ -161,7 +161,7 @@ void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 		return;
 	}
 
-	sendto( _main->udp->sockfd, &c_addr->sin6_addr, 16, 0,( const struct sockaddr *)&l->c_addr, addrlen );
+	sendto( _main->udp->sockfd, &c_addr->sin6_addr, 16, 0, (const struct sockaddr *)&l->c_addr, addrlen );
 
 	/* Done */
 	lkp_del( i );
