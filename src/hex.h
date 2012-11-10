@@ -19,4 +19,4 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 #define HEX_LEN 2*SHA_DIGEST_LENGTH
 
-void hex_encode( char *out, CUCHAR *in );
+void hex_encode( char *out, const UCHAR *in );

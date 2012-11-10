@@ -24,7 +24,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_IPBUF 39
 #define SHA_DIGEST_LENGTH 20
 
-typedef UCHAR UCHAR;
+typedef unsigned char UCHAR;
 typedef const struct sockaddr_in6 CIPV6;
 
 struct obj_main {

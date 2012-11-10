@@ -36,7 +36,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "malloc.h"
 #include "log.h"
 
-void hex_encode( char *out, CUCHAR *in ) {
+void hex_encode( char *out, const UCHAR *in ) {
 	UCHAR *p0 = (UCHAR *)in;
 	char *p1 = out;
 	long int i = 0;
