@@ -44,13 +44,13 @@ void p2p_free( void );
 void p2p_cron( void );
 void p2p_bootstrap( void );
 
-void p2p_parse( UCHAR *bencode, size_t bensize, CIPV6 *from );
-void p2p_decrypt( UCHAR *bencode, size_t bensize, CIPV6 *from );
-void p2p_decode( UCHAR *bencode, size_t bensize, CIPV6 *from );
+void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );
+void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from );
+void p2p_decode( UCHAR *bencode, size_t bensize, IP *from );
 
-void p2p_ping( UCHAR *node_sk, CIPV6 *from, int warning );
-void p2p_pong( UCHAR *node_id, UCHAR *node_sk, CIPV6 *from );
-void p2p_find( struct obj_ben *packet, UCHAR *node_sk, CIPV6 *from, int warning );
-void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, CIPV6 *from );
+void p2p_ping( UCHAR *node_sk, IP *from, int warning );
+void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from );
+void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning );
+void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
 
-void p2p_lookup( UCHAR *find_id, size_t size, CIPV6 *from );
+void p2p_lookup( UCHAR *find_id, size_t size, IP *from );

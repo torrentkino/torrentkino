@@ -69,7 +69,7 @@ void nodes_free( void ) {
 	myfree( _main->nodes, "nodes_free" );
 }
 
-NODE *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
+NODE *node_put( UCHAR *id, UCHAR *risk_id, IP *sa ) {
 	ITEM *i = NULL;
 	NODE *n = NULL;
 
@@ -117,7 +117,7 @@ void node_del( ITEM *i ) {
 	myfree( n, "node_del" );
 }
 
-void node_update_address( NODE *node, CIPV6 *sa ) {
+void node_update_address( NODE *node, IP *sa ) {
 	if( node == NULL ) {
 		return;
 	}
@@ -159,7 +159,7 @@ void node_pinged( UCHAR *id ) {
 	n->time_ping = time_add_5_min_approx();
 }
 
-void node_ponged( UCHAR *id, CIPV6 *sa ) {
+void node_ponged( UCHAR *id, IP *sa ) {
 	ITEM *l = NULL;
 	NODE *n = NULL;
 

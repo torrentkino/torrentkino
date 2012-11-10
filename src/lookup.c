@@ -69,7 +69,7 @@ void lkp_free( void ) {
 	myfree( _main->lkps, "lkp_free" );
 }
 
-struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, CIPV6 *from ) {
+struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from ) {
 	ITEM *i = NULL;
 	struct obj_lkp *l = NULL;
 
@@ -131,7 +131,7 @@ void lkp_expire( void ) {
 	}
 }
 
-void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
+void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	ITEM *i = NULL;
 	struct obj_lkp *l = NULL;
 	socklen_t addrlen = sizeof(struct sockaddr_in6 );

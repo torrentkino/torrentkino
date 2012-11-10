@@ -123,7 +123,7 @@ void p2p_bootstrap( void ) {
 	freeaddrinfo( info );
 }
 
-void p2p_parse( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
+void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 	/* Tick Tock */
 	mutex_block( _main->p2p->mutex );
 	gettimeofday( &_main->p2p->time_now, NULL );
@@ -155,7 +155,7 @@ void p2p_parse( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 	}
 }
 
-void p2p_decrypt( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
+void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 	struct obj_ben *packet = NULL;
 	struct obj_ben *salt = NULL;
 	struct obj_ben *aes = NULL;
@@ -222,7 +222,7 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 	str_free( plain );
 }
 
-void p2p_decode( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
+void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 	struct obj_ben *packet = NULL;
 	struct obj_ben *q = NULL;
 	struct obj_ben *id = NULL;
@@ -396,11 +396,11 @@ void p2p_cron( void ) {
 	}
 }
 
-void p2p_ping( UCHAR *node_sk, CIPV6 *from, int warning ) {
+void p2p_ping( UCHAR *node_sk, IP *from, int warning ) {
 	send_pong( from, node_sk, warning );
 }
 
-void p2p_find( struct obj_ben *packet, UCHAR *node_sk, CIPV6 *from, int warning ) {
+void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
 	struct obj_ben *ben_find_id = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 
@@ -422,7 +422,7 @@ void p2p_find( struct obj_ben *packet, UCHAR *node_sk, CIPV6 *from, int warning 
 	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning );
 }
 
-void p2p_pong( UCHAR *node_id, UCHAR *node_sk, CIPV6 *from ) {
+void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from ) {
 	if( !cache_validate( node_sk) ) {
 		log_info( "Unexpected reply! Many answers to one multicast request?" );
 		return;
@@ -432,7 +432,7 @@ void p2p_pong( UCHAR *node_id, UCHAR *node_sk, CIPV6 *from ) {
 	node_ponged( node_id, from );
 }
 
-void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, CIPV6 *from ) {
+void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
 	struct obj_ben *nodes = NULL;
 	struct obj_ben *node = NULL;
 	struct obj_ben *id = NULL;
@@ -530,7 +530,7 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, CIPV6 *fr
 	}
 }
 
-void p2p_lookup( UCHAR *find_id, size_t size, CIPV6 *from ) {
+void p2p_lookup( UCHAR *find_id, size_t size, IP *from ) {
 	UCHAR lkp_id[SHA_DIGEST_LENGTH];
 	char hex[HEX_LEN+1];
 	char buffer[MAIN_BUF+1];

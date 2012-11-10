@@ -41,14 +41,14 @@ typedef struct obj_node NODE;
 NODES *nodes_init( void );
 void nodes_free( void );
 
-NODE *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa );
+NODE *node_put( UCHAR *id, UCHAR *risk_id, IP *sa );
 void node_del( ITEM *i );
 
-void node_update_address( NODE *node, CIPV6 *sa );
+void node_update_address( NODE *node, IP *sa );
 int node_update_risk_id( NODE *node, UCHAR *risk_id );
 
 void node_pinged( UCHAR *id );
-void node_ponged( UCHAR *id, CIPV6 *sa );
+void node_ponged( UCHAR *id, IP *sa );
 
 void node_expire( void );
 long int node_counter( void );

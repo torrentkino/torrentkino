@@ -25,7 +25,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define SHA_DIGEST_LENGTH 20
 
 typedef unsigned char UCHAR;
-typedef const struct sockaddr_in6 CIPV6;
+typedef const struct sockaddr_in6 IP;
 
 struct obj_main {
 	/* Main arguments */

@@ -23,7 +23,7 @@ void log_info( int code, const char *buffer );
 #endif
 
 #ifdef MASALA
-void log_udp( CIPV6 *c_addr, const char *buffer );
+void log_udp( IP *c_addr, const char *buffer );
 void log_info( const char *buffer );
 #endif
 

@@ -49,7 +49,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "cache.h"
 #include "hex.h"
 
-void send_ping( CIPV6 *sa, int type ) {
+void send_ping( IP *sa, int type ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
@@ -107,7 +107,7 @@ void send_ping( CIPV6 *sa, int type ) {
 	log_udp( sa, "PING" );
 }
 
-void send_pong( CIPV6 *sa, UCHAR *node_sk, int warning ) {
+void send_pong( IP *sa, UCHAR *node_sk, int warning ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
@@ -172,7 +172,7 @@ void send_pong( CIPV6 *sa, UCHAR *node_sk, int warning ) {
 	log_udp( sa, "PONG" );
 }
 
-void send_find( CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id ) {
+void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
@@ -250,7 +250,7 @@ void send_find( CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	log_udp( sa, buffer );
 }
 
-void send_node( CIPV6 *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning ) {
+void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *list_id = NULL;
 	struct obj_ben *dict_node = NULL;
@@ -389,7 +389,7 @@ void send_node( CIPV6 *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning )
 	log_udp( sa, "NODE reply to" );
 }
 
-void send_aes( CIPV6 *sa, struct obj_raw *raw ) {
+void send_aes( IP *sa, struct obj_raw *raw ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
@@ -435,7 +435,7 @@ void send_aes( CIPV6 *sa, struct obj_raw *raw ) {
 	str_free( aes );
 }
 
-void send_exec( CIPV6 *sa, struct obj_raw *raw ) {
+void send_exec( IP *sa, struct obj_raw *raw ) {
 	socklen_t addrlen = sizeof(struct sockaddr_in6 );
 
 	if( _main->udp->sockfd < 0 ) {

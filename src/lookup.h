@@ -37,10 +37,10 @@ struct obj_lkp {
 struct obj_lkps *lkp_init( void );
 void lkp_free( void );
 
-struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, CIPV6 *from );
+struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from );
 void lkp_del( ITEM *i );
 
 void lkp_expire( void );
 
-void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr );
+void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr );
 void lkp_remember( struct obj_lkp *l, UCHAR *node_id );

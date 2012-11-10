@@ -83,7 +83,7 @@ void nbhd_split( void ) {
 	}
 }
 
-void nbhd_send( CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning ) {
+void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
 

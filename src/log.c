@@ -108,7 +108,7 @@ void log_info( int code, const char *buffer ) {
 
 #elif MASALA
 
-void log_udp( CIPV6 *c_addr, const char *buffer ) {
+void log_udp( IP *c_addr, const char *buffer ) {
 	char v6buf[INET6_ADDRSTRLEN+1];
 	
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
