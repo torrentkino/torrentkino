@@ -55,18 +55,18 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "neighboorhood.h"
 #include "time.h"
 
-NODES *node_init( void ) {
-	NODES *nodes = (NODES *) myalloc( sizeof(NODES), "node_init" );
+NODES *nodes_init( void ) {
+	NODES *nodes = (NODES *) myalloc( sizeof(NODES), "nodes_init" );
 	nodes->list = list_init();
 	nodes->hash = hash_init( 4096 );
 	return nodes;
 }
 
-void node_free( void ) {
+void nodes_free( void ) {
 	list_clear( _main->nodes->list );
 	list_free( _main->nodes->list );
 	hash_free( _main->nodes->hash );
-	myfree( _main->nodes, "node_free" );
+	myfree( _main->nodes, "nodes_free" );
 }
 
 NODE *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {

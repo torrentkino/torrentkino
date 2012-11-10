@@ -101,11 +101,11 @@ int main( int argc, char **argv ) {
 #ifdef VINEGAR
 	_main->conf = conf_init();
 	_main->tcp = tcp_init();
-	_main->nodes = node_init();
+	_main->nodes = nodes_init();
 	_main->mime = mime_init();
 #else
 	_main->conf = conf_init();
-	_main->nodes = node_init();
+	_main->nodes = nodes_init();
 #ifdef MASALA
 	_main->nbhd = nbhd_init();
 	_main->lkps = lkp_init();
@@ -147,14 +147,14 @@ int main( int argc, char **argv ) {
 
 #ifdef VINEGAR
 	mime_free();
-	node_free();
+	nodes_free();
 	tcp_free();
 #else
 #ifdef MASALA
 	lkp_free();
 	nbhd_free();
 #endif
-	node_free();
+	nodes_free();
 	cache_free();
 	p2p_free();
 	udp_free();

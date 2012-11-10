@@ -38,8 +38,8 @@ struct obj_node {
 };
 typedef struct obj_node NODE;
 
-NODES *node_init( void );
-void node_free( void );
+NODES *nodes_init( void );
+void nodes_free( void );
 
 NODE *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa );
 void node_del( ITEM *i );
