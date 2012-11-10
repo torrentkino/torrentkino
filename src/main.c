@@ -74,13 +74,12 @@ struct obj_main *main_init( int argc, char **argv ) {
 
 	_main->conf = NULL;
 #ifdef VINEGAR
-	_main->node = NULL;
+	_main->nodes = NULL;
 	_main->mime = NULL;
 	_main->tcp  = NULL;
-#endif
-#ifdef MASALA
+#elif MASALA
 	_main->p2p = NULL;
-	_main->node = NULL;
+	_main->nodes = NULL;
 	_main->cache = NULL;
 	_main->nbhd = NULL;
 	_main->udp  = NULL;
@@ -102,11 +101,11 @@ int main( int argc, char **argv ) {
 #ifdef VINEGAR
 	_main->conf = conf_init();
 	_main->tcp = tcp_init();
-	_main->node = node_init();
+	_main->nodes = node_init();
 	_main->mime = mime_init();
 #else
 	_main->conf = conf_init();
-	_main->node = node_init();
+	_main->nodes = node_init();
 #ifdef MASALA
 	_main->nbhd = nbhd_init();
 	_main->lkps = lkp_init();

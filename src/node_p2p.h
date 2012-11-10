@@ -20,10 +20,11 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define NODE_NOERROR   0
 #define NODE_COLLISION 1
 
-struct obj_node {
+struct obj_nodes {
 	LIST *list;
 	HASH *hash;
 };
+typedef struct obj_nodes NODES;
 
 struct obj_nodeItem {
 	struct sockaddr_in6 c_addr;
@@ -36,7 +37,7 @@ struct obj_nodeItem {
 	int pinged;
 };
 
-struct obj_node *node_init( void );
+NODES *node_init( void );
 void node_free( void );
 
 struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa );

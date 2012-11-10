@@ -55,18 +55,18 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "neighboorhood.h"
 #include "time.h"
 
-struct obj_node *node_init( void ) {
-	struct obj_node *node = (struct obj_node *) myalloc( sizeof(struct obj_node), "node_init" );
-	node->list = list_init();
-	node->hash = hash_init( 4096 );
-	return node;
+NODES *node_init( void ) {
+	NODES *nodes = (NODES *) myalloc( sizeof(NODES), "node_init" );
+	nodes->list = list_init();
+	nodes->hash = hash_init( 4096 );
+	return nodes;
 }
 
 void node_free( void ) {
-	list_clear( _main->node->list );
-	list_free( _main->node->list );
-	hash_free( _main->node->hash );
-	myfree( _main->node, "node_free" );
+	list_clear( _main->nodes->list );
+	list_free( _main->nodes->list );
+	hash_free( _main->nodes->hash );
+	myfree( _main->nodes, "node_free" );
 }
 
 struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
@@ -79,7 +79,7 @@ struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 	}
 
 	/* Find the node or create a new one */
-	if( ( i = hash_get( _main->node->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
+	if( ( i = hash_get( _main->nodes->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
 		n = i->val;
 	} else {
 		n = (struct obj_nodeItem *) myalloc( sizeof(struct obj_nodeItem), "node_put" );
@@ -96,8 +96,8 @@ struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 		/* Update IP address */
 		node_update_address( n, sa );
 
-		i = list_put( _main->node->list, n );
-		hash_put( _main->node->hash, n->id, SHA_DIGEST_LENGTH, i );
+		i = list_put( _main->nodes->list, n );
+		hash_put( _main->nodes->hash, n->id, SHA_DIGEST_LENGTH, i );
 
 		/* Send a PING */
 		send_ping( &n->c_addr, SEND_UNICAST );
@@ -112,8 +112,8 @@ struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 
 void node_del( ITEM *i ) {
 	struct obj_nodeItem *n = i->val;
-	hash_del( _main->node->hash, n->id, SHA_DIGEST_LENGTH );
-	list_del( _main->node->list, i );
+	hash_del( _main->nodes->hash, n->id, SHA_DIGEST_LENGTH );
+	list_del( _main->nodes->list, i );
 	myfree( n, "node_del" );
 }
 
@@ -148,7 +148,7 @@ void node_pinged( UCHAR *id ) {
 	ITEM *l = NULL;
 	struct obj_nodeItem *n = NULL;
 
-	if( ( l = hash_get( _main->node->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if( ( l = hash_get( _main->nodes->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 
@@ -163,7 +163,7 @@ void node_ponged( UCHAR *id, CIPV6 *sa ) {
 	ITEM *l = NULL;
 	struct obj_nodeItem *n = NULL;
 
-	if( ( l = hash_get( _main->node->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if( ( l = hash_get( _main->nodes->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
 
@@ -182,8 +182,8 @@ void node_expire( void ) {
 	struct obj_nodeItem *n = NULL;
 	long int j = 0;
 
-	i = _main->node->list->start;
-	for( j=0; j<_main->node->list->counter; j++ ) {
+	i = _main->nodes->list->start;
+	for( j=0; j<_main->nodes->list->counter; j++ ) {
 		n = i->val;
 		next = list_next( i );
 
@@ -201,7 +201,7 @@ void node_expire( void ) {
 }
 
 long int node_counter( void ) {
-	return _main->node->list->counter;
+	return _main->nodes->list->counter;
 }
 
 int node_me( UCHAR *node_id ) {
