@@ -56,7 +56,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "time.h"
 
 struct obj_node *node_init( void ) {
-	struct obj_node *node = (struct obj_node *) myalloc( sizeof( struct obj_node), "node_init" );
+	struct obj_node *node = (struct obj_node *) myalloc( sizeof(struct obj_node), "node_init" );
 	node->list = list_init();
 	node->hash = hash_init( 4096 );
 	return node;
@@ -82,7 +82,7 @@ struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 	if( ( i = hash_get( _main->node->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
 		n = i->val;
 	} else {
-		n = (struct obj_nodeItem *) myalloc( sizeof( struct obj_nodeItem), "node_put" );
+		n = (struct obj_nodeItem *) myalloc( sizeof(struct obj_nodeItem), "node_put" );
 		
 		/* ID */
 		memcpy( n->id, id, SHA_DIGEST_LENGTH );
@@ -123,8 +123,8 @@ void node_update_address( struct obj_nodeItem *node, CIPV6 *sa ) {
 	}
 
 	/* Update address */
-	if( memcmp( &node->c_addr, sa, sizeof( struct sockaddr_in6)) != 0 ) {
-		memcpy( &node->c_addr, sa, sizeof( struct sockaddr_in6) );
+	if( memcmp( &node->c_addr, sa, sizeof(struct sockaddr_in6)) != 0 ) {
+		memcpy( &node->c_addr, sa, sizeof(struct sockaddr_in6) );
 	}
 }
 
@@ -173,7 +173,7 @@ void node_ponged( UCHAR *id, CIPV6 *sa ) {
 	/* ~5 minutes */
 	n->time_ping = time_add_5_min_approx();
  
-	memcpy( &n->c_addr, sa, sizeof( struct sockaddr_in6) );
+	memcpy( &n->c_addr, sa, sizeof(struct sockaddr_in6) );
 }
 
 void node_expire( void ) {

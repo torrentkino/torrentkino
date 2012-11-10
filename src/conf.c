@@ -50,7 +50,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 struct obj_conf *conf_init( void ) {
-	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof( struct obj_conf), "conf_init" );
+	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf), "conf_init" );
 #ifndef VINEGAR
 	char *fbuf = NULL;
 	char *p = NULL;

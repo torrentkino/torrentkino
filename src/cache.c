@@ -57,7 +57,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "send_p2p.h"
 
 struct obj_cache *cache_init( void ) {
-	struct obj_cache *cache = (struct obj_cache *) myalloc( sizeof( struct obj_cache), "cache_init" );
+	struct obj_cache *cache = (struct obj_cache *) myalloc( sizeof(struct obj_cache), "cache_init" );
 	cache->list = list_init();
 	cache->hash = hash_init( 100 );
 	return cache;
@@ -78,7 +78,7 @@ void cache_put( UCHAR *id, int type ) {
 		return;
 	}
 
-	sk = (struct obj_key *) myalloc( sizeof( struct obj_key), "cache_put" );
+	sk = (struct obj_key *) myalloc( sizeof(struct obj_key), "cache_put" );
 
 	/* ID */
 	memcpy( sk->id, id, SHA_DIGEST_LENGTH );

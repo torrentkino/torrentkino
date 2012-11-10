@@ -106,7 +106,7 @@ enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hosten
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
 
-	unsigned char address[sizeof( struct in6_addr)];
+	unsigned char address[sizeof(struct in6_addr)];
 	char *p_addr = NULL;
 	char *p_name = NULL;
 	char *p_aliases = NULL;
@@ -115,7 +115,7 @@ enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hosten
 	size_t s_hostname = strlen( hostname );
 	size_t s_total = 0;
 
-	s_total = s_hostname + 1 + sizeof( char*) + sizeof( struct in6_addr) + 2 * sizeof( char* );
+	s_total = s_hostname + 1 + sizeof(char*) + sizeof(struct in6_addr) + 2 * sizeof(char* );
 	if( buflen < s_total ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
@@ -135,21 +135,21 @@ enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hosten
 
 	p_aliases = p_idx;
 	*(char**) p_aliases = NULL;
-	p_idx += sizeof( char* );
+	p_idx += sizeof(char* );
 
 	p_addr = p_idx;
-	memcpy( p_addr, address, sizeof( struct in6_addr) );
-	p_idx += sizeof( struct in6_addr );
+	memcpy( p_addr, address, sizeof(struct in6_addr) );
+	p_idx += sizeof(struct in6_addr );
 
 	p_addr_list = p_idx;
 	((char**) p_addr_list)[0] = p_addr;
 	((char**) p_addr_list)[1] = NULL;
-	p_idx += 2*sizeof( char* );
+	p_idx += 2*sizeof(char* );
 
 	host->h_name = p_name;
 	host->h_aliases = (char**) p_aliases;
 	host->h_addrtype = af;
-	host->h_length = sizeof( struct in6_addr );
+	host->h_length = sizeof(struct in6_addr );
 	host->h_addr_list = (char**) p_addr_list;
 
 	if( ttlp != NULL ) {
@@ -167,14 +167,14 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtu
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp ) {
 
-	unsigned char address[sizeof( struct in6_addr)];
+	unsigned char address[sizeof(struct in6_addr)];
 	char *p_name = NULL;
 	char *p_idx = NULL;
 	struct gaih_addrtuple *p_tuple;
 	size_t s_hostname = strlen( hostname );
 	size_t s_total = 0;
 
-	s_total = s_hostname + 1 + sizeof( struct gaih_addrtuple );
+	s_total = s_hostname + 1 + sizeof(struct gaih_addrtuple );
 	if( buflen < s_total ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
@@ -196,7 +196,7 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtu
 	p_tuple->next = NULL;
 	p_tuple->name = p_name;
 	p_tuple->family = AF_INET6;
-	memcpy( p_tuple->addr, address, sizeof( struct in6_addr) );
+	memcpy( p_tuple->addr, address, sizeof(struct in6_addr) );
 	p_tuple->scopeid = 0;
 
 	*pat = p_tuple;
@@ -260,7 +260,7 @@ int _nss_masala_valid_tld( const char *hostname ) {
 int _nss_masala_lookup( const char *hostname, unsigned char *address ) {
 
 	struct sockaddr_in6 sa;
-	socklen_t salen = sizeof( struct sockaddr_in6 );
+	socklen_t salen = sizeof(struct sockaddr_in6 );
 	char buffer[MAIN_BUF+1];
 	unsigned char hash[SHA_DIGEST_LENGTH];
 	int sockfd = -1;
@@ -282,7 +282,7 @@ int _nss_masala_lookup( const char *hostname, unsigned char *address ) {
 	/* Set receive timeout */
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
-	setsockopt( sockfd, SOL_SOCKET, SO_RCVTIMEO,( char *)&tv, sizeof( struct timeval) );
+	setsockopt( sockfd, SOL_SOCKET, SO_RCVTIMEO,( char *)&tv, sizeof(struct timeval) );
 
 	/* Setup IPv6 */
 	sa.sin6_family = AF_INET6;

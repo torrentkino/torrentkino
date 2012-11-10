@@ -178,9 +178,9 @@ void unix_dropuid0( void ) {
 void unix_environment( void ) {
 	char buffer[MAIN_BUF+1];
 #ifdef __i386__
-	snprintf( buffer, MAIN_BUF+1, "Types: int: %i, long int: %i, size_t: %i, ssize_t: %i, time_t: %i", sizeof( int), sizeof( long int), sizeof( size_t), sizeof( ssize_t), sizeof( time_t) );
+	snprintf( buffer, MAIN_BUF+1, "Types: int: %i, long int: %i, size_t: %i, ssize_t: %i, time_t: %i", sizeof(int), sizeof(long int), sizeof(size_t), sizeof(ssize_t), sizeof(time_t) );
 #else
-	snprintf( buffer, MAIN_BUF+1, "Types: int: %lu, long int: %lu, size_t: %lu, ssize_t: %lu, time_t: %lu", sizeof( int), sizeof( long int), sizeof( size_t), sizeof( ssize_t), sizeof( time_t) );
+	snprintf( buffer, MAIN_BUF+1, "Types: int: %lu, long int: %lu, size_t: %lu, ssize_t: %lu, time_t: %lu", sizeof(int), sizeof(long int), sizeof(size_t), sizeof(ssize_t), sizeof(time_t) );
 #endif
 	log_simple( buffer );
 }

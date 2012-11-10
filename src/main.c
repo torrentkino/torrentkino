@@ -67,7 +67,7 @@ struct obj_main *_main = NULL;
 
 /* Init main object */
 struct obj_main *main_init( int argc, char **argv ) {
-	struct obj_main *_main = (struct obj_main *) myalloc( sizeof( struct obj_main), "main_init" );
+	struct obj_main *_main = (struct obj_main *) myalloc( sizeof(struct obj_main), "main_init" );
 
 	_main->argc = argc;
 	_main->argv = argv;

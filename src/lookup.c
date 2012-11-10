@@ -56,7 +56,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "send_p2p.h"
 
 struct obj_lkps *lkp_init( void ) {
-	struct obj_lkps *find = (struct obj_lkps *) myalloc( sizeof( struct obj_lkps), "lkp_init" );
+	struct obj_lkps *find = (struct obj_lkps *) myalloc( sizeof(struct obj_lkps), "lkp_init" );
 	find->list = list_init();
 	find->hash = hash_init( 4096 );
 	return find;
@@ -73,7 +73,7 @@ struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, CIPV6 *from ) {
 	ITEM *i = NULL;
 	struct obj_lkp *l = NULL;
 
-	l = (struct obj_lkp *) myalloc( sizeof( struct obj_lkp), "lkp_put" );
+	l = (struct obj_lkp *) myalloc( sizeof(struct obj_lkp), "lkp_put" );
 
 	/* Remember nodes that have been asked */
 	l->list = list_init();
@@ -84,7 +84,7 @@ struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, CIPV6 *from ) {
 	memcpy( l->lkp_id, lkp_id, SHA_DIGEST_LENGTH );
 
 	/* Socket */
-	memcpy( &l->c_addr, from, sizeof( struct sockaddr_in6) );
+	memcpy( &l->c_addr, from, sizeof(struct sockaddr_in6) );
 
 	/* Timings */
 	l->time_find = 0;
@@ -134,7 +134,7 @@ void lkp_expire( void ) {
 void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
 	ITEM *i = NULL;
 	struct obj_lkp *l = NULL;
-	socklen_t addrlen = sizeof( struct sockaddr_in6 );
+	socklen_t addrlen = sizeof(struct sockaddr_in6 );
 
 	/* Lookup the lookup ID */
 	if( ( i = hash_get( _main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
@@ -171,7 +171,7 @@ void lkp_remember( struct obj_lkp *l, UCHAR *node_id ) {
 	unsigned char *buffer = NULL;
 
 	/* Remember that node */
-	buffer = (unsigned char *) myalloc( SHA_DIGEST_LENGTH*sizeof( char), "lkp_remember" );
+	buffer = (unsigned char *) myalloc( SHA_DIGEST_LENGTH*sizeof(char), "lkp_remember" );
 	memcpy( buffer, node_id, SHA_DIGEST_LENGTH );
 	list_put( l->list, buffer );
 	hash_put( l->hash, buffer, SHA_DIGEST_LENGTH, buffer );

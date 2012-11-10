@@ -25,10 +25,10 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "hash.h"
 
 HASH *hash_init( unsigned int capacity ) {
-	HASH *map = myalloc( sizeof( HASH), "hash_init" );
+	HASH *map = myalloc( sizeof(HASH), "hash_init" );
 	
 	map->count = capacity;
-	map->buckets = myalloc( map->count * sizeof( BUCKET), "hash_init" );
+	map->buckets = myalloc( map->count * sizeof(BUCKET), "hash_init" );
 
 	return map;
 }
@@ -104,10 +104,10 @@ int hash_put( HASH *map, UCHAR *key, long int keysize, void *value ) {
 
 	/* Create new obj_pair */
 	if( bucket->count == 0 ) {
-		bucket->pairs = myalloc( sizeof( PAIR), "hash_put" );
+		bucket->pairs = myalloc( sizeof(PAIR), "hash_put" );
 		bucket->count = 1;
 	} else  {
-		bucket->pairs = myrealloc( bucket->pairs,( bucket->count + 1) * sizeof( PAIR), "hash_put" );
+		bucket->pairs = myrealloc( bucket->pairs,( bucket->count + 1) * sizeof(PAIR), "hash_put" );
 		bucket->count++;
 	}
 	
@@ -150,14 +150,14 @@ void hash_del( HASH *map, UCHAR *key, long int keysize ) {
 	} else if( bucket->count > 1 ) {
 		/* Get new memory and remember the old one */
 		oldpair = bucket->pairs;
-		newpair = myalloc( (bucket->count - 1) * sizeof( PAIR), "hash_rem" );
+		newpair = myalloc( (bucket->count - 1) * sizeof(PAIR), "hash_rem" );
 
 		/* Copy pairs except the one to delete */
 		p_old = oldpair;
 		p_new = newpair;
 		for( i=0; i<bucket->count; i++ ) {
 			if( p_old != thispair ) {
-				memcpy( p_new++, p_old, sizeof( PAIR) );
+				memcpy( p_new++, p_old, sizeof(PAIR) );
 			}
 
 			p_old++;

@@ -51,7 +51,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "bucket.h"
 
 LIST *bckt_init( void ) {
-	struct obj_bckt *b = (struct obj_bckt *) myalloc( sizeof( struct obj_bckt), "bckt_init" );
+	struct obj_bckt *b = (struct obj_bckt *) myalloc( sizeof(struct obj_bckt), "bckt_init" );
 	LIST *l = (LIST *) list_init();
 	
 	/* First bucket */
@@ -234,7 +234,7 @@ int bckt_split( LIST *thislist, const unsigned char *id ) {
 	}
 	
 	/* Create new bucket */
-	b_new = (struct obj_bckt *) myalloc( sizeof( struct obj_bckt), "split_bucket" );
+	b_new = (struct obj_bckt *) myalloc( sizeof(struct obj_bckt), "split_bucket" );
 	memcpy( b_new->id, id_new, SHA_DIGEST_LENGTH );
 	b_new->nodes = list_init();
 	

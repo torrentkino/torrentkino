@@ -63,7 +63,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "hex.h"
 
 struct obj_p2p *p2p_init( void ) {
-	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof( struct obj_p2p), "p2p_init" );
+	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
 
 	p2p->time_expire = 0;
 	p2p->time_find = 0;
@@ -97,7 +97,7 @@ void p2p_bootstrap( void ) {
 	log_info( "Connecting to a bootstrap server" );
 
 	/* Compute address of bootstrap node */
-	memset( &hints, '\0', sizeof( struct addrinfo) );
+	memset( &hints, '\0', sizeof(struct addrinfo) );
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_family = AF_INET6;
 	rc = getaddrinfo( _main->conf->bootstrap_node, _main->conf->bootstrap_port, &hints, &info );
@@ -511,7 +511,7 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, CIPV6 *fr
 		}
 
 		/* Compute source */
-		memset( &sin, '\0', sizeof( struct sockaddr_in6) );
+		memset( &sin, '\0', sizeof(struct sockaddr_in6) );
 		sin.sin6_family = AF_INET6;
 		memcpy( &sin.sin6_addr, ip->v.s->s, 16 );
 		memcpy( &sin.sin6_port, po->v.s->s, 2 );

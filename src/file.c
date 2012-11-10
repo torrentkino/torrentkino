@@ -103,9 +103,9 @@ char *file_load( const char *filename, long int offset, size_t size ) {
 		return 0;
 	}
 
-	buffer = (char *) myalloc( (size+1) * sizeof( char), "file_load" );
+	buffer = (char *) myalloc( (size+1) * sizeof(char), "file_load" );
 
-	if( size != fread( buffer, sizeof( char), size, fh) ) {
+	if( size != fread( buffer, sizeof(char), size, fh) ) {
 		myfree( buffer, "file_load" );
 		return NULL;
 	}
@@ -124,7 +124,7 @@ int file_write( const char *filename, char *buffer, size_t size ) {
 	if( fh == NULL) 
 		return -1;
 
-	if( size != fwrite( buffer, sizeof( char), size, fh))
+	if( size != fwrite( buffer, sizeof(char), size, fh))
 		return -2;
 
 	if( fclose( fh) != 0 )
@@ -139,7 +139,7 @@ size_t file_append( const char *filename, char *buffer, size_t size ) {
 	if( fh == NULL) 
 		return -1;
 
-	if( size != fwrite( buffer, sizeof( char), size, fh))
+	if( size != fwrite( buffer, sizeof(char), size, fh))
 		return -2;
 
 	if( fclose( fh) != 0 )

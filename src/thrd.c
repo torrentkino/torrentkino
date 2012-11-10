@@ -44,7 +44,7 @@ sem_t *thrd_init( const char *semname ) {
 #ifdef __APPLE__
 	if( ( mutex = sem_open( semname, O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED )
 #else
-	mutex = (sem_t *) myalloc( sizeof( sem_t), "thrd_init" );
+	mutex = (sem_t *) myalloc( sizeof(sem_t), "thrd_init" );
 	if( ( sem_init( mutex, 0, 1)) == -1 )
 #endif
 		log_fail( "Initialisation of a semaphore failed." );
@@ -72,7 +72,7 @@ void thrd_unblock( sem_t *mutex ) {
 }
 
 pthread_mutex_t *mutex_init( void ) {
-	pthread_mutex_t *mutex = (pthread_mutex_t *) myalloc( sizeof( pthread_mutex_t), "mutex_init" );
+	pthread_mutex_t *mutex = (pthread_mutex_t *) myalloc( sizeof(pthread_mutex_t), "mutex_init" );
 	
 	if( pthread_mutex_init( mutex, NULL) != 0 )
 		log_fail( "pthread_mutex_init() failed." );
@@ -96,7 +96,7 @@ void mutex_unblock( pthread_mutex_t *mutex ) {
 }
 
 pthread_cond_t *cond_init( void ) {
-	pthread_cond_t *cond = (pthread_cond_t *) myalloc( sizeof( pthread_cond_t), "cond_init" );
+	pthread_cond_t *cond = (pthread_cond_t *) myalloc( sizeof(pthread_cond_t), "cond_init" );
 
 	if( pthread_cond_init( cond, NULL) != 0 ) {
 		log_fail( "pthread_cond_init() failed." );

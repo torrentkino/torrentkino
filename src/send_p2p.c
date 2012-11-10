@@ -436,7 +436,7 @@ void send_aes( CIPV6 *sa, struct obj_raw *raw ) {
 }
 
 void send_exec( CIPV6 *sa, struct obj_raw *raw ) {
-	socklen_t addrlen = sizeof( struct sockaddr_in6 );
+	socklen_t addrlen = sizeof(struct sockaddr_in6 );
 
 	if( _main->udp->sockfd < 0 ) {
 		return;

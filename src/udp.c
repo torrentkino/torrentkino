@@ -53,10 +53,10 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "time.h"
 
 struct obj_udp *udp_init( void ) {
-	struct obj_udp *udp = (struct obj_udp *) myalloc( sizeof( struct obj_udp), "udp_init" );
+	struct obj_udp *udp = (struct obj_udp *) myalloc( sizeof(struct obj_udp), "udp_init" );
 
 	/* Init server structure */
-	udp->s_addrlen = sizeof( struct sockaddr_in6 );
+	udp->s_addrlen = sizeof(struct sockaddr_in6 );
 	memset( (char *) &udp->s_addr, '\0', udp->s_addrlen );
 	udp->sockfd = -1;
 
@@ -90,7 +90,7 @@ void udp_start( void ) {
 	udp_multicast();
 
 	/* Listen to IPv6 only */
-	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int)) == -1 ) {
+	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(int)) == -1 ) {
 		log_fail( "Setting IPV6_V6ONLY failed" );
 	}
 
@@ -160,16 +160,16 @@ void udp_pool( void ) {
 	pthread_attr_setdetachstate( &_main->udp->attr, PTHREAD_CREATE_JOINABLE );
 
 	/* Create worker threads */
-	_main->udp->threads = (pthread_t **) myalloc( (_main->conf->cores+1) * sizeof( pthread_t *), "udp_pool" );
+	_main->udp->threads = (pthread_t **) myalloc( (_main->conf->cores+1) * sizeof(pthread_t *), "udp_pool" );
 	for( i=0; i < _main->conf->cores; i++ ) {
-		_main->udp->threads[i] = (pthread_t *) myalloc( sizeof( pthread_t), "udp_pool" );
+		_main->udp->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t), "udp_pool" );
 		if( pthread_create( _main->udp->threads[i], &_main->udp->attr, udp_thread, NULL) != 0 ) {
 			log_fail( "pthread_create()" );
 		}
 	}
 
 	/* Send 1st request while the workers are starting */
-	_main->udp->threads[_main->conf->cores] = (pthread_t *) myalloc( sizeof( pthread_t), "udp_pool" );
+	_main->udp->threads[_main->conf->cores] = (pthread_t *) myalloc( sizeof(pthread_t), "udp_pool" );
 	if( pthread_create( _main->udp->threads[_main->conf->cores], NULL, udp_client, NULL) != 0 ) {
 		log_fail( "pthread_create()" );
 	}
@@ -267,7 +267,7 @@ void udp_input( int sockfd ) {
 	UCHAR buffer[UDP_BUF+1];
 	ssize_t bytes = 0;
 	struct sockaddr_in6 c_addr;
-	socklen_t c_addrlen = sizeof( struct sockaddr_in6 );
+	socklen_t c_addrlen = sizeof(struct sockaddr_in6 );
 
 	while( _main->status == MAIN_ONLINE ) {
 		/* Clean Source */
@@ -306,14 +306,14 @@ void udp_multicast( void ) {
 	struct ipv6_mreq mreq;
 
 	/* Listen to ff0e::1 */
-	memset( &hints, '\0', sizeof( hints) );
+	memset( &hints, '\0', sizeof(hints) );
 	if( getaddrinfo( "ff0e::1", _main->conf->bootstrap_port, &hints, &multicast) != 0 ) {
 		log_fail( "getaddrinfo failed" );
 	}
-	memset( &mreq, '\0', sizeof( mreq) );
-	memcpy( &mreq.ipv6mr_multiaddr, &((struct sockaddr_in6 *) multicast->ai_addr)->sin6_addr, sizeof( mreq.ipv6mr_multiaddr) );
+	memset( &mreq, '\0', sizeof(mreq) );
+	memcpy( &mreq.ipv6mr_multiaddr, &((struct sockaddr_in6 *) multicast->ai_addr)->sin6_addr, sizeof(mreq.ipv6mr_multiaddr) );
 	mreq.ipv6mr_interface = 0;
-	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof( mreq)) == 0 ) {
+	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq)) == 0 ) {
 		_main->udp->multicast = 1;
 	} else {
 		log_info( "Trying to register multicast address failed: I will retry it later." );

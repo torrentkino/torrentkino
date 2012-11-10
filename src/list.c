@@ -43,7 +43,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 LIST *list_init( void ) {
-	LIST *list = (LIST *) myalloc( sizeof( LIST), "list_init" );
+	LIST *list = (LIST *) myalloc( sizeof(LIST), "list_init" );
 
 	list->start = NULL;
 	list->stop = NULL;
@@ -82,7 +82,7 @@ ITEM *list_put( LIST *list, void *payload ) {
 	}
 
 	/* Get memory */
-	newItem = (ITEM *) myalloc( sizeof( ITEM), "list_put" );
+	newItem = (ITEM *) myalloc( sizeof(ITEM), "list_put" );
 
 	/* Data container */
 	newItem->val = payload;
@@ -126,7 +126,7 @@ ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
 	}
 
 	/* Data */
-	new = (ITEM *) myalloc( sizeof( ITEM), "list_app" );
+	new = (ITEM *) myalloc( sizeof(ITEM), "list_app" );
 	new->val = payload;
 
 	/* Setup pointer */
