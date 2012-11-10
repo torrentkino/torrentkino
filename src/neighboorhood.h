@@ -29,7 +29,7 @@ void nbhd_ping( void );
 void nbhd_find_myself( void );
 void nbhd_find_random( void );
 void nbhd_find( UCHAR *find_id );
-void nbhd_lookup( struct obj_lkp *l );
+void nbhd_lookup( LOOKUP *l );
 
 void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning );
 void nbhd_print( void );

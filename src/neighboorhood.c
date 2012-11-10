@@ -168,7 +168,7 @@ void nbhd_find( UCHAR *find_id ) {
 	}
 }
 
-void nbhd_lookup( struct obj_lkp *l ) {
+void nbhd_lookup( LOOKUP *l ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;

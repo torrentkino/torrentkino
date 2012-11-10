@@ -47,7 +47,7 @@ struct obj_main {
 	struct obj_p2p *p2p;
 	struct obj_cache *cache;
 	struct obj_list *nbhd;
-	struct obj_lkps *lkps;
+	struct obj_lookups *lkps;
 #endif
 
 	/* Thread terminater */

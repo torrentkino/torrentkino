@@ -55,11 +55,11 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "bucket.h"
 #include "send_p2p.h"
 
-struct obj_lkps *lkp_init( void ) {
-	struct obj_lkps *find = (struct obj_lkps *) myalloc( sizeof(struct obj_lkps), "lkp_init" );
-	find->list = list_init();
-	find->hash = hash_init( 4096 );
-	return find;
+LOOKUPS *lkp_init( void ) {
+	LOOKUPS *lookups = (LOOKUPS *) myalloc( sizeof(LOOKUPS), "lkp_init" );
+	lookups->list = list_init();
+	lookups->hash = hash_init( 4096 );
+	return lookups;
 }
 
 void lkp_free( void ) {
@@ -69,11 +69,11 @@ void lkp_free( void ) {
 	myfree( _main->lkps, "lkp_free" );
 }
 
-struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from ) {
+LOOKUP *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from ) {
 	ITEM *i = NULL;
-	struct obj_lkp *l = NULL;
+	LOOKUP *l = NULL;
 
-	l = (struct obj_lkp *) myalloc( sizeof(struct obj_lkp), "lkp_put" );
+	l = (LOOKUP *) myalloc( sizeof(LOOKUP), "lkp_put" );
 
 	/* Remember nodes that have been asked */
 	l->list = list_init();
@@ -100,7 +100,7 @@ struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from ) {
 }
 
 void lkp_del( ITEM *i ) {
-	struct obj_lkp *l = i->val;
+	LOOKUP *l = i->val;
 
 	/* Free lookup cache */
 	list_clear( l->list );
@@ -116,7 +116,7 @@ void lkp_del( ITEM *i ) {
 void lkp_expire( void ) {
 	ITEM *i = NULL;
 	ITEM *next = NULL;
-	struct obj_lkp *l = NULL;
+	LOOKUP *l = NULL;
 	long int j = 0;
 
 	i = _main->lkps->list->start;
@@ -133,7 +133,7 @@ void lkp_expire( void ) {
 
 void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	ITEM *i = NULL;
-	struct obj_lkp *l = NULL;
+	LOOKUP *l = NULL;
 	socklen_t addrlen = sizeof(IP );
 
 	/* Lookup the lookup ID */
@@ -167,7 +167,7 @@ void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	lkp_del( i );
 }
 
-void lkp_remember( struct obj_lkp *l, UCHAR *node_id ) {
+void lkp_remember( LOOKUP *l, UCHAR *node_id ) {
 	UCHAR *buffer = NULL;
 
 	/* Remember that node */

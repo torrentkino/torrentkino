@@ -17,12 +17,13 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-struct obj_lkps {
+struct obj_lookups {
 	LIST *list;
 	HASH *hash;
 };
+typedef struct obj_lookups LOOKUPS;
 
-struct obj_lkp {
+struct obj_lookup {
 	LIST *list;
 	HASH *hash;
 
@@ -33,14 +34,15 @@ struct obj_lkp {
 	time_t time_find;
 
 };
+typedef struct obj_lookup LOOKUP;
 
-struct obj_lkps *lkp_init( void );
+LOOKUPS *lkp_init( void );
 void lkp_free( void );
 
-struct obj_lkp *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from );
+LOOKUP *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from );
 void lkp_del( ITEM *i );
 
 void lkp_expire( void );
 
 void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr );
-void lkp_remember( struct obj_lkp *l, UCHAR *node_id );
+void lkp_remember( LOOKUP *l, UCHAR *node_id );
