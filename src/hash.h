@@ -26,13 +26,13 @@ typedef struct obj_pair PAIR;
 
 struct obj_bucket {
 	unsigned int count;
-	struct obj_pair *pairs;
+	PAIR *pairs;
 };
 typedef struct obj_bucket BUCKET;
 
 struct obj_hash {
 	unsigned int count;
-	struct obj_bucket *buckets;
+	BUCKET *buckets;
 };
 typedef struct obj_hash HASH;
 
@@ -40,7 +40,7 @@ HASH *hash_init( unsigned int capacity );
 void hash_free( HASH *map );
 
 unsigned long hash_this( UCHAR *str, long int keysize );
-struct obj_pair *hash_getpair( struct obj_bucket *bucket, UCHAR *key, long int keysize );
+PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, long int keysize );
 
 void *hash_get( const HASH *map, UCHAR *key, long int keysize );
 int hash_put( HASH *map, UCHAR *key, long int keysize, void *value );

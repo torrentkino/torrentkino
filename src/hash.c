@@ -28,14 +28,14 @@ HASH *hash_init( unsigned int capacity ) {
 	HASH *map = myalloc( sizeof( HASH), "hash_init" );
 	
 	map->count = capacity;
-	map->buckets = myalloc( map->count * sizeof( struct obj_bucket), "hash_init" );
+	map->buckets = myalloc( map->count * sizeof( BUCKET), "hash_init" );
 
 	return map;
 }
 
 void hash_free( HASH *map ) {
 	unsigned int i;
-	struct obj_bucket *bucket = NULL;
+	BUCKET *bucket = NULL;
 
 	if( map == NULL ) {
 		return;
@@ -66,8 +66,8 @@ int hash_exists( const HASH *map, UCHAR *key, long int keysize ) {
 
 void *hash_get( const HASH *map, UCHAR *key, long int keysize ) {
 	unsigned int index = 0;
-	struct obj_bucket *bucket = NULL;
-	struct obj_pair *pair = NULL;
+	BUCKET *bucket = NULL;
+	PAIR *pair = NULL;
 
 	if( map == NULL || key == NULL ) {
 		return NULL;
@@ -86,8 +86,8 @@ void *hash_get( const HASH *map, UCHAR *key, long int keysize ) {
 
 int hash_put( HASH *map, UCHAR *key, long int keysize, void *value ) {
 	unsigned int index = 0;
-	struct obj_bucket *bucket = NULL;
-	struct obj_pair *pair = NULL;
+	BUCKET *bucket = NULL;
+	PAIR *pair = NULL;
 
 	if( map == NULL || key == NULL || value == NULL ) {
 		return 0;
@@ -104,10 +104,10 @@ int hash_put( HASH *map, UCHAR *key, long int keysize, void *value ) {
 
 	/* Create new obj_pair */
 	if( bucket->count == 0 ) {
-		bucket->pairs = myalloc( sizeof( struct obj_pair), "hash_put" );
+		bucket->pairs = myalloc( sizeof( PAIR), "hash_put" );
 		bucket->count = 1;
 	} else  {
-		bucket->pairs = myrealloc( bucket->pairs,( bucket->count + 1) * sizeof( struct obj_pair), "hash_put" );
+		bucket->pairs = myrealloc( bucket->pairs,( bucket->count + 1) * sizeof( PAIR), "hash_put" );
 		bucket->count++;
 	}
 	
@@ -122,12 +122,12 @@ int hash_put( HASH *map, UCHAR *key, long int keysize, void *value ) {
 
 void hash_del( HASH *map, UCHAR *key, long int keysize ) {
 	unsigned int index = 0;
-	struct obj_bucket *bucket = NULL;
-	struct obj_pair *thispair = NULL;
-	struct obj_pair *oldpair = NULL;
-	struct obj_pair *newpair = NULL;
-	struct obj_pair *p_old = NULL;
-	struct obj_pair *p_new = NULL;
+	BUCKET *bucket = NULL;
+	PAIR *thispair = NULL;
+	PAIR *oldpair = NULL;
+	PAIR *newpair = NULL;
+	PAIR *p_old = NULL;
+	PAIR *p_new = NULL;
 	unsigned int i = 0;
 
 	if( map == NULL || key == NULL ) {
@@ -150,14 +150,14 @@ void hash_del( HASH *map, UCHAR *key, long int keysize ) {
 	} else if( bucket->count > 1 ) {
 		/* Get new memory and remember the old one */
 		oldpair = bucket->pairs;
-		newpair = myalloc( (bucket->count - 1) * sizeof( struct obj_pair), "hash_rem" );
+		newpair = myalloc( (bucket->count - 1) * sizeof( PAIR), "hash_rem" );
 
 		/* Copy pairs except the one to delete */
 		p_old = oldpair;
 		p_new = newpair;
 		for( i=0; i<bucket->count; i++ ) {
 			if( p_old != thispair ) {
-				memcpy( p_new++, p_old, sizeof( struct obj_pair) );
+				memcpy( p_new++, p_old, sizeof( PAIR) );
 			}
 
 			p_old++;
@@ -169,9 +169,9 @@ void hash_del( HASH *map, UCHAR *key, long int keysize ) {
 	}
 }
 
-struct obj_pair *hash_getpair( struct obj_bucket *bucket, UCHAR *key, long int keysize ) {
+PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, long int keysize ) {
 	unsigned int i;
-	struct obj_pair *pair = NULL;
+	PAIR *pair = NULL;
 
 	if( bucket->count == 0 ) {
 		return NULL;
