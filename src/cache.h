@@ -19,7 +19,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_cache {
 	LIST *list;
-	struct obj_hash *hash;
+	HASH *hash;
 };
 
 struct obj_key {

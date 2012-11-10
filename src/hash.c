@@ -24,8 +24,8 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "hash.h"
 
-struct obj_hash *hash_init( unsigned int capacity ) {
-	struct obj_hash *map = myalloc( sizeof( struct obj_hash), "hash_init" );
+HASH *hash_init( unsigned int capacity ) {
+	HASH *map = myalloc( sizeof( HASH), "hash_init" );
 	
 	map->count = capacity;
 	map->buckets = myalloc( map->count * sizeof( struct obj_bucket), "hash_init" );
@@ -33,7 +33,7 @@ struct obj_hash *hash_init( unsigned int capacity ) {
 	return map;
 }
 
-void hash_free( struct obj_hash *map ) {
+void hash_free( HASH *map ) {
 	unsigned int i;
 	struct obj_bucket *bucket = NULL;
 
@@ -52,7 +52,7 @@ void hash_free( struct obj_hash *map ) {
 	map = NULL;
 }
 
-int hash_exists( const struct obj_hash *map, UCHAR *key, long int keysize ) {
+int hash_exists( const HASH *map, UCHAR *key, long int keysize ) {
 	if( map == NULL ) {
 		return 0;
 	}
@@ -64,7 +64,7 @@ int hash_exists( const struct obj_hash *map, UCHAR *key, long int keysize ) {
 	return 0;
 }
 
-void *hash_get( const struct obj_hash *map, UCHAR *key, long int keysize ) {
+void *hash_get( const HASH *map, UCHAR *key, long int keysize ) {
 	unsigned int index = 0;
 	struct obj_bucket *bucket = NULL;
 	struct obj_pair *pair = NULL;
@@ -84,7 +84,7 @@ void *hash_get( const struct obj_hash *map, UCHAR *key, long int keysize ) {
 	return pair->value;
 }
 
-int hash_put( struct obj_hash *map, UCHAR *key, long int keysize, void *value ) {
+int hash_put( HASH *map, UCHAR *key, long int keysize, void *value ) {
 	unsigned int index = 0;
 	struct obj_bucket *bucket = NULL;
 	struct obj_pair *pair = NULL;
@@ -120,7 +120,7 @@ int hash_put( struct obj_hash *map, UCHAR *key, long int keysize, void *value ) 
 	return 1;
 }
 
-void hash_del( struct obj_hash *map, UCHAR *key, long int keysize ) {
+void hash_del( HASH *map, UCHAR *key, long int keysize ) {
 	unsigned int index = 0;
 	struct obj_bucket *bucket = NULL;
 	struct obj_pair *thispair = NULL;

@@ -17,20 +17,19 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-typedef struct obj_list LIST;
-typedef struct obj_item ITEM;
-
 struct obj_list {	
 	struct obj_item *start;
 	struct obj_item *stop;
 	long int counter;
 };
+typedef struct obj_list LIST;
 
 struct obj_item {	
 	void *val;
 	struct obj_item *next;
 	struct obj_item *prev;
 };
+typedef struct obj_item ITEM;
 
 LIST *list_init( void );
 void list_free( LIST *list );

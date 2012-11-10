@@ -45,8 +45,8 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 LIST *list_init( void ) {
 	LIST *list = (LIST *) myalloc( sizeof( LIST), "list_init" );
 
-	list->start   = NULL;
-	list->stop	= NULL;
+	list->start = NULL;
+	list->stop = NULL;
 	list->counter = 0;
 
 	return list;
@@ -74,7 +74,6 @@ void list_clear( LIST *list ) {
 }
 
 ITEM *list_put( LIST *list, void *payload ) {
-	/* Variables */
 	ITEM *newItem = NULL;
 
 	/* Overflow */
@@ -113,7 +112,6 @@ ITEM *list_put( LIST *list, void *payload ) {
 }
 
 ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
-	/* Variables */
 	ITEM *new = NULL;
 	ITEM *next = NULL;
 

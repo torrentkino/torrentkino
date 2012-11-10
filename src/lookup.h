@@ -19,12 +19,12 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_lkps {
 	LIST *list;
-	struct obj_hash *hash;
+	HASH *hash;
 };
 
 struct obj_lkp {
 	LIST *list;
-	struct obj_hash *hash;
+	HASH *hash;
 
 	unsigned char find_id[SHA_DIGEST_LENGTH+1];
 	unsigned char lkp_id[SHA_DIGEST_LENGTH+1];
