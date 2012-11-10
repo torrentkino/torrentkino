@@ -190,9 +190,8 @@ void node_expire( void ) {
 		/* Bad node */
 		if( n->pinged >= 4 ) {
 			/* Delete references */
-#ifdef MASALA
 			nbhd_del( n );
-#endif
+
 			/* Delete node */
 			node_del( i );
 		}
