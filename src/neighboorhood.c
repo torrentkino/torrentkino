@@ -174,22 +174,27 @@ void nbhd_lookup( struct obj_lkp *l ) {
 	ITEM *item_n = NULL;
 	NODE *n = NULL;
 	long int j = 0;
+	long int max = 0;
 
-	if( ( item_b = bckt_find_any_match( _main->nbhd, l->find_id)) != NULL ) {
-		b = item_b->val;
+	/* Find a matching bucket */
+	if( ( item_b = bckt_find_any_match( _main->nbhd, l->find_id)) == NULL ) {
+		return;
+	}
 
-		item_n = b->nodes->start;
-		for( j=0; j<b->nodes->counter; j++ ) {
-			n = item_n->val;
+	/* Ask the first 8 nodes for the requested node */
+	b = item_b->val;
+	item_n = b->nodes->start;
+	max = ( b->nodes->counter < 8 ) ? b->nodes->counter : 8;
+	for( j = 0; j < max; j++ ) {
+		n = item_n->val;
 
-			/* Remember node */
-			lkp_remember( l, n->id );
+		/* Remember node */
+		lkp_remember( l, n->id );
 
-			/* Direct lookup */
-			send_find( &n->c_addr, l->find_id, l->lkp_id );
+		/* Direct lookup */
+		send_find( &n->c_addr, l->find_id, l->lkp_id );
 
-			item_n = list_next( item_n );
-		}
+		item_n = list_next( item_n );
 	}
 }
 
