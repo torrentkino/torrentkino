@@ -292,7 +292,7 @@ struct obj_raw *ben_enc( struct obj_ben *node ) {
 	}
 
 	/* Encode ben object */
-	raw->code = (unsigned char *) myalloc( (raw->size) * sizeof(unsigned char), "ben_enc" );
+	raw->code = (UCHAR *) myalloc( (raw->size) * sizeof(UCHAR), "ben_enc" );
 	raw->p = ben_enc_rec( node,raw->code );
 	if( raw->p == NULL ||( long int)(raw->p-raw->code) != raw->size ) {
 		raw_free( raw );
@@ -454,8 +454,8 @@ struct obj_ben *ben_dec_s( struct obj_raw *raw ) {
 	struct obj_ben *node = ben_init( BEN_STR );
 	long int i = 0;
 	long int l = 0;
-	unsigned char *start = raw->p;
-	unsigned char *buf = NULL;
+	UCHAR *start = raw->p;
+	UCHAR *buf = NULL;
 	int run = 1;
 
 	while( run ) {
@@ -474,7 +474,7 @@ struct obj_ben *ben_dec_s( struct obj_raw *raw ) {
 				raw->p++;
 				break;
 			case ':':
-				buf = (unsigned char *) myalloc( (i+1) * sizeof(unsigned char), "ben_dec_s" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_dec_s" );
 				memcpy( buf,start,i );
 				l = atol( (char *)buf );
 				myfree( buf, "ben_dec_s" );
@@ -494,8 +494,8 @@ struct obj_ben *ben_dec_s( struct obj_raw *raw ) {
 struct obj_ben *ben_dec_i( struct obj_raw *raw ) {
 	struct obj_ben *node = ben_init( BEN_INT );
 	long int i = 0;
-	unsigned char *start = NULL;
-	unsigned char *buf = NULL;
+	UCHAR *start = NULL;
+	UCHAR *buf = NULL;
 	int run = 1;
 	long int prefix = 1;
 	long int result = 0;
@@ -522,7 +522,7 @@ struct obj_ben *ben_dec_i( struct obj_raw *raw ) {
 				raw->p++;
 				break;
 			case 'e':
-				buf = (unsigned char *) myalloc( (i+1) * sizeof(unsigned char), "ben_dec_i" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_dec_i" );
 				memcpy( buf,start,i );
 				result = atol( (char *)buf );
 				myfree( buf, "ben_dec_i" );
@@ -635,8 +635,8 @@ int ben_validate_l( struct obj_raw *raw ) {
 
 int ben_validate_s( struct obj_raw *raw ) {
 	long int i = 0;
-	unsigned char *start = raw->p;
-	unsigned char *buf = NULL;
+	UCHAR *start = raw->p;
+	UCHAR *buf = NULL;
 	int run = 1;
 
 	if( ( long int)( raw->p - raw->code) >= raw->size )
@@ -662,7 +662,7 @@ int ben_validate_s( struct obj_raw *raw ) {
 				if( i <= 0 || i > BEN_STR_MAXLEN )
 					return 0;
 
-				buf = (unsigned char *) myalloc( (i+1) * sizeof(unsigned char), "ben_validate_s" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_validate_s" );
 				memcpy( buf,start,i );
 				i = atol( (char *)buf );
 				myfree( buf, "ben_validate_s" );
@@ -687,8 +687,8 @@ int ben_validate_s( struct obj_raw *raw ) {
 
 int ben_validate_i( struct obj_raw *raw ) {
 	long int i = 0;
-	unsigned char *start = NULL;
-	unsigned char *buf = NULL;
+	UCHAR *start = NULL;
+	UCHAR *buf = NULL;
 	int run = 1;
 	long int result = 0;
 
@@ -722,7 +722,7 @@ int ben_validate_i( struct obj_raw *raw ) {
 				if( i <= 0 || i > BEN_INT_MAXLEN )
 					return 0;
 
-				buf = (unsigned char *) myalloc( (i+1) * sizeof(unsigned char), "ben_validate_i" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_validate_i" );
 				memcpy( buf,start,i );
 				result = atol( (char *)buf );
 				myfree( buf, "ben_validate_i" );

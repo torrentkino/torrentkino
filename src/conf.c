@@ -84,7 +84,7 @@ struct obj_conf *conf_init( void ) {
 
 	/* SHA1 Hash of hostname */
 #ifdef MASALA
-	sha1_hash( (unsigned char *)conf->host_id, conf->hostname, strlen( conf->hostname) );
+	sha1_hash( (UCHAR *)conf->host_id, conf->hostname, strlen( conf->hostname) );
 #endif
 
 #ifdef MASALA

@@ -23,7 +23,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_BUF 1024
 #define BOOTSTRAP_PORT 8337
 
-typedef unsigned char UCHAR;
+typedef UCHAR UCHAR;
 
 enum nss_status _nss_masala_gethostbyname_r( const char *hostname, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
@@ -52,4 +52,4 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtu
 int _nss_masala_valid_tld( const char *hostname );
 int _nss_masala_valid_hostname( const char *hostname );
 
-int _nss_masala_lookup( const char *hostname, unsigned char *address );
+int _nss_masala_lookup( const char *hostname, UCHAR *address );

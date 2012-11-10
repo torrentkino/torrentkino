@@ -121,7 +121,7 @@ void opts_interpreter( char *var, char *val ) {
 
 	} else if( strcmp( var, "-h") == 0 && val != NULL && strlen( val) > 1 ) {
 		snprintf( _main->conf->hostname, MAIN_BUF+1, "%s", val );
-		sha1_hash( (unsigned char *)_main->conf->host_id, val, strlen( val) );
+		sha1_hash( (UCHAR *)_main->conf->host_id, val, strlen( val) );
 
 	} else if( strcmp( var, "-q") == 0 && val == NULL ) {
 		_main->conf->quiet = CONF_BEQUIET;

@@ -18,7 +18,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 struct obj_neighboorhood_bucket {
-	unsigned char id[SHA_DIGEST_LENGTH];
+	UCHAR id[SHA_DIGEST_LENGTH];
 	LIST *nodes;
 };
 typedef struct obj_neighboorhood_bucket BUCK;
@@ -28,11 +28,11 @@ void bckt_free( LIST *thislist );
 void bckt_put( LIST *l, NODE *n );
 void bckt_del( LIST *l, NODE *n );
 
-ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id );
-ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id );
-ITEM *bckt_find_node( LIST *thislist, const unsigned char *id );
+ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id );
+ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id );
+ITEM *bckt_find_node( LIST *thislist, const UCHAR *id );
 
-int bckt_split( LIST *thislist, const unsigned char *id );
+int bckt_split( LIST *thislist, const UCHAR *id );
 
-int bckt_compute_id( LIST *thislist, ITEM *item_b, unsigned char *id_return );
-int bckt_significant_bit( const unsigned char *id );
+int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id_return );
+int bckt_significant_bit( const UCHAR *id );

@@ -168,10 +168,10 @@ void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, CIPV6 *c_addr ) {
 }
 
 void lkp_remember( struct obj_lkp *l, UCHAR *node_id ) {
-	unsigned char *buffer = NULL;
+	UCHAR *buffer = NULL;
 
 	/* Remember that node */
-	buffer = (unsigned char *) myalloc( SHA_DIGEST_LENGTH*sizeof(char), "lkp_remember" );
+	buffer = (UCHAR *) myalloc( SHA_DIGEST_LENGTH*sizeof(char), "lkp_remember" );
 	memcpy( buffer, node_id, SHA_DIGEST_LENGTH );
 	list_put( l->list, buffer );
 	hash_put( l->hash, buffer, SHA_DIGEST_LENGTH, buffer );

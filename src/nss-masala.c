@@ -106,7 +106,7 @@ enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hosten
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
 
-	unsigned char address[sizeof(struct in6_addr)];
+	UCHAR address[sizeof(struct in6_addr)];
 	char *p_addr = NULL;
 	char *p_name = NULL;
 	char *p_aliases = NULL;
@@ -167,7 +167,7 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtu
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp ) {
 
-	unsigned char address[sizeof(struct in6_addr)];
+	UCHAR address[sizeof(struct in6_addr)];
 	char *p_name = NULL;
 	char *p_idx = NULL;
 	struct gaih_addrtuple *p_tuple;
@@ -257,12 +257,12 @@ int _nss_masala_valid_tld( const char *hostname ) {
 	return 1;
 }
 
-int _nss_masala_lookup( const char *hostname, unsigned char *address ) {
+int _nss_masala_lookup( const char *hostname, UCHAR *address ) {
 
 	struct sockaddr_in6 sa;
 	socklen_t salen = sizeof(struct sockaddr_in6 );
 	char buffer[MAIN_BUF+1];
-	unsigned char hash[SHA_DIGEST_LENGTH];
+	UCHAR hash[SHA_DIGEST_LENGTH];
 	int sockfd = -1;
 	int n = 0;
 	struct timeval tv;

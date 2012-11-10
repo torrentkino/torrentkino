@@ -130,7 +130,7 @@ void bckt_del( LIST *l, NODE *n ) {
 	list_del( b->nodes, item_n );
 }
 
-ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id ) {
+ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
 	BUCK *b = NULL;
@@ -153,7 +153,7 @@ ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id ) {
 	return thislist->stop;
 }
 
-ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id ) {
+ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
 	long int j=0;
@@ -179,7 +179,7 @@ ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id ) {
 	return NULL;
 }
 
-ITEM *bckt_find_node( LIST *thislist, const unsigned char *id ) {
+ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	ITEM *item_b = NULL;
 	ITEM *item_n = NULL;
 	BUCK *b = NULL;
@@ -205,7 +205,7 @@ ITEM *bckt_find_node( LIST *thislist, const unsigned char *id ) {
 	return NULL;
 }
 
-int bckt_split( LIST *thislist, const unsigned char *id ) {
+int bckt_split( LIST *thislist, const UCHAR *id ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	LIST *list_n = NULL;
@@ -214,7 +214,7 @@ int bckt_split( LIST *thislist, const unsigned char *id ) {
 	ITEM *item_s = NULL;
 	BUCK *s = NULL;
 	BUCK *b_new = NULL;
-	unsigned char id_new[SHA_DIGEST_LENGTH];
+	UCHAR id_new[SHA_DIGEST_LENGTH];
 	long int i = 0;
 
 	/* Search bucket we want to evolve */
@@ -266,7 +266,7 @@ int bckt_split( LIST *thislist, const unsigned char *id ) {
 	return 1;
 }
 
-int bckt_compute_id( LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
+int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id_return ) {
 	BUCK *b = item_b->val;
 	ITEM *item_next = NULL;
 	BUCK *b_next = NULL;
@@ -294,7 +294,7 @@ int bckt_compute_id( LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
 	return 1;
 }
 
-int bckt_significant_bit( const unsigned char *id ) {
+int bckt_significant_bit( const UCHAR *id ) {
 	int i=0, j=0;
 
 	for( i = 19; i >= 0; i-- ) {

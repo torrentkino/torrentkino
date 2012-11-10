@@ -49,9 +49,9 @@ struct obj_tuple {
 };
 
 struct obj_raw {
-	unsigned char *code;
+	UCHAR *code;
 	long int size;
-	unsigned char *p;
+	UCHAR *p;
 };
 
 struct obj_ben *ben_init( int type );

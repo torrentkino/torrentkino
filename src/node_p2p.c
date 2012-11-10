@@ -128,7 +128,7 @@ void node_update_address( NODE *node, CIPV6 *sa ) {
 	}
 }
 
-int node_update_risk_id( NODE *node, unsigned char *risk_id ) {
+int node_update_risk_id( NODE *node, UCHAR *risk_id ) {
 	int warning = NODE_NOERROR;
 
 	if( node == NULL ) {

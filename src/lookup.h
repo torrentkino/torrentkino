@@ -26,8 +26,8 @@ struct obj_lkp {
 	LIST *list;
 	HASH *hash;
 
-	unsigned char find_id[SHA_DIGEST_LENGTH+1];
-	unsigned char lkp_id[SHA_DIGEST_LENGTH+1];
+	UCHAR find_id[SHA_DIGEST_LENGTH+1];
+	UCHAR lkp_id[SHA_DIGEST_LENGTH+1];
 
 	struct sockaddr_in6 c_addr;
 	time_t time_find;

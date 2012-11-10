@@ -18,7 +18,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 struct obj_str {
-	unsigned char *s;
+	UCHAR *s;
 	long int i;
 };
 

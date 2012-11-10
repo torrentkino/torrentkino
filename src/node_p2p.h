@@ -29,8 +29,8 @@ typedef struct obj_nodes NODES;
 struct obj_node {
 	struct sockaddr_in6 c_addr;
 	
-	unsigned char id[SHA_DIGEST_LENGTH];
-	unsigned char risk_id[SHA_DIGEST_LENGTH];
+	UCHAR id[SHA_DIGEST_LENGTH];
+	UCHAR risk_id[SHA_DIGEST_LENGTH];
 
 	time_t time_ping;
 	time_t time_find;
@@ -45,7 +45,7 @@ NODE *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa );
 void node_del( ITEM *i );
 
 void node_update_address( NODE *node, CIPV6 *sa );
-int node_update_risk_id( NODE *node, unsigned char *risk_id );
+int node_update_risk_id( NODE *node, UCHAR *risk_id );
 
 void node_pinged( UCHAR *id );
 void node_ponged( UCHAR *id, CIPV6 *sa );

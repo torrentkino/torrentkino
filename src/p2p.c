@@ -279,7 +279,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 	}
 
 	/* Remember node. This does not update the IP address or the risk ID. */
-	n = node_put( id->v.s->s,( unsigned char *)c->v.s->s,( struct sockaddr_in6 *)from );
+	n = node_put( id->v.s->s,( UCHAR *)c->v.s->s,( struct sockaddr_in6 *)from );
 
 	/* The neighboorhood */
 	nbhd_put( n );
@@ -288,7 +288,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 	node_update_address( n,( struct sockaddr_in6 *)from );
 
 	/* Collision detection */
-	warning = node_update_risk_id( n,( unsigned char *)c->v.s->s );
+	warning = node_update_risk_id( n,( UCHAR *)c->v.s->s );
 
 	/* Collision detection */
 	e = ben_searchDictStr( packet, "e" );
