@@ -54,7 +54,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #ifdef VINEGAR
-void log_complex( NODE *nodeItem, int code, const char *buffer ) {
+void log_complex( NODE *n, int code, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
 #ifndef IPV4
 	char buf[INET6_ADDRSTRLEN+1];
@@ -69,9 +69,9 @@ void log_complex( NODE *nodeItem, int code, const char *buffer ) {
 				printf( "[%.3li] <%.3u> %s (%s)\n",
 					_main->nodes->list->counter, code, buffer,
 #ifdef IPV4
-					inet_ntoa( nodeItem->c_addr.sin_addr)
+					inet_ntoa( n->c_addr.sin_addr)
 #else
-					inet_ntop( AF_INET6, &nodeItem->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
+					inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
 #endif
 				);
 			} else {
@@ -79,9 +79,9 @@ void log_complex( NODE *nodeItem, int code, const char *buffer ) {
 				syslog( LOG_INFO, "[%.3li] <%.3u> %s (%s)",
 					_main->nodes->list->counter, code, buffer,
 #ifdef IPV4
-					inet_ntoa( nodeItem->c_addr.sin_addr)
+					inet_ntoa( n->c_addr.sin_addr)
 #else
-					inet_ntop( AF_INET6, &nodeItem->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
+					inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
 #endif
 				);
 				closelog();

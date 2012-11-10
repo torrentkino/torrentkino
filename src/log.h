@@ -18,7 +18,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifdef VINEGAR
-void log_complex( NODE *nodeItem, int code, const char *buffer );
+void log_complex( NODE *n, int code, const char *buffer );
 void log_info( int code, const char *buffer );
 #endif
 
