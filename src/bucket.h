@@ -25,8 +25,8 @@ typedef struct obj_neighboorhood_bucket BUCK;
 
 LIST *bckt_init( void );
 void bckt_free( LIST *thislist );
-void bckt_put( LIST *l, struct obj_nodeItem *n );
-void bckt_del( LIST *l, struct obj_nodeItem *n );
+void bckt_put( LIST *l, NODE *n );
+void bckt_del( LIST *l, NODE *n );
 
 ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id );
 ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id );

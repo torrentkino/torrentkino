@@ -65,11 +65,11 @@ void nbhd_free( void ) {
 	bckt_free( _main->nbhd );
 }
 
-void nbhd_put( struct obj_nodeItem *n ) {
+void nbhd_put( NODE *n ) {
 	bckt_put( _main->nbhd, n );
 }
 
-void nbhd_del( struct obj_nodeItem *n ) {
+void nbhd_del( NODE *n ) {
 	bckt_del( _main->nbhd, n );
 }
 
@@ -99,7 +99,7 @@ void nbhd_ping( void ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	long int j = 0, k = 0;
 
 	/* Cycle through all the buckets */
@@ -146,7 +146,7 @@ void nbhd_find( UCHAR *find_id ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	long int j = 0;
 
 	if( ( item_b = bckt_find_any_match( _main->nbhd, find_id)) != NULL ) {
@@ -172,7 +172,7 @@ void nbhd_lookup( struct obj_lkp *l ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	long int j = 0;
 
 	if( ( item_b = bckt_find_any_match( _main->nbhd, l->find_id)) != NULL ) {
@@ -197,7 +197,7 @@ void nbhd_print( void ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	long int j = 0, k = 0;
 	char hex[HEX_LEN+1];
 	char buf[MAIN_BUF+1];

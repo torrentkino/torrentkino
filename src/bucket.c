@@ -84,7 +84,7 @@ void bckt_free( LIST *thislist ) {
 	list_free( thislist );
 }
 
-void bckt_put( LIST *l, struct obj_nodeItem *n ) {
+void bckt_put( LIST *l, NODE *n ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
 
@@ -106,7 +106,7 @@ void bckt_put( LIST *l, struct obj_nodeItem *n ) {
 	list_put( b->nodes, n );
 }
 
-void bckt_del( LIST *l, struct obj_nodeItem *n ) {
+void bckt_del( LIST *l, NODE *n ) {
 	ITEM *item_b = NULL;
 	ITEM *item_n = NULL;
 	BUCK *b = NULL;
@@ -184,7 +184,7 @@ ITEM *bckt_find_node( LIST *thislist, const unsigned char *id ) {
 	ITEM *item_n = NULL;
 	BUCK *b = NULL;
 	LIST *list_n = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	long int i = 0;
 
 	if( ( item_b = bckt_find_best_match( thislist, id)) == NULL ) {
@@ -210,7 +210,7 @@ int bckt_split( LIST *thislist, const unsigned char *id ) {
 	BUCK *b = NULL;
 	LIST *list_n = NULL;
 	ITEM *item_n = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	ITEM *item_s = NULL;
 	BUCK *s = NULL;
 	BUCK *b_new = NULL;

@@ -20,8 +20,8 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 LIST *nbhd_init( void );
 void nbhd_free( void );
 
-void nbhd_put( struct obj_nodeItem *n );
-void nbhd_del( struct obj_nodeItem *n );
+void nbhd_put( NODE *n );
+void nbhd_del( NODE *n );
 
 void nbhd_split( void );
 void nbhd_ping( void );

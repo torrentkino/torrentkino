@@ -54,7 +54,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #ifdef VINEGAR
-void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) {
+void log_complex( NODE *nodeItem, int code, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
 #ifndef IPV4
 	char buf[INET6_ADDRSTRLEN+1];

@@ -26,7 +26,7 @@ struct obj_nodes {
 };
 typedef struct obj_nodes NODES;
 
-struct obj_nodeItem {
+struct obj_node {
 	struct sockaddr_in6 c_addr;
 	
 	unsigned char id[SHA_DIGEST_LENGTH];
@@ -36,15 +36,16 @@ struct obj_nodeItem {
 	time_t time_find;
 	int pinged;
 };
+typedef struct obj_node NODE;
 
 NODES *node_init( void );
 void node_free( void );
 
-struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa );
+NODE *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa );
 void node_del( ITEM *i );
 
-void node_update_address( struct obj_nodeItem *node, CIPV6 *sa );
-int node_update_risk_id( struct obj_nodeItem *node, unsigned char *risk_id );
+void node_update_address( NODE *node, CIPV6 *sa );
+int node_update_risk_id( NODE *node, unsigned char *risk_id );
 
 void node_pinged( UCHAR *id );
 void node_ponged( UCHAR *id, CIPV6 *sa );

@@ -69,9 +69,9 @@ void node_free( void ) {
 	myfree( _main->nodes, "node_free" );
 }
 
-struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
+NODE *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 	ITEM *i = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 
 	/* It's me */
 	if( node_me( id) ) {
@@ -82,7 +82,7 @@ struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 	if( ( i = hash_get( _main->nodes->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
 		n = i->val;
 	} else {
-		n = (struct obj_nodeItem *) myalloc( sizeof(struct obj_nodeItem), "node_put" );
+		n = (NODE *) myalloc( sizeof(NODE), "node_put" );
 		
 		/* ID */
 		memcpy( n->id, id, SHA_DIGEST_LENGTH );
@@ -111,13 +111,13 @@ struct obj_nodeItem *node_put( UCHAR *id, UCHAR *risk_id, CIPV6 *sa ) {
 }
 
 void node_del( ITEM *i ) {
-	struct obj_nodeItem *n = i->val;
+	NODE *n = i->val;
 	hash_del( _main->nodes->hash, n->id, SHA_DIGEST_LENGTH );
 	list_del( _main->nodes->list, i );
 	myfree( n, "node_del" );
 }
 
-void node_update_address( struct obj_nodeItem *node, CIPV6 *sa ) {
+void node_update_address( NODE *node, CIPV6 *sa ) {
 	if( node == NULL ) {
 		return;
 	}
@@ -128,7 +128,7 @@ void node_update_address( struct obj_nodeItem *node, CIPV6 *sa ) {
 	}
 }
 
-int node_update_risk_id( struct obj_nodeItem *node, unsigned char *risk_id ) {
+int node_update_risk_id( NODE *node, unsigned char *risk_id ) {
 	int warning = NODE_NOERROR;
 
 	if( node == NULL ) {
@@ -146,7 +146,7 @@ int node_update_risk_id( struct obj_nodeItem *node, unsigned char *risk_id ) {
 
 void node_pinged( UCHAR *id ) {
 	ITEM *l = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 
 	if( ( l = hash_get( _main->nodes->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
@@ -161,7 +161,7 @@ void node_pinged( UCHAR *id ) {
 
 void node_ponged( UCHAR *id, CIPV6 *sa ) {
 	ITEM *l = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 
 	if( ( l = hash_get( _main->nodes->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
@@ -179,7 +179,7 @@ void node_ponged( UCHAR *id, CIPV6 *sa ) {
 void node_expire( void ) {
 	ITEM *i = NULL;
 	ITEM *next = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	long int j = 0;
 
 	i = _main->nodes->list->start;

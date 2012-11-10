@@ -229,7 +229,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, CIPV6 *from ) {
 	struct obj_ben *sk = NULL;
 	struct obj_ben *c = NULL;
 	struct obj_ben *e = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	int warning = NODE_NOERROR;
 
 	/* Parse request */
@@ -441,7 +441,7 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, CIPV6 *fr
 	struct obj_ben *c = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 	ITEM *item = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	struct sockaddr_in6 sin;
 	long int i = 0;
 

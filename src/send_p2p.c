@@ -258,7 +258,7 @@ void send_node( CIPV6 *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning )
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
 	ITEM *item_n = NULL;
-	struct obj_nodeItem *n = NULL;
+	NODE *n = NULL;
 	long int i=0;
 	struct sockaddr_in6 *sin = NULL;
 
