@@ -17,10 +17,11 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-struct obj_bckt {
+struct obj_neighboorhood_bucket {
 	unsigned char id[SHA_DIGEST_LENGTH];
 	LIST *nodes;
 };
+typedef struct obj_neighboorhood_bucket BUCK;
 
 LIST *bckt_init( void );
 void bckt_free( LIST *thislist );

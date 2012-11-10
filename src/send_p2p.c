@@ -250,7 +250,7 @@ void send_find( CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	log_udp( sa, buffer );
 }
 
-void send_node( CIPV6 *sa, struct obj_bckt *b, UCHAR *node_sk, UCHAR *lkp_id, int warning ) {
+void send_node( CIPV6 *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *list_id = NULL;
 	struct obj_ben *dict_node = NULL;

@@ -51,7 +51,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "bucket.h"
 
 LIST *bckt_init( void ) {
-	struct obj_bckt *b = (struct obj_bckt *) myalloc( sizeof(struct obj_bckt), "bckt_init" );
+	BUCK *b = (BUCK *) myalloc( sizeof(BUCK), "bckt_init" );
 	LIST *l = (LIST *) list_init();
 	
 	/* First bucket */
@@ -66,7 +66,7 @@ LIST *bckt_init( void ) {
 
 void bckt_free( LIST *thislist ) {
 	ITEM *i = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	long int j = 0;
 
 	i = thislist->start;
@@ -86,7 +86,7 @@ void bckt_free( LIST *thislist ) {
 
 void bckt_put( LIST *l, struct obj_nodeItem *n ) {
 	ITEM *i = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 
 	if( n == NULL ) {
 		return;
@@ -109,7 +109,7 @@ void bckt_put( LIST *l, struct obj_nodeItem *n ) {
 void bckt_del( LIST *l, struct obj_nodeItem *n ) {
 	ITEM *item_b = NULL;
 	ITEM *item_n = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 
 	if( n == NULL ) {
 		return;
@@ -133,7 +133,7 @@ void bckt_del( LIST *l, struct obj_nodeItem *n ) {
 ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	long int i = 0;
 
 	item = thislist->start;
@@ -155,7 +155,7 @@ ITEM *bckt_find_best_match( LIST *thislist, const unsigned char *id ) {
 
 ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id ) {
 	ITEM *i = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	long int j=0;
 
 	i = bckt_find_best_match( thislist, id );
@@ -182,7 +182,7 @@ ITEM *bckt_find_any_match( LIST *thislist, const unsigned char *id ) {
 ITEM *bckt_find_node( LIST *thislist, const unsigned char *id ) {
 	ITEM *item_b = NULL;
 	ITEM *item_n = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	LIST *list_n = NULL;
 	struct obj_nodeItem *n = NULL;
 	long int i = 0;
@@ -207,13 +207,13 @@ ITEM *bckt_find_node( LIST *thislist, const unsigned char *id ) {
 
 int bckt_split( LIST *thislist, const unsigned char *id ) {
 	ITEM *item_b = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	LIST *list_n = NULL;
 	ITEM *item_n = NULL;
 	struct obj_nodeItem *n = NULL;
 	ITEM *item_s = NULL;
-	struct obj_bckt *s = NULL;
-	struct obj_bckt *b_new = NULL;
+	BUCK *s = NULL;
+	BUCK *b_new = NULL;
 	unsigned char id_new[SHA_DIGEST_LENGTH];
 	long int i = 0;
 
@@ -234,7 +234,7 @@ int bckt_split( LIST *thislist, const unsigned char *id ) {
 	}
 	
 	/* Create new bucket */
-	b_new = (struct obj_bckt *) myalloc( sizeof(struct obj_bckt), "split_bucket" );
+	b_new = (BUCK *) myalloc( sizeof(BUCK), "split_bucket" );
 	memcpy( b_new->id, id_new, SHA_DIGEST_LENGTH );
 	b_new->nodes = list_init();
 	
@@ -267,9 +267,9 @@ int bckt_split( LIST *thislist, const unsigned char *id ) {
 }
 
 int bckt_compute_id( LIST *thislist, ITEM *item_b, unsigned char *id_return ) {
-	struct obj_bckt *b = item_b->val;
+	BUCK *b = item_b->val;
 	ITEM *item_next = NULL;
-	struct obj_bckt *b_next = NULL;
+	BUCK *b_next = NULL;
 	int bit1 = 0;
 	int bit2 = 0;
 	int bit = 0;

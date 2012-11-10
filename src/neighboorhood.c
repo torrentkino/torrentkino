@@ -85,7 +85,7 @@ void nbhd_split( void ) {
 
 void nbhd_send( CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning ) {
 	ITEM *i = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 
 	if( ( i = bckt_find_any_match( _main->nbhd, node_id)) == NULL ) {
 		return;
@@ -97,7 +97,7 @@ void nbhd_send( CIPV6 *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int wa
 
 void nbhd_ping( void ) {
 	ITEM *item_b = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	struct obj_nodeItem *n = NULL;
 	long int j = 0, k = 0;
@@ -144,7 +144,7 @@ void nbhd_find_random( void ) {
 
 void nbhd_find( UCHAR *find_id ) {
 	ITEM *item_b = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	struct obj_nodeItem *n = NULL;
 	long int j = 0;
@@ -170,7 +170,7 @@ void nbhd_find( UCHAR *find_id ) {
 
 void nbhd_lookup( struct obj_lkp *l ) {
 	ITEM *item_b = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	struct obj_nodeItem *n = NULL;
 	long int j = 0;
@@ -195,7 +195,7 @@ void nbhd_lookup( struct obj_lkp *l ) {
 
 void nbhd_print( void ) {
 	ITEM *item_b = NULL;
-	struct obj_bckt *b = NULL;
+	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	struct obj_nodeItem *n = NULL;
 	long int j = 0, k = 0;
