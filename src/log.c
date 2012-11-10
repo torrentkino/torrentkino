@@ -60,14 +60,14 @@ void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) 
 	char buf[INET6_ADDRSTRLEN+1];
 #endif
 
-	if( _main->node != NULL ) {
+	if( _main->nodes != NULL ) {
 		if( verbosity == CONF_VERBOSE ) {
 #ifndef IPV4
 			memset( buf, '\0', INET6_ADDRSTRLEN+1 );
 #endif
 			if( _main->conf->mode == CONF_FOREGROUND ) {
 				printf( "[%.3li] <%.3u> %s (%s)\n",
-					_main->node->list->counter, code, buffer,
+					_main->nodes->list->counter, code, buffer,
 #ifdef IPV4
 					inet_ntoa( nodeItem->c_addr.sin_addr)
 #else
@@ -77,7 +77,7 @@ void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) 
 			} else {
 				openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
 				syslog( LOG_INFO, "[%.3li] <%.3u> %s (%s)",
-					_main->node->list->counter, code, buffer,
+					_main->nodes->list->counter, code, buffer,
 #ifdef IPV4
 					inet_ntoa( nodeItem->c_addr.sin_addr)
 #else
@@ -93,13 +93,13 @@ void log_complex( struct obj_nodeItem *nodeItem, int code, const char *buffer ) 
 void log_info( int code, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
 	
-	if( _main->node != NULL ) {
+	if( _main->nodes != NULL ) {
 		if( verbosity == CONF_VERBOSE ) {
 			if( _main->conf->mode == CONF_FOREGROUND ) {
-				printf( "[%.3li] <%.3u> %s\n", _main->node->list->counter, code, buffer );
+				printf( "[%.3li] <%.3u> %s\n", _main->nodes->list->counter, code, buffer );
 			} else {
 				openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-				syslog( LOG_INFO, "[%.3li] <%.3u> %s", _main->node->list->counter, code, buffer );
+				syslog( LOG_INFO, "[%.3li] <%.3u> %s", _main->nodes->list->counter, code, buffer );
 				closelog();
 			}
 		}
