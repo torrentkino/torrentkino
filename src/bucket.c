@@ -196,7 +196,7 @@ ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	item_n = list_n->start;
 	for( i=0; i<list_n->counter; i++ ) {
 		n = item_n->val;
-		if( memcmp( n->id, id, SHA_DIGEST_LENGTH) == 0 ) {
+		if( node_equal( n->id, id ) ) {
 			return item_n;
 		}
 		item_n = list_next( item_n );

@@ -157,7 +157,7 @@ void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	}
 
 	/* Compare node_id to the requested ID */
-	if( memcmp( l->find_id, node_id, SHA_DIGEST_LENGTH) != 0 ) {
+	if( !node_equal( l->find_id, node_id ) ) {
 		return;
 	}
 

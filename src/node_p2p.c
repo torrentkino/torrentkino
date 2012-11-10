@@ -204,9 +204,15 @@ long int node_counter( void ) {
 }
 
 int node_me( UCHAR *node_id ) {
-	if( memcmp( node_id, _main->conf->host_id, SHA_DIGEST_LENGTH) == 0 ) {
+	if( node_equal( node_id, _main->conf->host_id) ) {
 		return 1;
 	}
+	return 0;
+}
 
+int node_equal( const UCHAR *node_a, const UCHAR *node_b ) {
+	if( memcmp( node_a, node_b, SHA_DIGEST_LENGTH) == 0 ) {
+		return 1;
+	}
 	return 0;
 }

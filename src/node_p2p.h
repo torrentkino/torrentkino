@@ -54,3 +54,4 @@ void node_expire( void );
 long int node_counter( void );
 
 int node_me( UCHAR *node_id );
+int node_equal( const UCHAR *node_a, const UCHAR *node_b );
