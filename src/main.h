@@ -48,6 +48,8 @@ struct obj_main {
 	struct obj_cache *cache;
 	struct obj_list *nbhd;
 	struct obj_lookups *lkps;
+	struct obj_store *stor;
+	struct obj_announce *announce;
 #endif
 
 	/* Thread terminater */

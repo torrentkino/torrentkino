@@ -57,6 +57,7 @@ struct obj_conf {
 
 #ifdef MASALA
 	char hostname[MAIN_BUF+1];
+	UCHAR node_id[SHA_DIGEST_LENGTH];
 	UCHAR host_id[SHA_DIGEST_LENGTH];
 	UCHAR risk_id[SHA_DIGEST_LENGTH];
 	UCHAR null_id[SHA_DIGEST_LENGTH];

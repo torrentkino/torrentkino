@@ -52,6 +52,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "node_p2p.h"
 #include "bucket.h"
 #include "lookup.h"
+#include "announce.h"
 #include "neighboorhood.h"
 #include "p2p.h"
 #include "send_p2p.h"
@@ -61,6 +62,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "random.h"
 #include "sha1.h"
 #include "hex.h"
+#include "storage.h"
 
 struct obj_p2p *p2p_init( void ) {
 	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
@@ -73,6 +75,7 @@ struct obj_p2p *p2p_init( void ) {
 	p2p->time_restart = 0;
 	p2p->time_multicast = 0;
 	p2p->time_maintainance = 0;
+	p2p->time_announce = 0;
 	gettimeofday( &p2p->time_now, NULL );
 
 	/* Worker Concurrency */
@@ -137,7 +140,7 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Recursive lookup */
 	if( bensize == SHA_DIGEST_LENGTH ) {
-		p2p_lookup( bencode, bensize, from );
+		p2p_lookup_nss( bencode, bensize, from );
 		return;
 	}
 
@@ -226,7 +229,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 	struct obj_ben *packet = NULL;
 	struct obj_ben *q = NULL;
 	struct obj_ben *id = NULL;
-	struct obj_ben *sk = NULL;
+	struct obj_ben *key = NULL;
 	struct obj_ben *c = NULL;
 	struct obj_ben *e = NULL;
 	NODE *n = NULL;
@@ -271,8 +274,8 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 	}
 
 	/* Session key */
-	sk = ben_searchDictStr( packet, "k" );
-	if( sk == NULL || sk->t != BEN_STR || sk->v.s->i != SHA_DIGEST_LENGTH ) {
+	key = ben_searchDictStr( packet, "k" );
+	if( key == NULL || key->t != BEN_STR || key->v.s->i != SHA_DIGEST_LENGTH ) {
 		log_info( "Session key missing or broken" );
 		ben_free( packet );
 		return;
@@ -304,24 +307,62 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		return;
 	}
 	switch( *q->v.s->s ) {
+
+		/* Requests */
 		case 'p':
+			/* PING */
 			mutex_block( _main->p2p->mutex );
-			p2p_ping( sk->v.s->s, from, warning );
-			mutex_unblock( _main->p2p->mutex );
-			break;
-		case 'o':
-			mutex_block( _main->p2p->mutex );
-			p2p_pong( id->v.s->s, sk->v.s->s, from );
+			p2p_ping( key->v.s->s, from, warning );
 			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'f':
+			/* FIND */
 			mutex_block( _main->p2p->mutex );
-			p2p_find( packet, sk->v.s->s, from, warning );
+			p2p_find( packet, key->v.s->s, from, warning );
+			mutex_unblock( _main->p2p->mutex );
+			break;
+		case 'a':
+			/* ANNOUNCE */
+			mutex_block( _main->p2p->mutex );
+			p2p_announce( packet, key->v.s->s, from, warning );
+			mutex_unblock( _main->p2p->mutex );
+			break;
+		case 'l':
+			/* LOOKUP */
+			mutex_block( _main->p2p->mutex );
+			p2p_lookup( packet, key->v.s->s, from, warning );
+			mutex_unblock( _main->p2p->mutex );
+			break;
+
+		/* Replies */
+		case 'o':
+			/* PONG via PING */
+			mutex_block( _main->p2p->mutex );
+			p2p_pong( id->v.s->s, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'n':
+			/* NODES via FIND */
 			mutex_block( _main->p2p->mutex );
-			p2p_node( packet, id->v.s->s, sk->v.s->s, from );
+			p2p_node_find( packet, id->v.s->s, key->v.s->s, from );
+			mutex_unblock( _main->p2p->mutex );
+			break;
+		case 'b':
+			/* NODES via ANNOUNCE */
+			mutex_block( _main->p2p->mutex );
+			p2p_node_announce( packet, id->v.s->s, key->v.s->s, from );
+			mutex_unblock( _main->p2p->mutex );
+			break;
+		case 'x':
+			/* NODES via LOOKUP */
+			mutex_block( _main->p2p->mutex );
+			p2p_node_lookup( packet, id->v.s->s, key->v.s->s, from );
+			mutex_unblock( _main->p2p->mutex );
+			break;
+		case 'v':
+			/* VALUES via LOOKUP */
+			mutex_block( _main->p2p->mutex );
+			p2p_value( packet, id->v.s->s, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
 		default:
@@ -376,6 +417,7 @@ void p2p_cron( void ) {
 		/* Expire searches every ~2 minutes */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_srch ) {
 			lkp_expire();
+			announce_expire();
 			_main->p2p->time_srch = time_add_2_min_approx();
 		}
 
@@ -385,6 +427,11 @@ void p2p_cron( void ) {
 			_main->p2p->time_maintainance = time_add_2_min_approx();
 		}
 
+		/* Announce my hostname every ~2 minutes */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce ) {
+			p2p_announce_myself();
+			_main->p2p->time_announce = time_add_2_min_approx();
+		}
 	}
 
 	/* Try to register multicast address until it works. */
@@ -419,7 +466,60 @@ void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
 	}
 
 	/* Reply */
-	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning );
+	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"n");
+}
+
+void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
+	struct obj_ben *ben_host_id = NULL;
+	struct obj_ben *ben_lkp_id = NULL;
+
+	/* Host ID */
+	ben_host_id = ben_searchDictStr( packet, "f" );
+	if( ben_host_id == NULL || ben_host_id->t != BEN_STR || ben_host_id->v.s->i != SHA_DIGEST_LENGTH ) {
+		log_info( "Missing or broken target node" );
+		return;
+	}
+
+	/* Lookup ID */
+	ben_lkp_id = ben_searchDictStr( packet, "l" );
+	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+		log_info( "Missing or broken lookup ID" );
+		return;
+	}
+
+	/* Store announced host_id */
+	stor_put(ben_host_id->v.s->s, from);
+
+	/* Reply nodes, that might suit even better */
+	nbhd_send( from, ben_host_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"b");
+}
+
+void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
+	struct obj_ben *ben_find_id = NULL;
+	struct obj_ben *ben_lkp_id = NULL;
+
+	/* Find ID */
+	ben_find_id = ben_searchDictStr( packet, "f" );
+	if( ben_find_id == NULL || ben_find_id->t != BEN_STR || ben_find_id->v.s->i != SHA_DIGEST_LENGTH ) {
+		log_info( "Missing or broken target node" );
+		return;
+	}
+
+	/* Lookup ID */
+	ben_lkp_id = ben_searchDictStr( packet, "l" );
+	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+		log_info( "Missing or broken lookup ID" );
+		return;
+	}
+
+	/* Found the requested node. Reply it to the sender. */
+	if ( stor_find_node(ben_find_id->v.s->s) != NULL ) {
+		stor_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk );
+		return;
+	}
+
+	/* Last resort: Reply nodes closer to the requested node.  */
+	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"x");
 }
 
 void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from ) {
@@ -432,7 +532,7 @@ void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from ) {
 	node_ponged( node_id, from );
 }
 
-void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
+void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
 	struct obj_ben *nodes = NULL;
 	struct obj_ben *node = NULL;
 	struct obj_ben *id = NULL;
@@ -445,7 +545,7 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from 
 	IP sin;
 	long int i = 0;
 
-	if( !cache_validate( node_sk) ) {
+	if( !cache_validate( node_sk ) ) {
 		log_info( "Unexpected reply!" );
 		return;
 	}
@@ -453,7 +553,197 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from 
 	/* Requirements */
 	nodes = ben_searchDictStr( packet, "n" );
 	if( nodes == NULL || nodes->t != BEN_LIST ) {
-		log_info( "Nodes key broken or missing" );
+		log_info( "NODE FIND: Nodes key broken or missing" );
+		return;
+	}
+
+	/* Lookup ID */
+	ben_lkp_id = ben_searchDictStr( packet, "l" );
+	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+		log_info( "Missing or broken lookup ID" );
+		return;
+	}
+
+	/* Reply */
+	item = nodes->v.l->start;
+	for( i=0; i<nodes->v.l->counter; i++ ) {
+		node = item->val;
+
+		/* Node */
+		if( node == NULL || node->t != BEN_DICT ) {
+			log_info( "Node key broken or missing" );
+			return;
+		}
+
+		/* Collision ID */
+		c = ben_searchDictStr( node, "c" );
+		if( c == NULL || c->t != BEN_STR || c->v.s->i != SHA_DIGEST_LENGTH ) {
+			log_info( "Collision ID broken or missing" );
+			return;
+		}
+
+		/* ID */
+		id = ben_searchDictStr( node, "i" );
+		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
+			log_info( "ID key broken or missing" );
+			return;
+		}
+
+		/* IP */
+		ip = ben_searchDictStr( node, "a" );
+		if( ip == NULL || ip->t != BEN_STR ) {
+			log_info( "IP key broken or missing" );
+			return;
+		}
+		if( ip->v.s->i != 16 ) {
+			log_info( "IP key broken or missing" );
+			return;
+		}
+
+		/* Port */
+		po = ben_searchDictStr( node, "p" );
+		if( po == NULL || po->t != BEN_STR || po->v.s->i != 2 ) {
+			log_info( "Port key broken or missing" );
+			return;
+		}
+
+		/* Compute source */
+		memset( &sin, '\0', sizeof(IP) );
+		sin.sin6_family = AF_INET6;
+		memcpy( &sin.sin6_addr, ip->v.s->s, 16 );
+		memcpy( &sin.sin6_port, po->v.s->s, 2 );
+
+		/* Store node */
+		if( !node_me( id->v.s->s) ) {
+			n = node_put( id->v.s->s, c->v.s->s,( IP *)&sin );
+			node_update_address( n,( IP *)&sin );
+			nbhd_put( n );
+		}
+
+		item = list_next( item );
+	}
+}
+
+void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
+	struct obj_ben *nodes = NULL;
+	struct obj_ben *node = NULL;
+	struct obj_ben *id = NULL;
+	struct obj_ben *ip = NULL;
+	struct obj_ben *po = NULL;
+	struct obj_ben *c = NULL;
+	struct obj_ben *ben_lkp_id = NULL;
+	ITEM *item = NULL;
+	NODE *n = NULL;
+	IP sin;
+	long int i = 0;
+
+	if( !cache_validate( node_sk ) ) {
+		log_info( "Unexpected reply!" );
+		return;
+	}
+
+	/* Requirements */
+	nodes = ben_searchDictStr( packet, "n" );
+	if( nodes == NULL || nodes->t != BEN_LIST ) {
+		log_info( "NODE ANNOUNCE: Nodes key broken or missing" );
+		return;
+	}
+
+	/* Lookup ID */
+	ben_lkp_id = ben_searchDictStr( packet, "l" );
+	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+		log_info( "Missing or broken lookup ID" );
+		return;
+	}
+
+	/* Announce myself */
+	announce_resolve( ben_lkp_id->v.s->s, node_id, from );
+
+	/* Reply */
+	item = nodes->v.l->start;
+	for( i=0; i<nodes->v.l->counter; i++ ) {
+		node = item->val;
+
+		/* Node */
+		if( node == NULL || node->t != BEN_DICT ) {
+			log_info( "Node key broken or missing" );
+			return;
+		}
+
+		/* Collision ID */
+		c = ben_searchDictStr( node, "c" );
+		if( c == NULL || c->t != BEN_STR || c->v.s->i != SHA_DIGEST_LENGTH ) {
+			log_info( "Collision ID broken or missing" );
+			return;
+		}
+
+		/* ID */
+		id = ben_searchDictStr( node, "i" );
+		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
+			log_info( "ID key broken or missing" );
+			return;
+		}
+
+		/* IP */
+		ip = ben_searchDictStr( node, "a" );
+		if( ip == NULL || ip->t != BEN_STR ) {
+			log_info( "IP key broken or missing" );
+			return;
+		}
+		if( ip->v.s->i != 16 ) {
+			log_info( "IP key broken or missing" );
+			return;
+		}
+
+		/* Port */
+		po = ben_searchDictStr( node, "p" );
+		if( po == NULL || po->t != BEN_STR || po->v.s->i != 2 ) {
+			log_info( "Port key broken or missing" );
+			return;
+		}
+
+		/* Compute source */
+		memset( &sin, '\0', sizeof(IP) );
+		sin.sin6_family = AF_INET6;
+		memcpy( &sin.sin6_addr, ip->v.s->s, 16 );
+		memcpy( &sin.sin6_port, po->v.s->s, 2 );
+
+		/* Announce myself */
+		announce_resolve( ben_lkp_id->v.s->s, id->v.s->s, &sin );
+
+		/* Store node */
+		if( !node_me( id->v.s->s) ) {
+			n = node_put( id->v.s->s, c->v.s->s,( IP *)&sin );
+			node_update_address( n,( IP *)&sin );
+			nbhd_put( n );
+		}
+
+		item = list_next( item );
+	}
+}
+
+void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
+	struct obj_ben *nodes = NULL;
+	struct obj_ben *node = NULL;
+	struct obj_ben *id = NULL;
+	struct obj_ben *ip = NULL;
+	struct obj_ben *po = NULL;
+	struct obj_ben *c = NULL;
+	struct obj_ben *ben_lkp_id = NULL;
+	ITEM *item = NULL;
+	NODE *n = NULL;
+	IP sin;
+	long int i = 0;
+
+	if( !cache_validate( node_sk ) ) {
+		log_info( "Unexpected reply!" );
+		return;
+	}
+
+	/* Requirements */
+	nodes = ben_searchDictStr( packet, "n" );
+	if( nodes == NULL || nodes->t != BEN_LIST ) {
+		log_info( "LOOKUP: Nodes key broken or missing" );
 		return;
 	}
 
@@ -530,13 +820,55 @@ void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from 
 	}
 }
 
-void p2p_lookup( UCHAR *find_id, size_t size, IP *from ) {
+void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
+	struct obj_ben *ben_address = NULL;
+	struct obj_ben *ben_lkp_id = NULL;
+
+	if( !cache_validate( node_sk ) ) {
+		log_info( "Unexpected reply!" );
+		return;
+	}
+
+	/* Requirements */
+	ben_address = ben_searchDictStr( packet, "a" );
+	if( ben_address == NULL || ben_address->t != BEN_STR || ben_address->v.s->i != 16 ) {
+		log_info( "Missing or broken lookup address" );
+		return;
+	}
+
+	/* Lookup ID */
+	ben_lkp_id = ben_searchDictStr( packet, "l" );
+	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+		log_info( "Missing or broken lookup ID" );
+		return;
+	}
+
+	/* Return IP to NSS */
+	lkp_success(ben_lkp_id->v.s->s, ben_address->v.s->s);
+}
+
+void p2p_lookup_nss( UCHAR *find_id, size_t size, IP *from ) {
 	UCHAR lkp_id[SHA_DIGEST_LENGTH];
 	char hex[HEX_LEN+1];
 	char buffer[MAIN_BUF+1];
+	IP *address;
+
+	/* Check my own DB for that node. */
+	mutex_block( _main->p2p->mutex );
+	address = stor_address(find_id);
+	mutex_unblock( _main->p2p->mutex );
 
 	hex_encode( hex, find_id );
-	snprintf( buffer, MAIN_BUF+1, "LOOKUP %s", hex );
+
+
+	if( address != NULL ) {
+		snprintf( buffer, MAIN_BUF+1, "LOOKUP %s (Local)", hex );
+		log_info( buffer );
+		lkp_local(address, from);
+		return;
+	}
+
+	snprintf( buffer, MAIN_BUF+1, "LOOKUP %s (Remote)", hex );
 	log_info( buffer );
 
 	/* Create random id to identify this search request */
@@ -546,4 +878,18 @@ void p2p_lookup( UCHAR *find_id, size_t size, IP *from ) {
 	mutex_block( _main->p2p->mutex );
 	lkp_put( find_id, lkp_id, from );
 	mutex_unblock( _main->p2p->mutex );
+}
+
+void p2p_announce_myself( void ) {
+	UCHAR lkp_id[SHA_DIGEST_LENGTH];
+	char buffer[MAIN_BUF+1];
+
+	snprintf( buffer, MAIN_BUF+1, "ANNOUNCE myself");
+	log_info( buffer );
+
+	/* Create random id to identify this search request */
+	rand_urandom( lkp_id, SHA_DIGEST_LENGTH );
+
+	/* Start find process */
+	announce_put( lkp_id );
 }

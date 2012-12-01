@@ -50,6 +50,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 #include "time.h"
 #include "lookup.h"
+#include "announce.h"
 #include "node_p2p.h"
 #include "neighboorhood.h"
 #include "bucket.h"
@@ -134,6 +135,30 @@ void lkp_expire( void ) {
 void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	ITEM *i = NULL;
 	LOOKUP *l = NULL;
+
+	/* Lookup the lookup ID */
+	if( ( i = hash_get( _main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
+		return;
+	}
+	l = i->val;
+
+	/* Ask every node only once */
+	if( hash_exists( l->hash, node_id, SHA_DIGEST_LENGTH) ) {
+		return;
+	}
+		
+	/* Ask the node just once */
+	if( !node_me( node_id) ) {
+		send_lookup( c_addr, l->find_id, lkp_id );
+	}
+
+	/* Remember that node */
+	lkp_remember( l, node_id );
+}
+
+void lkp_success( UCHAR *lkp_id, UCHAR *address ) {
+	ITEM *i = NULL;
+	LOOKUP *l = NULL;
 	socklen_t addrlen = sizeof(IP);
 
 	/* Lookup the lookup ID */
@@ -142,29 +167,15 @@ void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	}
 	l = i->val;
 
-	/* Found the lookup ID */
-
-	/* Now look if this node has already been asked */
-	if( !hash_exists( l->hash, node_id, SHA_DIGEST_LENGTH) ) {
-		
-		/* Ask the node just once */
-		if( !node_me( node_id) ) {
-			send_find( c_addr, l->find_id, lkp_id );
-		}
-
-		/* Remember that node */
-		lkp_remember( l, node_id );
-	}
-
-	/* Compare node_id to the requested ID */
-	if( !node_equal( l->find_id, node_id ) ) {
-		return;
-	}
-
-	sendto( _main->udp->sockfd, &c_addr->sin6_addr, 16, 0, (const struct sockaddr *)&l->c_addr, addrlen );
+	sendto( _main->udp->sockfd, address, 16, 0, (const struct sockaddr *)&l->c_addr, addrlen );
 
 	/* Done */
 	lkp_del( i );
+}
+
+void lkp_local( IP *address, IP *from ) {
+	socklen_t addrlen = sizeof(IP);
+	sendto( _main->udp->sockfd, &address->sin6_addr, 16, 0, (const struct sockaddr *)from, addrlen );
 }
 
 void lkp_remember( LOOKUP *l, UCHAR *node_id ) {

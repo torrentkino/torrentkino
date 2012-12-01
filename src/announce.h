@@ -17,20 +17,30 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-LIST *nbhd_init( void );
-void nbhd_free( void );
+struct obj_announce {
+	LIST *list;
+	HASH *hash;
+};
 
-void nbhd_put( NODE *n );
-void nbhd_del( NODE *n );
+struct obj_node_announce {
+	LIST *list;
+	HASH *hash;
 
-void nbhd_split( void );
-void nbhd_ping( void );
+	UCHAR lkp_id[SHA_DIGEST_LENGTH+1];
 
-void nbhd_find_myself( void );
-void nbhd_find_random( void );
-void nbhd_find( UCHAR *find_id );
-void nbhd_lookup( LOOKUP *l );
-void nbhd_announce( ANNOUNCE *a );
+	IP c_addr;
+	time_t time_find;
 
-void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning, UCHAR *reply_type );
-void nbhd_print( void );
+};
+typedef struct obj_node_announce ANNOUNCE;
+
+struct obj_announce *announce_init( void );
+void announce_free( void );
+
+ANNOUNCE *announce_put( UCHAR *lkp_id );
+void announce_del( ITEM *i );
+
+void announce_expire( void );
+
+void announce_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr );
+void announce_remember( ANNOUNCE *l, UCHAR *node_id );

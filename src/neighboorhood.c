@@ -52,6 +52,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "bucket.h"
 #include "send_p2p.h"
 #include "lookup.h"
+#include "announce.h"
 #include "neighboorhood.h"
 #include "time.h"
 #include "hex.h"
@@ -76,14 +77,14 @@ void nbhd_del( NODE *n ) {
 void nbhd_split( void ) {
 	/* Do as many splits as neccessary */
 	for( ;; ) {
-		if( !bckt_split( _main->nbhd, _main->conf->host_id) ) {
+		if( !bckt_split( _main->nbhd, _main->conf->node_id) ) {
 			return;
 		}
 		nbhd_print();
 	}
 }
 
-void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning ) {
+void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning, UCHAR *reply_type ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
 
@@ -92,7 +93,7 @@ void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warni
 	}
 	b = i->val;
 
-	send_node( sa, b, node_sk, lkp_id, warning );
+	send_node( sa, b, node_sk, lkp_id, warning, reply_type );
 }
 
 void nbhd_ping( void ) {
@@ -132,7 +133,7 @@ void nbhd_ping( void ) {
 }
 
 void nbhd_find_myself( void ) {
-	nbhd_find( _main->conf->host_id );
+	nbhd_find( _main->conf->node_id );
 }
 
 void nbhd_find_random( void ) {
@@ -192,7 +193,37 @@ void nbhd_lookup( LOOKUP *l ) {
 		lkp_remember( l, n->id );
 
 		/* Direct lookup */
-		send_find( &n->c_addr, l->find_id, l->lkp_id );
+		send_lookup( &n->c_addr, l->find_id, l->lkp_id );
+
+		item_n = list_next( item_n );
+	}
+}
+
+void nbhd_announce( ANNOUNCE *a ) {
+	ITEM *item_b = NULL;
+	BUCK *b = NULL;
+	ITEM *item_n = NULL;
+	NODE *n = NULL;
+	long int j = 0;
+	long int max = 0;
+
+	/* Find a matching bucket */
+	if( (item_b = bckt_find_any_match( _main->nbhd, _main->conf->host_id )) == NULL ) {
+		return;
+	}
+
+	/* Ask the first 8 nodes */
+	b = item_b->val;
+	item_n = b->nodes->start;
+	max = ( b->nodes->counter < 8 ) ? b->nodes->counter : 8;
+	for( j = 0; j < max; j++ ) {
+		n = item_n->val;
+
+		/* Remember node */
+		announce_remember( a, n->id );
+
+		/* Send announcement */
+		send_announce( &n->c_addr, a->lkp_id );
 
 		item_n = list_next( item_n );
 	}

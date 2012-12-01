@@ -47,18 +47,18 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "send_web.h"
 #include "tcp.h"
 #include "mime.h"
-#else
+#elif MASALA
 #include "udp.h"
 #include "ben.h"
 #include "node_p2p.h"
 #include "bucket.h"
 #include "lookup.h"
-#ifdef MASALA
+#include "announce.h"
 #include "search.h"
 #include "neighboorhood.h"
-#endif
 #include "p2p.h"
 #include "cache.h"
+#include "storage.h"
 #endif
 #include "log.h"
 
@@ -82,7 +82,10 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->nodes = NULL;
 	_main->cache = NULL;
 	_main->nbhd = NULL;
-	_main->udp  = NULL;
+	_main->udp = NULL;
+	_main->announce = NULL;
+	_main->stor = NULL;
+	_main->lkps = NULL;
 #endif
 
 	/* Server is doing a shutdown if this value changes */
@@ -109,6 +112,8 @@ int main( int argc, char **argv ) {
 #ifdef MASALA
 	_main->nbhd = nbhd_init();
 	_main->lkps = lkp_init();
+	_main->announce = announce_init();
+	_main->stor = stor_init();
 #endif
 	_main->cache = cache_init();
 	_main->p2p = p2p_init();
@@ -149,11 +154,11 @@ int main( int argc, char **argv ) {
 	mime_free();
 	nodes_free();
 	tcp_free();
-#else
-#ifdef MASALA
+#elif MASALA
+	stor_free();
+	announce_free();
 	lkp_free();
 	nbhd_free();
-#endif
 	nodes_free();
 	cache_free();
 	p2p_free();

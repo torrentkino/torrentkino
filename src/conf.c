@@ -84,7 +84,11 @@ struct obj_conf *conf_init( void ) {
 
 	/* SHA1 Hash of hostname */
 #ifdef MASALA
-	sha1_hash( (UCHAR *)conf->host_id, conf->hostname, strlen( conf->hostname) );
+	sha1_hash( conf->host_id, conf->hostname, strlen( conf->hostname) );
+#endif
+
+#ifdef MASALA
+	rand_urandom( conf->node_id, SHA_DIGEST_LENGTH );
 #endif
 
 #ifdef MASALA
@@ -143,6 +147,10 @@ void conf_check( void ) {
 #endif
 
 #ifdef MASALA
+	hex_encode( hex, _main->conf->node_id );
+	snprintf( buf, MAIN_BUF+1, "Node ID: %s", hex );
+	log_info( buf );
+
 	hex_encode( hex, _main->conf->host_id );
 	snprintf( buf, MAIN_BUF+1, "Host ID: %s", hex );
 	log_info( buf );

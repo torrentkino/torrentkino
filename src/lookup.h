@@ -45,4 +45,6 @@ void lkp_del( ITEM *i );
 void lkp_expire( void );
 
 void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr );
+void lkp_success( UCHAR *lkp_id, UCHAR *address );
+void lkp_local( IP *address, IP *from );
 void lkp_remember( LOOKUP *l, UCHAR *node_id );

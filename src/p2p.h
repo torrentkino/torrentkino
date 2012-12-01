@@ -19,11 +19,6 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 
 #define XP2P_MAX_BOOTSTRAP_NODES 20
 
-#define XP2P_PING 1
-#define XP2P_PONG 2
-#define XP2P_FIND 3
-#define XP2P_NODE 4
-
 struct obj_p2p {
 	struct timeval time_now;
 	time_t time_expire;
@@ -34,7 +29,7 @@ struct obj_p2p {
 	time_t time_restart;
 	time_t time_multicast;
 	time_t time_maintainance;
-
+	time_t time_announce;
 	pthread_mutex_t *mutex;
 };
 
@@ -49,8 +44,15 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from );
 void p2p_decode( UCHAR *bencode, size_t bensize, IP *from );
 
 void p2p_ping( UCHAR *node_sk, IP *from, int warning );
-void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from );
 void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning );
-void p2p_node( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
+void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning );
+void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning );
 
-void p2p_lookup( UCHAR *find_id, size_t size, IP *from );
+void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from );
+void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
+void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
+void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
+void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
+
+void p2p_lookup_nss( UCHAR *find_id, size_t size, IP *from );
+void p2p_announce_myself( void );

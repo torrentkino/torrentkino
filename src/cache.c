@@ -51,6 +51,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "node_p2p.h"
 #include "bucket.h"
 #include "lookup.h"
+#include "announce.h"
 #include "neighboorhood.h"
 #include "cache.h"
 #include "time.h"

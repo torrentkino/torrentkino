@@ -52,6 +52,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "bucket.h"
 #include "send_p2p.h"
 #include "lookup.h"
+#include "announce.h"
 #include "neighboorhood.h"
 #include "time.h"
 
@@ -104,7 +105,7 @@ NODE *node_put( UCHAR *id, UCHAR *risk_id, IP *sa ) {
 		node_pinged( n->id );
 
 		/* New node: Ask for myself */
-		send_find( &n->c_addr, _main->conf->host_id, _main->conf->null_id );
+		send_find( &n->c_addr, _main->conf->node_id, _main->conf->null_id );
 	}
 
 	return n;
@@ -204,7 +205,7 @@ long int node_counter( void ) {
 }
 
 int node_me( UCHAR *node_id ) {
-	if( node_equal( node_id, _main->conf->host_id) ) {
+	if( node_equal( node_id, _main->conf->node_id) ) {
 		return 1;
 	}
 	return 0;
