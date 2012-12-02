@@ -58,7 +58,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "neighboorhood.h"
 #include "p2p.h"
 #include "cache.h"
-#include "storage.h"
+#include "database.h"
 #endif
 #include "log.h"
 
@@ -84,7 +84,7 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->nbhd = NULL;
 	_main->udp = NULL;
 	_main->announce = NULL;
-	_main->stor = NULL;
+	_main->database = NULL;
 	_main->lkps = NULL;
 #endif
 
@@ -113,7 +113,7 @@ int main( int argc, char **argv ) {
 	_main->nbhd = nbhd_init();
 	_main->lkps = lkp_init();
 	_main->announce = announce_init();
-	_main->stor = stor_init();
+	_main->database = db_init();
 #endif
 	_main->cache = cache_init();
 	_main->p2p = p2p_init();
@@ -155,7 +155,7 @@ int main( int argc, char **argv ) {
 	nodes_free();
 	tcp_free();
 #elif MASALA
-	stor_free();
+	db_free();
 	announce_free();
 	lkp_free();
 	nbhd_free();

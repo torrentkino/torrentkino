@@ -62,7 +62,7 @@ along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 #include "random.h"
 #include "sha1.h"
 #include "hex.h"
-#include "storage.h"
+#include "database.h"
 
 struct obj_p2p *p2p_init( void ) {
 	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
@@ -488,7 +488,7 @@ void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning
 	}
 
 	/* Store announced host_id */
-	stor_put(ben_host_id->v.s->s, from);
+	db_put(ben_host_id->v.s->s, from);
 
 	/* Reply nodes, that might suit even better */
 	nbhd_send( from, ben_host_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"b");
@@ -513,8 +513,8 @@ void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning )
 	}
 
 	/* Found the requested node. Reply it to the sender. */
-	if ( stor_find_node(ben_find_id->v.s->s) != NULL ) {
-		stor_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk );
+	if ( db_find_node(ben_find_id->v.s->s) != NULL ) {
+		db_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk );
 		return;
 	}
 
@@ -855,7 +855,7 @@ void p2p_lookup_nss( UCHAR *find_id, size_t size, IP *from ) {
 
 	/* Check my own DB for that node. */
 	mutex_block( _main->p2p->mutex );
-	address = stor_address(find_id);
+	address = db_address(find_id);
 	mutex_unblock( _main->p2p->mutex );
 
 	hex_encode( hex, find_id );

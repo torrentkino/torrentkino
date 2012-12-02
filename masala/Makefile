@@ -88,8 +88,8 @@ send_p2p.o: ../src/send_p2p.c ../src/send_p2p.h
 sha1.o: ../src/sha1.c ../src/sha1.h
 	$(CC) $(CFLAGS) -c ../src/sha1.c
 
-storage.o: ../src/storage.c ../src/storage.h
-	$(CC) $(CFLAGS) -c ../src/storage.c
+database.o: ../src/database.c ../src/database.h
+	$(CC) $(CFLAGS) -c ../src/database.c
 
 neighboorhood.o: ../src/neighboorhood.c ../src/neighboorhood.h
 	$(CC) $(CFLAGS) -c ../src/neighboorhood.c
@@ -98,9 +98,9 @@ time.o: ../src/time.c ../src/time.h
 	$(CC) $(CFLAGS) -c ../src/time.c
 
 masala: \
-	main.o conf.o unix.o log.o file.o lookup.o hash.o hex.o list.o malloc.o opts.o str.o thrd.o ben.o udp.o random.o send_p2p.o sha1.o storage.o node_p2p.o bucket.o neighboorhood.o cache.o aes.o announce.o time.o p2p.o
+	main.o conf.o unix.o log.o file.o lookup.o hash.o hex.o list.o malloc.o opts.o str.o thrd.o ben.o udp.o random.o send_p2p.o sha1.o database.o node_p2p.o bucket.o neighboorhood.o cache.o aes.o announce.o time.o p2p.o
 	$(CC) \
-	main.o conf.o unix.o log.o file.o lookup.o hash.o hex.o list.o malloc.o opts.o str.o thrd.o ben.o udp.o random.o send_p2p.o sha1.o storage.o node_p2p.o bucket.o neighboorhood.o cache.o aes.o announce.o time.o p2p.o \
+	main.o conf.o unix.o log.o file.o lookup.o hash.o hex.o list.o malloc.o opts.o str.o thrd.o ben.o udp.o random.o send_p2p.o sha1.o database.o node_p2p.o bucket.o neighboorhood.o cache.o aes.o announce.o time.o p2p.o \
 	-o masala $(POST_LINKING)
 
 $(SUBDIRS):
