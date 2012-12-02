@@ -512,14 +512,13 @@ void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning )
 		return;
 	}
 
-	/* Found the requested node. Reply it to the sender. */
-	if ( db_find_node(ben_find_id->v.s->s) != NULL ) {
-		db_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk );
-		return;
+	/* Local database. */
+	if ( !db_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk ) ) {
+
+		/* Reply closer nodes */
+		nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"x");
 	}
 
-	/* Last resort: Reply nodes closer to the requested node.  */
-	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"x");
 }
 
 void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from ) {

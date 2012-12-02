@@ -52,22 +52,23 @@ along with Torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 
 struct obj_database *db_init(void) {
-	struct obj_database *stor = (struct obj_database *) myalloc(sizeof(struct
-			obj_database), "db_init");
-	stor->list = list_init();
-	return stor;
+	struct obj_database *database = (struct obj_database *) myalloc(sizeof(struct obj_database), "db_init");
+	database->list = list_init();
+	database->hash = hash_init( 4096 );
+	return database;
 }
 
 void db_free(void) {
 	list_clear(_main->database->list);
 	list_free(_main->database->list);
+	hash_free( _main->database->hash );
 	myfree(_main->database, "db_free");
 }
 
 
 void db_put(UCHAR *host_id, IP *sa) {
 	ITEM *i = NULL;
-	DB *st = NULL;
+	DB *db = NULL;
 	char buffer[MAIN_BUF+1];
 
 	/* It's me */
@@ -76,90 +77,89 @@ void db_put(UCHAR *host_id, IP *sa) {
 	}
 
 	/* Create new storage place holder if necessary */
-	if ( (i = db_find_node(host_id)) != NULL ) {
-		st = i->val;
-	} else {
-		st = (DB *) myalloc(sizeof(DB), "db_put");
-		list_put(_main->database->list, st);
-		snprintf(buffer, MAIN_BUF+1, "Increasing storage size to %li", _main->database->list->counter);
+	if ( (i = db_find( host_id )) == NULL ) {
+		
+		db = (DB *) myalloc(sizeof(DB), "db_put");
+		memcpy(db->host_id, host_id, SHA_DIGEST_LENGTH);
+		db_update(db, sa);
+
+		i = list_put(_main->database->list, db);
+		hash_put(_main->database->hash, db->host_id, SHA_DIGEST_LENGTH, i );
+
+		snprintf(buffer, MAIN_BUF+1, "Storage size: %li", _main->database->list->counter);
 		log_info(buffer);
+	} else {
+		db = i->val;
 	}
 
-	/* Update node */
-	memcpy(st->host_id, host_id, SHA_DIGEST_LENGTH);
+	db_update(db, sa);
+}
 
-	/* Availability */
-	st->time_anno = time_add_15_min();
-	memcpy(&st->c_addr, sa, sizeof(IP));
+void db_update(DB *db, IP *sa) {
+	db->time_anno = time_add_15_min();
+	memcpy(&db->c_addr, sa, sizeof(IP));
 }
 
 void db_del(ITEM *i) {
-	DB *st = i->val;
-	myfree(st, "db_del");
+	DB *db = i->val;
+	myfree(db, "db_del");
 	list_del(_main->database->list, i);
 }
 
 void db_expire(void) {
 	ITEM *i = NULL;
-	ITEM *next_st = NULL;
-	DB *st = NULL;
+	ITEM *n = NULL;
+	DB *db = NULL;
 	long int j=0;
 
 	i = _main->database->list->start;
 	for (j=0; j<_main->database->list->counter; j++) {
-		st = i->val;
-		next_st = list_next(i);
+		db = i->val;
+		n = list_next(i);
 
 		/* Delete node after 15 minutes without announce. */
-		if (_main->p2p->time_now.tv_sec > st->time_anno) {
+		if (_main->p2p->time_now.tv_sec > db->time_anno) {
 			db_del(i);
 		}
 
-		i = next_st;
+		i = n;
 	}
 }
 
-ITEM *db_find_node(UCHAR *host_id) {
-	ITEM *item = NULL;
-	DB *st = NULL;
-	long int i = 0;
+ITEM *db_find(UCHAR *host_id) {
+	ITEM *i = NULL;
 
-	item = _main->database->list->start;
-	for (i=0; i<_main->database->list->counter; i++) {
-		st = item->val;
-
-		if (memcmp(host_id, st->host_id, SHA_DIGEST_LENGTH) == 0) {
-			return item;
-		}
-
-		item = list_next(item);
+	if ( (i = hash_get( _main->database->hash, host_id, SHA_DIGEST_LENGTH )) != NULL ) {
+		return i;
 	}
 
 	return NULL;
 }
 
-void db_send(IP *from, UCHAR *host_id, UCHAR *lkp_id, UCHAR *key_id) {
+int db_send(IP *from, UCHAR *host_id, UCHAR *lkp_id, UCHAR *key_id) {
 	ITEM *i = NULL;
-	DB *st = NULL;
+	DB *db = NULL;
 	
-	if ( (i = db_find_node(host_id)) == NULL ) {
-		return;
+	if ( (i = db_find(host_id)) == NULL ) {
+		return 0;
 	}
-	st = i->val;
+	db = i->val;
 
 	/* Reply the stored IP address. */
-	send_value( from, &st->c_addr, key_id, lkp_id );
+	send_value( from, &db->c_addr, key_id, lkp_id );
+
+	return 1;
 }
 
 IP *db_address(UCHAR *host_id) {
 	ITEM *i = NULL;
-	DB *st = NULL;
+	DB *db = NULL;
 	
-	if ( (i = db_find_node(host_id)) == NULL ) {
+	if ( (i = db_find(host_id)) == NULL ) {
 		return NULL;
 	}
-	st = i->val;
+	db = i->val;
 
 	/* Reply the stored IP address. */
-	return &st->c_addr;
+	return &db->c_addr;
 }

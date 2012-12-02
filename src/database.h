@@ -19,6 +19,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_database {
 	LIST *list;
+	HASH *hash;
 };
 
 struct obj_database_node {
@@ -36,7 +37,8 @@ void db_del(ITEM *item_st);
 
 void db_expire(void);
 
-ITEM *db_find_node(UCHAR *host_id);
+void db_update(DB *db, IP *sa);
+ITEM *db_find(UCHAR *host_id);
 IP *db_address(UCHAR *host_id);
 
-void db_send(IP *from, UCHAR *host_id, UCHAR *lkp_id, UCHAR *key_id);
+int db_send(IP *from, UCHAR *host_id, UCHAR *lkp_id, UCHAR *key_id);
