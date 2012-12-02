@@ -205,7 +205,7 @@ long int node_counter( void ) {
 }
 
 int node_me( UCHAR *node_id ) {
-	if( node_equal( node_id, _main->conf->node_id) ) {
+	if( node_equal( node_id, _main->conf->node_id ) ) {
 		return 1;
 	}
 	return 0;

@@ -148,7 +148,7 @@ void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	}
 		
 	/* Ask the node just once */
-	if( !node_me( node_id) ) {
+	if( !node_me( node_id ) ) {
 		send_lookup( c_addr, l->find_id, lkp_id );
 	}
 
