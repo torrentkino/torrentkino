@@ -59,7 +59,6 @@ struct obj_conf {
 	char hostname[MAIN_BUF+1];
 	UCHAR node_id[SHA_DIGEST_LENGTH];
 	UCHAR host_id[SHA_DIGEST_LENGTH];
-	UCHAR risk_id[SHA_DIGEST_LENGTH];
 	UCHAR null_id[SHA_DIGEST_LENGTH];
 	char bootstrap_node[MAIN_BUF+1];
 	char bootstrap_port[CONF_BOOTSTRAP_PORT_BUF+1];

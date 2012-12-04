@@ -32,5 +32,5 @@ void nbhd_find( UCHAR *find_id );
 void nbhd_lookup( LOOKUP *l );
 void nbhd_announce( ANNOUNCE *a );
 
-void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, int warning, UCHAR *reply_type );
+void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, UCHAR *reply_type );
 void nbhd_print( void );

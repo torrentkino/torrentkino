@@ -17,9 +17,6 @@ You should have received a copy of the GNU General Public License
 along with masala/vinegar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define NODE_NOERROR   0
-#define NODE_COLLISION 1
-
 struct obj_nodes {
 	LIST *list;
 	HASH *hash;
@@ -28,9 +25,8 @@ typedef struct obj_nodes NODES;
 
 struct obj_node {
 	IP c_addr;
-	
+
 	UCHAR id[SHA_DIGEST_LENGTH];
-	UCHAR risk_id[SHA_DIGEST_LENGTH];
 
 	time_t time_ping;
 	time_t time_find;
@@ -41,11 +37,10 @@ typedef struct obj_node NODE;
 NODES *nodes_init( void );
 void nodes_free( void );
 
-NODE *node_put( UCHAR *id, UCHAR *risk_id, IP *sa );
+NODE *node_put( UCHAR *id, IP *sa );
 void node_del( ITEM *i );
 
 void node_update_address( NODE *node, IP *sa );
-int node_update_risk_id( NODE *node, UCHAR *risk_id );
 
 void node_pinged( UCHAR *id );
 void node_ponged( UCHAR *id, IP *sa );

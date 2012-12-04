@@ -118,8 +118,6 @@ struct obj_conf *conf_init( void ) {
 	snprintf( conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", CONF_BOOTSTRAP_PORT );
 	snprintf( conf->key, MAIN_BUF+1, "%s", CONF_KEY );
 	conf->encryption = 0;
-	
-	rand_urandom( conf->risk_id, SHA_DIGEST_LENGTH );
 #endif
 
 #ifdef VINEGAR
@@ -153,10 +151,6 @@ void conf_check( void ) {
 
 	hex_encode( hex, _main->conf->host_id );
 	snprintf( buf, MAIN_BUF+1, "Host ID: %s", hex );
-	log_info( buf );
-
-	hex_encode( hex, _main->conf->risk_id );
-	snprintf( buf, MAIN_BUF+1, "Collision ID: %s", hex );
 	log_info( buf );
 #endif
 

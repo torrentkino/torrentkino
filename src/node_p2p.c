@@ -70,7 +70,7 @@ void nodes_free( void ) {
 	myfree( _main->nodes, "nodes_free" );
 }
 
-NODE *node_put( UCHAR *id, UCHAR *risk_id, IP *sa ) {
+NODE *node_put( UCHAR *id, IP *sa ) {
 	ITEM *i = NULL;
 	NODE *n = NULL;
 
@@ -87,7 +87,6 @@ NODE *node_put( UCHAR *id, UCHAR *risk_id, IP *sa ) {
 		
 		/* ID */
 		memcpy( n->id, id, SHA_DIGEST_LENGTH );
-		memcpy( n->risk_id, risk_id, SHA_DIGEST_LENGTH );
 
 		/* Timings */
 		n->time_ping = 0;
@@ -127,22 +126,6 @@ void node_update_address( NODE *node, IP *sa ) {
 	if( memcmp( &node->c_addr, sa, sizeof(IP)) != 0 ) {
 		memcpy( &node->c_addr, sa, sizeof(IP) );
 	}
-}
-
-int node_update_risk_id( NODE *node, UCHAR *risk_id ) {
-	int warning = NODE_NOERROR;
-
-	if( node == NULL ) {
-		return NODE_NOERROR;
-	}
-
-	/* Update the Collision ID. We must generate a warning too: There might be a duplicate hostname. */
-	if( memcmp( node->risk_id, risk_id, SHA_DIGEST_LENGTH) != 0 ) {
-		memcpy( node->risk_id, risk_id, SHA_DIGEST_LENGTH );
-		warning = NODE_COLLISION;
-	}
-
-	return warning;
 }
 
 void node_pinged( UCHAR *id ) {

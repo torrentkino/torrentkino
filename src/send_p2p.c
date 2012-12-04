@@ -57,7 +57,6 @@ void send_ping( IP *sa, int type ) {
 	UCHAR skey[SHA_DIGEST_LENGTH];
 
 	/*
-		1:c 20:COLLISION_ID
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:q 1:p
@@ -65,13 +64,6 @@ void send_ping( IP *sa, int type ) {
 
 	rand_urandom( skey, SHA_DIGEST_LENGTH );
 	cache_put( skey, type );
-
-	/* Collision ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"c", 1 );
-	ben_str( val, _main->conf->risk_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
 
 	/* ID */
 	key = ben_init( BEN_STR );
@@ -107,26 +99,18 @@ void send_ping( IP *sa, int type ) {
 	log_udp( sa, "PING" );
 }
 
-void send_pong( IP *sa, UCHAR *node_sk, int warning ) {
+void send_pong( IP *sa, UCHAR *node_sk ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
 
 	/*
-		1:c 20:COLLISION_ID
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:q 1:o
 		[1:e 1:c]
 	*/
-
-	/* Collision ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"c", 1 );
-	ben_str( val, _main->conf->risk_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
 
 	/* ID */
 	key = ben_init( BEN_STR );
@@ -148,16 +132,6 @@ void send_pong( IP *sa, UCHAR *node_sk, int warning ) {
 	ben_str( key,( UCHAR *)"q", 1 );
 	ben_str( val,( UCHAR *)"o", 1 );
 	ben_dict( dict, key, val );
-
-	/* Collision detected */
-	if( warning == NODE_COLLISION ) {
-		/* Error */
-		key = ben_init( BEN_STR );
-		val = ben_init( BEN_STR );
-		ben_str( key,( UCHAR *)"e", 1 );
-		ben_str( val,( UCHAR *)"c", 1 );
-		ben_dict( dict, key, val );
-	}
 
 	raw = ben_enc( dict );
 	if( _main->conf->encryption ) {
@@ -182,7 +156,6 @@ void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	char hexbuf[HEX_LEN+1];
 
 	/*
-		1:c 20:COLLISION_ID
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:l 20:LOOKUP_ID
@@ -192,13 +165,6 @@ void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 
 	rand_urandom( skey, SHA_DIGEST_LENGTH );
 	cache_put( skey, SEND_UNICAST );
-
-	/* Collision ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"c", 1 );
-	ben_str( val, _main->conf->risk_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
 
 	/* ID */
 	key = ben_init( BEN_STR );
@@ -250,7 +216,7 @@ void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	log_udp( sa, buffer );
 }
 
-void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning, UCHAR *reply_type ) {
+void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_type ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *list_id = NULL;
 	struct obj_ben *dict_node = NULL;
@@ -264,25 +230,16 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning, UCH
 	char buffer[MAIN_BUF+1];
 
 	/*
-		1:c 20:COLLISION_ID
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:l 20:LOOKUP_ID
 		1:n
-			1:c 20:COLLISION_ID
 			1:i 20:NODE_ID
 			1:a 16:IP
 			1:p 2:PORT
 		1:q 1:n || 1:q 1:b || 1:q 1:x
 		[1:e 1:c]
 	*/
-
-	/* Collision ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"c", 1 );
-	ben_str( val, _main->conf->risk_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
 
 	/* ID */
 	key = ben_init( BEN_STR );
@@ -329,13 +286,6 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning, UCH
 		dict_node = ben_init( BEN_DICT );
 		ben_list( list_id, dict_node );
 
-		/* Collision */
-		key = ben_init( BEN_STR );
-		val = ben_init( BEN_STR );
-		ben_str( key,( UCHAR *)"c", 1 );
-		ben_str( val, n->risk_id, SHA_DIGEST_LENGTH );
-		ben_dict( dict_node, key, val );
-
 		/* ID Dictionary */
 		key = ben_init( BEN_STR );
 		val = ben_init( BEN_STR );
@@ -367,16 +317,6 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, int warning, UCH
 	ben_str( val, reply_type, 1 );
 	ben_dict( dict, key, val );
 
-	/* Collision detected */
-	if( warning == NODE_COLLISION ) {
-		/* Error */
-		key = ben_init( BEN_STR );
-		val = ben_init( BEN_STR );
-		ben_str( key,( UCHAR *)"e", 1 );
-		ben_str( val,( UCHAR *)"c", 1 );
-		ben_dict( dict, key, val );
-	}
-
 	raw = ben_enc( dict );
 	if( _main->conf->encryption ) {
 		send_aes( sa, raw );
@@ -407,7 +347,6 @@ void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	char hexbuf[HEX_LEN+1];
 
 	/*
-		1:c 20:COLLISION_ID
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:l 20:LOOKUP_ID
@@ -417,13 +356,6 @@ void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 
 	rand_urandom( skey, SHA_DIGEST_LENGTH );
 	cache_put( skey, SEND_UNICAST );
-
-	/* Collision ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"c", 1 );
-	ben_str( val, _main->conf->risk_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
 
 	/* ID */
 	key = ben_init( BEN_STR );
@@ -482,7 +414,6 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 	struct obj_raw *raw = NULL;
 
 	/*
-		1:c 20:COLLISION_ID
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:l 20:LOOKUP_ID
@@ -490,13 +421,6 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 		1:q 1:v
 		[1:e 1:c]
 	*/
-
-	/* Collision ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"c", 1 );
-	ben_str( val, _main->conf->risk_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
 
 	/* ID */
 	key = ben_init( BEN_STR );
@@ -554,7 +478,6 @@ void send_announce( IP *sa, UCHAR *lkp_id ) {
 	UCHAR skey[SHA_DIGEST_LENGTH];
 
 	/*
-		1:c 20:COLLISION_ID
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:l 20:LOOKUP_ID
@@ -564,13 +487,6 @@ void send_announce( IP *sa, UCHAR *lkp_id ) {
 
 	rand_urandom( skey, SHA_DIGEST_LENGTH );
 	cache_put( skey, SEND_UNICAST );
-
-	/* Collision ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"c", 1 );
-	ben_str( val, _main->conf->risk_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
 
 	/* ID */
 	key = ben_init( BEN_STR );

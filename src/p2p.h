@@ -43,10 +43,10 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );
 void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from );
 void p2p_decode( UCHAR *bencode, size_t bensize, IP *from );
 
-void p2p_ping( UCHAR *node_sk, IP *from, int warning );
-void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning );
-void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning );
-void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning );
+void p2p_ping( UCHAR *node_sk, IP *from );
+void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from );
+void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from );
+void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from );
 
 void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from );
 void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );

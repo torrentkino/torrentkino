@@ -230,10 +230,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 	struct obj_ben *q = NULL;
 	struct obj_ben *id = NULL;
 	struct obj_ben *key = NULL;
-	struct obj_ben *c = NULL;
-	struct obj_ben *e = NULL;
 	NODE *n = NULL;
-	int warning = NODE_NOERROR;
 
 	/* Parse request */
 	packet = ben_dec( bencode, bensize );
@@ -265,14 +262,6 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		return;
 	}
 
-	/* Collision ID */
-	c = ben_searchDictStr( packet, "c" );
-	if( c == NULL || c->t != BEN_STR || c->v.s->i != SHA_DIGEST_LENGTH ) {
-		log_info( "Collision ID missing or broken" );
-		ben_free( packet );
-		return;
-	}
-
 	/* Session key */
 	key = ben_searchDictStr( packet, "k" );
 	if( key == NULL || key->t != BEN_STR || key->v.s->i != SHA_DIGEST_LENGTH ) {
@@ -281,23 +270,14 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		return;
 	}
 
-	/* Remember node. This does not update the IP address or the risk ID. */
-	n = node_put( id->v.s->s,( UCHAR *)c->v.s->s,( IP *)from );
+	/* Remember node. This does not update the IP address. */
+	n = node_put( id->v.s->s, (IP *)from );
 
 	/* The neighboorhood */
 	nbhd_put( n );
 
 	/* Update IP if necessary. */
-	node_update_address( n,( IP *)from );
-
-	/* Collision detection */
-	warning = node_update_risk_id( n,( UCHAR *)c->v.s->s );
-
-	/* Collision detection */
-	e = ben_searchDictStr( packet, "e" );
-	if( e != NULL && e->t == BEN_STR && e->v.s->i == 1 && *e->v.s->s == 'c' ) {
-		log_info( "WARNING: A different collision ID for my hostname has been detected." );
-	}
+	node_update_address( n, (IP *)from );
 
 	/* Query Details */
 	q = ben_searchDictStr( packet, "q" );
@@ -312,25 +292,25 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		case 'p':
 			/* PING */
 			mutex_block( _main->p2p->mutex );
-			p2p_ping( key->v.s->s, from, warning );
+			p2p_ping( key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'f':
 			/* FIND */
 			mutex_block( _main->p2p->mutex );
-			p2p_find( packet, key->v.s->s, from, warning );
+			p2p_find( packet, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'a':
 			/* ANNOUNCE */
 			mutex_block( _main->p2p->mutex );
-			p2p_announce( packet, key->v.s->s, from, warning );
+			p2p_announce( packet, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'l':
 			/* LOOKUP */
 			mutex_block( _main->p2p->mutex );
-			p2p_lookup( packet, key->v.s->s, from, warning );
+			p2p_lookup( packet, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
 
@@ -443,11 +423,11 @@ void p2p_cron( void ) {
 	}
 }
 
-void p2p_ping( UCHAR *node_sk, IP *from, int warning ) {
-	send_pong( from, node_sk, warning );
+void p2p_ping( UCHAR *node_sk, IP *from ) {
+	send_pong( from, node_sk );
 }
 
-void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
+void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 	struct obj_ben *ben_find_id = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 
@@ -466,10 +446,10 @@ void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
 	}
 
 	/* Reply */
-	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"n");
+	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"n");
 }
 
-void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
+void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 	struct obj_ben *ben_host_id = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 
@@ -491,10 +471,10 @@ void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning
 	db_put(ben_host_id->v.s->s, from);
 
 	/* Reply nodes, that might suit even better */
-	nbhd_send( from, ben_host_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"b");
+	nbhd_send( from, ben_host_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"b");
 }
 
-void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning ) {
+void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 	struct obj_ben *ben_find_id = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 
@@ -516,7 +496,7 @@ void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from, int warning )
 	if ( !db_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk ) ) {
 
 		/* Reply closer nodes */
-		nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, warning, (UCHAR *)"x");
+		nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"x");
 	}
 
 }
@@ -537,7 +517,6 @@ void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *
 	struct obj_ben *id = NULL;
 	struct obj_ben *ip = NULL;
 	struct obj_ben *po = NULL;
-	struct obj_ben *c = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 	ITEM *item = NULL;
 	NODE *n = NULL;
@@ -574,13 +553,6 @@ void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *
 			return;
 		}
 
-		/* Collision ID */
-		c = ben_searchDictStr( node, "c" );
-		if( c == NULL || c->t != BEN_STR || c->v.s->i != SHA_DIGEST_LENGTH ) {
-			log_info( "Collision ID broken or missing" );
-			return;
-		}
-
 		/* ID */
 		id = ben_searchDictStr( node, "i" );
 		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
@@ -614,7 +586,7 @@ void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *
 
 		/* Store node */
 		if( !node_me( id->v.s->s) ) {
-			n = node_put( id->v.s->s, c->v.s->s,( IP *)&sin );
+			n = node_put( id->v.s->s, ( IP *)&sin );
 			node_update_address( n,( IP *)&sin );
 			nbhd_put( n );
 		}
@@ -629,7 +601,6 @@ void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, 
 	struct obj_ben *id = NULL;
 	struct obj_ben *ip = NULL;
 	struct obj_ben *po = NULL;
-	struct obj_ben *c = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 	ITEM *item = NULL;
 	NODE *n = NULL;
@@ -669,13 +640,6 @@ void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, 
 			return;
 		}
 
-		/* Collision ID */
-		c = ben_searchDictStr( node, "c" );
-		if( c == NULL || c->t != BEN_STR || c->v.s->i != SHA_DIGEST_LENGTH ) {
-			log_info( "Collision ID broken or missing" );
-			return;
-		}
-
 		/* ID */
 		id = ben_searchDictStr( node, "i" );
 		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
@@ -712,8 +676,8 @@ void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, 
 
 		/* Store node */
 		if( !node_me( id->v.s->s) ) {
-			n = node_put( id->v.s->s, c->v.s->s,( IP *)&sin );
-			node_update_address( n,( IP *)&sin );
+			n = node_put( id->v.s->s, (IP *)&sin );
+			node_update_address( n, (IP *)&sin );
 			nbhd_put( n );
 		}
 
@@ -727,7 +691,6 @@ void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP
 	struct obj_ben *id = NULL;
 	struct obj_ben *ip = NULL;
 	struct obj_ben *po = NULL;
-	struct obj_ben *c = NULL;
 	struct obj_ben *ben_lkp_id = NULL;
 	ITEM *item = NULL;
 	NODE *n = NULL;
@@ -767,13 +730,6 @@ void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP
 			return;
 		}
 
-		/* Collision ID */
-		c = ben_searchDictStr( node, "c" );
-		if( c == NULL || c->t != BEN_STR || c->v.s->i != SHA_DIGEST_LENGTH ) {
-			log_info( "Collision ID broken or missing" );
-			return;
-		}
-
 		/* ID */
 		id = ben_searchDictStr( node, "i" );
 		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
@@ -810,7 +766,7 @@ void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP
 
 		/* Store node */
 		if( !node_me( id->v.s->s) ) {
-			n = node_put( id->v.s->s, c->v.s->s,( IP *)&sin );
+			n = node_put( id->v.s->s, (IP *)&sin );
 			node_update_address( n,( IP *)&sin );
 			nbhd_put( n );
 		}
