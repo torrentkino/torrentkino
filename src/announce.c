@@ -97,68 +97,68 @@ ANNOUNCE *announce_put( UCHAR *lkp_id ) {
 }
 
 void announce_del( ITEM *i ) {
-	ANNOUNCE *l = i->val;
+	ANNOUNCE *a = i->val;
 
 	/* Free lookup cache */
-	list_clear( l->list );
-	list_free( l->list );
-	hash_free( l->hash );
+	list_clear( a->list );
+	list_free( a->list );
+	hash_free( a->hash );
 
 	/* Delete lookup item */
-	hash_del( _main->announce->hash, l->lkp_id, SHA_DIGEST_LENGTH );
+	hash_del( _main->announce->hash, a->lkp_id, SHA_DIGEST_LENGTH );
 	list_del( _main->announce->list, i );
-	myfree( l, "announce_del" );
+	myfree( a, "announce_del" );
 }
 
 void announce_expire( void ) {
 	ITEM *i = NULL;
-	ITEM *next = NULL;
-	ANNOUNCE *l = NULL;
+	ITEM *n = NULL;
+	ANNOUNCE *a = NULL;
 	long int j = 0;
 
 	i = _main->announce->list->start;
 	for( j=0; j<_main->announce->list->counter; j++ ) {
-		l = i->val;
-		next = list_next( i );
+		a = i->val;
+		n = list_next( i );
 
-		if( _main->p2p->time_now.tv_sec > l->time_find ) {
+		if( _main->p2p->time_now.tv_sec > a->time_find ) {
 			announce_del( i );
 		}
-		i = next;
+		i = n;
 	}
 }
 
 void announce_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
 	ITEM *i = NULL;
-	ANNOUNCE *l = NULL;
+	ANNOUNCE *a = NULL;
 
 	/* Lookup the lookup ID */
 	if( ( i = hash_get( _main->announce->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
 		return;
 	}
-	l = i->val;
+	a = i->val;
 
 	/* Found the lookup ID */
 
 	/* Now look if this node has already been asked */
-	if( !hash_exists( l->hash, node_id, SHA_DIGEST_LENGTH) ) {
+	if( !hash_exists( a->hash, node_id, SHA_DIGEST_LENGTH) ) {
 		
 		/* Ask the node just once */
-		if( !node_me( node_id) ) {
+		if( !node_me( node_id ) ) {
 			send_announce( c_addr, lkp_id );
 		}
 
 		/* Remember that node */
-		announce_remember( l, node_id );
+		announce_remember( a, node_id );
 	}
 }
 
-void announce_remember( ANNOUNCE *l, UCHAR *node_id ) {
+void announce_remember( ANNOUNCE *a, UCHAR *node_id ) {
 	UCHAR *buffer = NULL;
 
 	/* Remember that node */
 	buffer = (UCHAR *) myalloc( SHA_DIGEST_LENGTH*sizeof(char), "announce_remember" );
 	memcpy( buffer, node_id, SHA_DIGEST_LENGTH );
-	list_put( l->list, buffer );
-	hash_put( l->hash, buffer, SHA_DIGEST_LENGTH, buffer );
+	list_put( a->list, buffer );
+	hash_put( a->hash, buffer, SHA_DIGEST_LENGTH, buffer );
 }

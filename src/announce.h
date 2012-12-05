@@ -43,4 +43,4 @@ void announce_del( ITEM *i );
 void announce_expire( void );
 
 void announce_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr );
-void announce_remember( ANNOUNCE *l, UCHAR *node_id );
+void announce_remember( ANNOUNCE *a, UCHAR *node_id );

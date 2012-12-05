@@ -407,10 +407,10 @@ void p2p_cron( void ) {
 			_main->p2p->time_maintainance = time_add_2_min_approx();
 		}
 
-		/* Announce my hostname every ~2 minutes */
+		/* Announce my hostname every ~5 minutes */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce ) {
 			p2p_announce_myself();
-			_main->p2p->time_announce = time_add_2_min_approx();
+			_main->p2p->time_announce = time_add_5_min_approx();
 		}
 	}
 
