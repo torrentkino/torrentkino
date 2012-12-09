@@ -15,14 +15,14 @@ possible to encrypt the traffic with a PSK to isolate your nodes from a bigger
 swarm. By default, masala sends the first packet to a multicast address. So,
 there is no configuration necessary within your broadcast domain (LAN). With a
 bootstrap server, it is also possible to connect nodes around the globe. A NSS
-module makes any hostname with .p2p at the end transparently available to your
+module makes any hostname with *.p2p* at the end transparently available to your
 Linux OS.
 
 ## FILES
 
-**/etc/nsswitch.conf**
-masala gets attached to the *hosts* line. The masala daemon is used to lookup
-an IPv6 address if the requested hostname ends on **p2p**.
+  * **/etc/nsswitch.conf**:
+	masala gets attached to the *hosts* line. The masala daemon is used to lookup
+	an IPv6 address if the requested hostname ends on *.p2p*.
 
 ## OPTIONS
 

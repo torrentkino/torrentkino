@@ -10,10 +10,13 @@
 \fBmasala\fR [\-d] [\-q] [\-h hostname] [\-k password] [\-p port] [\-x server] [\-y port] [\-u username]
 .
 .SH "DESCRIPTION"
-\fBmasala\fR is a P2P name resolution daemon\. It organizes IPv6 addresses in a distributed hash table\. The basic design has been inspired by the Kademlia DHT\. The communication between nodes is realized by using bencode encoded messages on top of UDP\. There are 4 message types: PING, FIND, LOOKUP and ANNOUNCE\. It is possible to encrypt the traffic with a PSK to isolate your nodes from a bigger swarm\. By default, masala sends the first packet to a multicast address\. So, there is no configuration necessary within your broadcast domain (LAN)\. With a bootstrap server, it is also possible to connect nodes around the globe\. A NSS module makes any hostname with \.p2p at the end transparently available to your Linux OS\.
+\fBmasala\fR is a P2P name resolution daemon\. It organizes IPv6 addresses in a distributed hash table\. The basic design has been inspired by the Kademlia DHT\. The communication between nodes is realized by using bencode encoded messages on top of UDP\. There are 4 message types: PING, FIND, LOOKUP and ANNOUNCE\. It is possible to encrypt the traffic with a PSK to isolate your nodes from a bigger swarm\. By default, masala sends the first packet to a multicast address\. So, there is no configuration necessary within your broadcast domain (LAN)\. With a bootstrap server, it is also possible to connect nodes around the globe\. A NSS module makes any hostname with \fI\.p2p\fR at the end transparently available to your Linux OS\.
 .
 .SH "FILES"
-\fB/etc/nsswitch\.conf\fR masala gets attached to the \fIhosts\fR line\. The masala daemon is used to lookup an IPv6 address if the requested hostname ends on \fBp2p\fR\.
+.
+.TP
+\fB/etc/nsswitch\.conf\fR
+masala gets attached to the \fIhosts\fR line\. The masala daemon is used to lookup an IPv6 address if the requested hostname ends on \fI\.p2p\fR\.
 .
 .SH "OPTIONS"
 .
