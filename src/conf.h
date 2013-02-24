@@ -32,11 +32,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef TUMBLEWEED
 #define CONF_USERNAME "tumbleweed"
 #define CONF_EPOLL_WAIT 1000
-#ifdef IPV4
-#define CONF_SRVNAME "tumbleweed-legacy"
-#else
 #define CONF_SRVNAME "tumbleweed"
-#endif
 #define CONF_PORT 8080
 #define CONF_INDEX_NAME "index.html"
 #elif MASALA
