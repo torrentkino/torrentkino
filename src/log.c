@@ -33,7 +33,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/epoll.h>
 #include <syslog.h>
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "malloc.h"
 #include "main.h"
 #include "conf.h"
@@ -53,7 +53,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "hex.h"
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 void log_complex( NODE *n, int code, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
 #ifndef IPV4

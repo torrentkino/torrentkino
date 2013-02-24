@@ -29,7 +29,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 
 #define CONF_HOSTFILE "/etc/hostname"
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #define CONF_USERNAME "tumbleweed"
 #define CONF_EPOLL_WAIT 1000
 #ifdef IPV4
@@ -66,7 +66,7 @@ struct obj_conf {
 	int encryption;
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	char home[MAIN_BUF+1];
 	char index_name[MAIN_BUF+1];
 #endif

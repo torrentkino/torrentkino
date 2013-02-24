@@ -42,7 +42,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "file.h"
 #include "opts.h"
 #include "unix.h"
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "node_web.h"
 #include "send_web.h"
 #include "tcp.h"
@@ -73,7 +73,7 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->argv = argv;
 
 	_main->conf = NULL;
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	_main->nodes = NULL;
 	_main->mime = NULL;
 	_main->tcp  = NULL;
@@ -101,7 +101,7 @@ void main_free( void ) {
 int main( int argc, char **argv ) {
 	/* Init */
 	_main = main_init( argc,argv );
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	_main->conf = conf_init();
 	_main->tcp = tcp_init();
 	_main->nodes = nodes_init();
@@ -135,14 +135,14 @@ int main( int argc, char **argv ) {
 	/* Increase limits */
 	unix_limits();
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	/* Load mime types */
 	mime_load();
 	mime_hash();
 #endif
 
 	/* Start server */
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	tcp_start();
 	tcp_stop();
 #else
@@ -150,7 +150,7 @@ int main( int argc, char **argv ) {
 	udp_stop();
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	mime_free();
 	nodes_free();
 	tcp_free();

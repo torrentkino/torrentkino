@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 void log_complex( NODE *n, int code, const char *buffer );
 void log_info( int code, const char *buffer );
 #endif

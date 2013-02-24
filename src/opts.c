@@ -26,7 +26,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "malloc.h"
 #include "main.h"
 #include "conf.h"
@@ -84,7 +84,7 @@ void opts_load( int argc, char **argv ) {
 }
 
 void opts_interpreter( char *var, char *val ) {
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	char *p0 = NULL, *p1 = NULL;
 
 	/* WWW Directory */

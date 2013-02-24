@@ -39,7 +39,7 @@ struct obj_main {
 	/* Data */
 	struct obj_conf	*conf;
 	struct obj_nodes *nodes;
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	struct obj_mime *mime;
 	struct obj_tcp *tcp;
 #elif MASALA

@@ -28,7 +28,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <arpa/inet.h>
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "malloc.h"
 #include "main.h"
 #include "list.h"

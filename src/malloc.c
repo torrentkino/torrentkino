@@ -30,7 +30,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 #include "list.h"
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "node_web.h"
 #endif
 #include "log.h"

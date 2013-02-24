@@ -25,7 +25,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <signal.h>
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "main.h"
 #include "str.h"
 #include "malloc.h"
@@ -51,7 +51,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_conf *conf_init( void ) {
 	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf), "conf_init" );
-#ifndef VINEGAR
+#ifndef TUMBLEWEED
 	char *fbuf = NULL;
 	char *p = NULL;
 #endif
@@ -60,7 +60,7 @@ struct obj_conf *conf_init( void ) {
 
 	conf->port = CONF_PORT;
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	if( ( getenv( "HOME")) == NULL ) {
 		strncpy( conf->home, "/var/www", MAIN_BUF );
 	} else {
@@ -95,19 +95,19 @@ struct obj_conf *conf_init( void ) {
 	memset( conf->null_id, '\0', SHA_DIGEST_LENGTH );
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	conf->cores = (unix_cpus() > 2) ? unix_cpus() : CONF_CORES;
 #elif MASALA
 	conf->cores = (unix_cpus() > 2) ? unix_cpus() : CONF_CORES;
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	conf->quiet = CONF_VERBOSE;
 #elif MASALA
 	conf->quiet = CONF_VERBOSE;
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	strncpy( conf->username, CONF_USERNAME, MAIN_BUF );
 #elif MASALA
 	strncpy( conf->username, CONF_USERNAME, MAIN_BUF );
@@ -120,7 +120,7 @@ struct obj_conf *conf_init( void ) {
 	conf->encryption = 0;
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	snprintf( conf->index_name, MAIN_BUF+1, "%s", CONF_INDEX_NAME );
 #endif
 
@@ -161,7 +161,7 @@ void conf_check( void ) {
 	log_info( buf );
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	snprintf( buf, MAIN_BUF+1, "Shared: %s (-s)", _main->conf->home );
 	log_info( 0, buf );
 	
@@ -170,7 +170,7 @@ void conf_check( void ) {
 	}
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	snprintf( buf, MAIN_BUF+1, "Index file: %s (-i)", _main->conf->index_name );
 	log_info( 0, buf );
 	if( !str_isValidFilename( _main->conf->index_name) ) {
@@ -184,7 +184,7 @@ void conf_check( void ) {
 	} else {
 		snprintf( buf, MAIN_BUF+1, "Mode: Daemon (-d)" );
 	}
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	log_info( 0, buf );
 #elif MASALA
 	log_info( buf );
@@ -195,13 +195,13 @@ void conf_check( void ) {
 	} else {
 		snprintf( buf, MAIN_BUF+1, "Verbosity: Verbose (-q)" );
 	}
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	log_info( 0, buf );
 #elif MASALA
 	log_info( buf );
 #endif
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	snprintf( buf, MAIN_BUF+1, "Listen to TCP/%i (-p)", _main->conf->port );
 	log_info( 0, buf );
 #elif MASALA
@@ -215,7 +215,7 @@ void conf_check( void ) {
 	}
 
 	/* Check bootstrap server port */
-#ifndef VINEGAR
+#ifndef TUMBLEWEED
 	if( str_isSafePort( _main->conf->bootstrap_port) < 0 ) {
 		log_fail( "Invalid bootstrap port number. (-y)" );
 	}
@@ -233,7 +233,7 @@ void conf_check( void ) {
 #endif
 
 	snprintf( buf, MAIN_BUF+1, "Worker threads: %i", _main->conf->cores );
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	log_info( 0, buf );
 #else
 	log_info( buf );

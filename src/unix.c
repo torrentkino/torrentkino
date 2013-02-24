@@ -30,7 +30,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <errno.h>
 #include <pwd.h>
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "main.h"
 #include "str.h"
 #include "malloc.h"
@@ -110,7 +110,7 @@ void unix_fork( void ) {
 
 void unix_limits( void ) {
 	struct rlimit rl;
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	int guess = 2 * TCP_MAX_EVENTS * _main->conf->cores + 50;
 #else
 	int guess = 2 * UDP_MAX_EVENTS * _main->conf->cores + 50;
@@ -130,7 +130,7 @@ void unix_limits( void ) {
 	}
 
 	snprintf( buffer, MAIN_BUF+1, "Max open files: %i", limit );
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	log_info( 0, buffer );
 #else
 	log_info( buffer );
@@ -168,7 +168,7 @@ void unix_dropuid0( void ) {
 	}
 
 	snprintf( buffer, MAIN_BUF+1, "uid: %i, gid: %i( -u)", pw->pw_uid, pw->pw_gid );
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 	log_info( 0, buffer );
 #else
 	log_info( buffer );

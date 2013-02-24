@@ -25,7 +25,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <signal.h>
 
-#ifdef VINEGAR
+#ifdef TUMBLEWEED
 #include "main.h"
 #include "list.h"
 #include "node_web.h"
