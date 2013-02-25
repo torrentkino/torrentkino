@@ -65,6 +65,7 @@ struct obj_conf {
 #ifdef TUMBLEWEED
 	char home[MAIN_BUF+1];
 	char index_name[MAIN_BUF+1];
+	int ipv6_only;
 #endif
 
 	/* Number of cores */

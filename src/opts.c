@@ -88,7 +88,7 @@ void opts_interpreter( char *var, char *val ) {
 	char *p0 = NULL, *p1 = NULL;
 
 	/* WWW Directory */
-	if( strcmp( var, "-s") == 0 && val != NULL && strlen( val) > 1 ) {
+	if( strcmp( var, "-s") == 0 && val != NULL && strlen( val ) > 1 ) {
 		p0 = val;
 
 		if( *p0 == '/' ) {
@@ -105,23 +105,29 @@ void opts_interpreter( char *var, char *val ) {
 	}
 
 	/* Create HTML index */
-	if( strcmp( var, "-i") == 0 && val != NULL && strlen( val) > 1 ) {
+	if( strcmp( var, "-i") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->index_name, MAIN_BUF+1, "%s", val );
 	}
+
+	/* IPv6 only */
+	if( strcmp( var, "-6") == 0 && val == NULL ) {
+		_main->conf->ipv6_only = TRUE;
+	}
+
 #endif
 
 #ifdef MASALA
-	if( strcmp( var, "-x") == 0 && val != NULL && strlen( val) > 1 ) {
+	if( strcmp( var, "-x") == 0 && val != NULL && strlen( val ) > 1 ) {
 		strncpy( _main->conf->bootstrap_node, val, MAIN_BUF );
-	} else if( strcmp( var, "-y") == 0 && val != NULL && strlen( val) > 1 ) {
+	} else if( strcmp( var, "-y") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", val );
-	} else if( strcmp( var, "-k") == 0 && val != NULL && strlen( val) > 1 ) {
+	} else if( strcmp( var, "-k") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->key, MAIN_BUF+1, "%s", val );
 		_main->conf->encryption = 1;
 
-	} else if( strcmp( var, "-h") == 0 && val != NULL && strlen( val) > 1 ) {
+	} else if( strcmp( var, "-h") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->hostname, MAIN_BUF+1, "%s", val );
-		sha1_hash( (UCHAR *)_main->conf->host_id, val, strlen( val) );
+		sha1_hash( (UCHAR *)_main->conf->host_id, val, strlen( val ) );
 
 	} else if( strcmp( var, "-q") == 0 && val == NULL ) {
 		_main->conf->quiet = CONF_BEQUIET;

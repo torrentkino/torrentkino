@@ -124,6 +124,10 @@ struct obj_conf *conf_init( void ) {
 	snprintf( conf->index_name, MAIN_BUF+1, "%s", CONF_INDEX_NAME );
 #endif
 
+#ifdef TUMBLEWEED
+	conf->ipv6_only = FALSE;
+#endif
+
 	return conf;
 }
 

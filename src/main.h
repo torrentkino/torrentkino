@@ -24,12 +24,11 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_IPBUF 39
 #define SHA_DIGEST_LENGTH 20
 
+#define TRUE 1
+#define FALSE 0
+
 typedef unsigned char UCHAR;
-#ifdef IPV4
-typedef struct sockaddr_in IP;
-#else
 typedef struct sockaddr_in6 IP;
-#endif
 
 struct obj_main {
 	/* Main arguments */
