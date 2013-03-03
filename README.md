@@ -45,7 +45,7 @@ Linux OS.
     When starting as root, use -u to change the UID.
 
   * `-d`:
-	Start as a daemon and run in background. The output will be redirected to syslog.
+	Start as a daemon and run in background. The output will be send to syslog.
 
   * `-q`:
 	Be quiet and do not log anything.
