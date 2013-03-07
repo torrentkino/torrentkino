@@ -30,6 +30,7 @@ int str_isNumber( char *string );
 int str_isSafePort( char *string );
 /* int str_isHex( char *string ); */
 int str_isValidFilename( char *string );
+int str_isValidHostname( const char *hostname, int size );
 
 /*void str_htmlDisarmInput( char *string );*/
 

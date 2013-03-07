@@ -42,15 +42,15 @@ enum nss_status _nss_masala_gethostbyname4_r( const char *hostname, struct gaih_
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp) _public_;
 
-enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
+enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
+		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp );
 
-enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtuple **pat,
-		char *buffer, size_t buflen, int *errnop,
+enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
+		gaih_addrtuple **pat, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp );
 
-int _nss_masala_valid_tld( const char *hostname );
-int _nss_masala_valid_hostname( const char *hostname );
+int _nss_masala_valid_tld( const char *hostname, int size );
+int _nss_masala_valid_hostname( const char *hostname, int size );
 
-int _nss_masala_lookup( const char *hostname, UCHAR *address );
+int _nss_masala_lookup( const char *hostname, int size, UCHAR *address );

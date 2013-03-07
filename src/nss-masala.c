@@ -27,7 +27,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 
 #include "nss-masala.h"
-#include "sha1.h"
 
 enum nss_status _nss_masala_gethostbyname_r( const char *hostname, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
@@ -52,6 +51,8 @@ enum nss_status _nss_masala_gethostbyname2_r( const char *hostname, int af, stru
 enum nss_status _nss_masala_gethostbyname3_r( const char *hostname, int af, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
+	
+	int size = strlen( hostname );
 
 	af = (af == AF_UNSPEC) ? AF_INET6 : af;
 
@@ -61,19 +62,19 @@ enum nss_status _nss_masala_gethostbyname3_r( const char *hostname, int af, stru
 		return NSS_STATUS_UNAVAIL;
 	}
 
-	if( !_nss_masala_valid_hostname( hostname) ) {
+	if( !_nss_masala_valid_hostname( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_masala_valid_tld( hostname) ) {
+	if( !_nss_masala_valid_tld( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	return _nss_masala_hostent( hostname, af, host, 
+	return _nss_masala_hostent( hostname, size, af, host, 
 			buffer, buflen,
 			errnop, h_errnop,
 			ttlp, canonp );
@@ -85,25 +86,27 @@ enum nss_status _nss_masala_gethostbyname4_r( const char *hostname,
 		int *errnop, int *h_errnop,
 		int32_t *ttlp ) {
 
-	if( !_nss_masala_valid_hostname( hostname) ) {
+	int size = strlen( hostname );
+
+	if( !_nss_masala_valid_hostname( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_masala_valid_tld( hostname) ) {
+	if( !_nss_masala_valid_tld( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	return _nss_masala_gaih_tuple( hostname, pat, buffer,
+	return _nss_masala_gaih_tuple( hostname, size, pat, buffer,
 			buflen, errnop, 
 			h_errnop, ttlp );
 }
 
-enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
+enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
+		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
 
 	UCHAR address[sizeof(struct in6_addr)];
@@ -112,17 +115,16 @@ enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hosten
 	char *p_aliases = NULL;
 	char *p_addr_list = NULL;
 	char *p_idx = NULL;
-	size_t s_hostname = strlen( hostname );
 	size_t s_total = 0;
 
-	s_total = s_hostname + 1 + sizeof(char*) + sizeof(struct in6_addr) + 2 * sizeof(char* );
+	s_total = size + 1 + sizeof(char*) + sizeof(struct in6_addr) + 2 * sizeof(char* );
 	if( buflen < s_total ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	if( !_nss_masala_lookup( hostname, address) ) {
+	if( !_nss_masala_lookup( hostname, size, address) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
@@ -130,8 +132,8 @@ enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hosten
 
 	memset( buffer, '\0', buflen );
 	p_name = buffer;
-	memcpy( p_name, hostname, s_hostname );
-	p_idx = p_name + s_hostname + 1;
+	memcpy( p_name, hostname, size );
+	p_idx = p_name + size + 1;
 
 	p_aliases = p_idx;
 	*(char**) p_aliases = NULL;
@@ -163,25 +165,24 @@ enum nss_status _nss_masala_hostent( const char *hostname, int af, struct hosten
 	return NSS_STATUS_SUCCESS;
 }
 
-enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtuple **pat,
-		char *buffer, size_t buflen, int *errnop,
+enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
+		gaih_addrtuple **pat, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp ) {
 
 	UCHAR address[sizeof(struct in6_addr)];
 	char *p_name = NULL;
 	char *p_idx = NULL;
 	struct gaih_addrtuple *p_tuple;
-	size_t s_hostname = strlen( hostname );
 	size_t s_total = 0;
 
-	s_total = s_hostname + 1 + sizeof(struct gaih_addrtuple );
+	s_total = size + 1 + sizeof(struct gaih_addrtuple );
 	if( buflen < s_total ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	if( !_nss_masala_lookup( hostname, address) ) {
+	if( !_nss_masala_lookup( hostname, size, address) ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
@@ -189,9 +190,9 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtu
 
 	memset( buffer, '\0', buflen );
 	p_name = buffer;
-	memcpy( p_name, hostname, s_hostname );
+	memcpy( p_name, hostname, size );
 
-	p_idx = p_name + s_hostname + 1;
+	p_idx = p_name + size + 1;
 	p_tuple = (struct gaih_addrtuple*) p_idx;
 	p_tuple->next = NULL;
 	p_tuple->name = p_name;
@@ -208,11 +209,11 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, struct gaih_addrtu
 	return NSS_STATUS_SUCCESS;
 }
 
-int _nss_masala_valid_hostname( const char *hostname ) {
+int _nss_masala_valid_hostname( const char *hostname, int size ) {
 
-	unsigned int i = 0;
+	int i = 0;
 	
-	for( i=0; i<strlen( hostname ); i++ ) {
+	for( i=0; i<size; i++ ) {
 		if( hostname[i] >= '0' && hostname[i] <= '9' ) {
 			continue;
 		} else if( hostname[i] >= 'A' && hostname[i] <= 'Z' ) {
@@ -233,13 +234,13 @@ int _nss_masala_valid_hostname( const char *hostname ) {
 	return 1;
 }
 
-int _nss_masala_valid_tld( const char *hostname ) {
+int _nss_masala_valid_tld( const char *hostname, int size ) {
 
 	const char *p0 = NULL;
 	const char *p1 = NULL;
 
 	/* "x.p2p" */
-	if( strlen( hostname) < 5 ) {
+	if( size < 5 ) {
 		return 0;
 	}
 
@@ -257,21 +258,17 @@ int _nss_masala_valid_tld( const char *hostname ) {
 	return 1;
 }
 
-int _nss_masala_lookup( const char *hostname, UCHAR *address ) {
+int _nss_masala_lookup( const char *hostname, int size, UCHAR *address ) {
 
 	IP sa;
 	socklen_t salen = sizeof(IP );
 	char buffer[MAIN_BUF+1];
-	UCHAR hash[SHA_DIGEST_LENGTH];
 	int sockfd = -1;
 	int n = 0;
 	struct timeval tv;
 
 	memset( &sa, '\0', salen );
 	memset( buffer, '\0', MAIN_BUF+1 );
-
-	/* sha1( hostname): It's the lookup key */
-	sha1_hash( hash, hostname, strlen( hostname) );
 
 	/* Setup UDP */
 	sockfd = socket( AF_INET6, SOCK_DGRAM, 0 );
@@ -291,12 +288,12 @@ int _nss_masala_lookup( const char *hostname, UCHAR *address ) {
 		return 0;
 	}
 
-	n = sendto( sockfd, hash, SHA_DIGEST_LENGTH, 0,( struct sockaddr *)&sa, salen );
-	if( n != 20 ) {
+	n = sendto( sockfd, hostname, size, 0, (struct sockaddr *)&sa, salen );
+	if( n != size ) {
 		return 0;
 	}
 
-	n = recvfrom( sockfd, buffer, MAIN_BUF, 0,( struct sockaddr *)&sa, &salen );
+	n = recvfrom( sockfd, buffer, MAIN_BUF, 0, (struct sockaddr *)&sa, &salen );
 	if( n != 16 ) {
 		return 0;
 	}

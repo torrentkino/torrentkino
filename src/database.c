@@ -83,11 +83,12 @@ void db_put(UCHAR *host_id, IP *sa) {
 		memcpy(db->host_id, host_id, SHA_DIGEST_LENGTH);
 		db_update(db, sa);
 
+		snprintf(buffer, MAIN_BUF+1, "Storage size: %li++", _main->database->list->counter);
+		log_info(buffer);
+
 		i = list_put(_main->database->list, db);
 		hash_put(_main->database->hash, db->host_id, SHA_DIGEST_LENGTH, i );
 
-		snprintf(buffer, MAIN_BUF+1, "Storage size: %li", _main->database->list->counter);
-		log_info(buffer);
 	} else {
 		db = i->val;
 	}
@@ -111,6 +112,7 @@ void db_expire(void) {
 	ITEM *n = NULL;
 	DB *db = NULL;
 	long int j=0;
+	char buffer[MAIN_BUF+1];
 
 	i = _main->database->list->start;
 	for (j=0; j<_main->database->list->counter; j++) {
@@ -119,6 +121,9 @@ void db_expire(void) {
 
 		/* Delete node after 15 minutes without announce. */
 		if (_main->p2p->time_now.tv_sec > db->time_anno) {
+			snprintf(buffer, MAIN_BUF+1, "Storage size: %li--", _main->database->list->counter);
+			log_info(buffer);
+
 			db_del(i);
 		}
 

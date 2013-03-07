@@ -156,6 +156,31 @@ int str_isValidFilename( char *string ) {
 	return 1;
 }
 
+int str_isValidHostname( const char *hostname, int size ) {
+
+	int i = 0;
+	
+	for( i=0; i<size; i++ ) {
+		if( hostname[i] >= '0' && hostname[i] <= '9' ) {
+			continue;
+		} else if( hostname[i] >= 'A' && hostname[i] <= 'Z' ) {
+			continue;
+		} else if( hostname[i] >= 'a' && hostname[i] <= 'z' ) {
+			continue;
+		} else if( hostname[i] == '-' ) {
+			continue;
+		} else if( hostname[i] == '_' ) {
+			continue;
+		} else if( hostname[i] == '.' ) {
+			continue;
+		} else {
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
 /*
 void str_htmlDisarmInput( char *string ) {
 	char *p = string;

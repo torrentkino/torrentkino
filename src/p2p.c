@@ -133,19 +133,19 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 	mutex_unblock( _main->p2p->mutex );
 
 	/* UDP packet too small */
-	if( bensize < SHA_DIGEST_LENGTH ) {
-		log_info( "UDP packet contains less than 20 bytes" );
+	if( bensize < 1 ) {
+		log_info( "UDP packet too small" );
 		return;
 	}
 
-	/* Recursive lookup */
-	if( bensize == SHA_DIGEST_LENGTH ) {
+	/* Recursive lookup request from localhost ::1 */
+	if( node_conn_from_localhost(from) ) {
 		p2p_lookup_nss( bencode, bensize, from );
 		return;
 	}
 
 	/* Validate bencode */
-	if( !ben_validate( bencode, bensize) ) {
+	if( !ben_validate( bencode, bensize ) ) {
 		log_info( "UDP packet contains broken bencode" );
 		return;
 	}
@@ -373,6 +373,7 @@ void p2p_cron( void ) {
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_expire ) {
 			node_expire();
 			cache_expire();
+			db_expire();
 			_main->p2p->time_expire = time_add_2_min_approx();
 		}
 	
@@ -802,28 +803,35 @@ void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from
 	lkp_success(ben_lkp_id->v.s->s, ben_address->v.s->s);
 }
 
-void p2p_lookup_nss( UCHAR *find_id, size_t size, IP *from ) {
+void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
 	UCHAR lkp_id[SHA_DIGEST_LENGTH];
-	char hex[HEX_LEN+1];
+	UCHAR hash[SHA_DIGEST_LENGTH];
 	char buffer[MAIN_BUF+1];
 	IP *address;
 
-	/* Check my own DB for that node. */
-	mutex_block( _main->p2p->mutex );
-	address = db_address(find_id);
-	mutex_unblock( _main->p2p->mutex );
-
-	hex_encode( hex, find_id );
-
-
-	if( address != NULL ) {
-		snprintf( buffer, MAIN_BUF+1, "LOOKUP %s (Local)", hex );
+	/* Validate hostname */
+	if ( !str_isValidHostname( (char *)hostname, size ) ) {
+		snprintf( buffer, MAIN_BUF+1, "LOOKUP %s (Invalid hostname)", hostname );
 		log_info( buffer );
-		lkp_local(address, from);
 		return;
 	}
 
-	snprintf( buffer, MAIN_BUF+1, "LOOKUP %s (Remote)", hex );
+	/* sha1(hostname): That is the lookup key */
+	sha1_hash( hash, (char *)hostname, size );
+
+	/* Check my own DB for that node. */
+	mutex_block( _main->p2p->mutex );
+	address = db_address(hash);
+	mutex_unblock( _main->p2p->mutex );
+
+	if( address != NULL ) {
+		snprintf( buffer, MAIN_BUF+1, "LOOKUP %s (Local)", hostname );
+		log_info( buffer );
+		lkp_local( address, from );
+		return;
+	}
+
+	snprintf( buffer, MAIN_BUF+1, "LOOKUP %s (Remote)", hostname );
 	log_info( buffer );
 
 	/* Create random id to identify this search request */
@@ -831,7 +839,7 @@ void p2p_lookup_nss( UCHAR *find_id, size_t size, IP *from ) {
 
 	/* Start find process */
 	mutex_block( _main->p2p->mutex );
-	lkp_put( find_id, lkp_id, from );
+	lkp_put( hash, lkp_id, from );
 	mutex_unblock( _main->p2p->mutex );
 }
 

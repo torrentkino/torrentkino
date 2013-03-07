@@ -200,3 +200,14 @@ int node_equal( const UCHAR *node_a, const UCHAR *node_b ) {
 	}
 	return 0;
 }
+
+int node_conn_from_localhost( IP *from ) {
+	const UCHAR localhost[] = 
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+
+	if( memcmp(from->sin6_addr.s6_addr, localhost, 16) == 0 ) {
+		return TRUE;
+	}
+
+	return FALSE;
+}

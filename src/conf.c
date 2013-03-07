@@ -177,7 +177,7 @@ void conf_check( void ) {
 #ifdef TUMBLEWEED
 	snprintf( buf, MAIN_BUF+1, "Index file: %s (-i)", _main->conf->index_name );
 	log_info( 0, buf );
-	if( !str_isValidFilename( _main->conf->index_name) ) {
+	if( !str_isValidFilename( _main->conf->index_name ) ) {
 		snprintf( buf, MAIN_BUF+1, "%s looks suspicious", _main->conf->index_name );
 		log_fail( buf );
 	}

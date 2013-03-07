@@ -54,5 +54,5 @@ void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, 
 void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
 void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from );
 
-void p2p_lookup_nss( UCHAR *find_id, size_t size, IP *from );
+void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from );
 void p2p_announce_myself( void );

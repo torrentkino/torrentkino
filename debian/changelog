@@ -1,3 +1,11 @@
+masala (0.2) unstable; urgency=low
+
+  * Removed polarssl from the NSS module
+  * Do the lookup hash computation within the daemon
+  * Allow recursive requests only from localhost
+  * Database expire run
+
+ -- Aiko Barz <aiko@chroot.de>  Thu, 07 Mar 2013 23:10:00 +0100
 masala (0.1) unstable; urgency=low
 
   * masala: Initial release
