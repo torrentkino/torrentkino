@@ -21,15 +21,14 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_p2p {
 	struct timeval time_now;
+	time_t time_maintainance;
+	time_t time_multicast;
+	time_t time_announce;
+	time_t time_restart;
 	time_t time_expire;
 	time_t time_split;
 	time_t time_ping;
 	time_t time_find;
-	time_t time_srch;
-	time_t time_restart;
-	time_t time_multicast;
-	time_t time_maintainance;
-	time_t time_announce;
 	pthread_mutex_t *mutex;
 };
 

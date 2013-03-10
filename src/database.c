@@ -78,16 +78,16 @@ void db_put(UCHAR *host_id, IP *sa) {
 
 	/* Create new storage place holder if necessary */
 	if ( (i = db_find( host_id )) == NULL ) {
-		
+
 		db = (DB *) myalloc(sizeof(DB), "db_put");
 		memcpy(db->host_id, host_id, SHA_DIGEST_LENGTH);
 		db_update(db, sa);
 
-		snprintf(buffer, MAIN_BUF+1, "Storage size: %li++", _main->database->list->counter);
-		log_info(buffer);
-
 		i = list_put(_main->database->list, db);
 		hash_put(_main->database->hash, db->host_id, SHA_DIGEST_LENGTH, i );
+
+		snprintf(buffer, MAIN_BUF+1, "Database size: %li (+1)", _main->database->list->counter);
+		log_info(buffer);
 
 	} else {
 		db = i->val;
@@ -103,8 +103,9 @@ void db_update(DB *db, IP *sa) {
 
 void db_del(ITEM *i) {
 	DB *db = i->val;
-	myfree(db, "db_del");
+	hash_del(_main->database->hash, db->host_id, SHA_DIGEST_LENGTH );
 	list_del(_main->database->list, i);
+	myfree(db, "db_del");
 }
 
 void db_expire(void) {
@@ -121,10 +122,11 @@ void db_expire(void) {
 
 		/* Delete node after 15 minutes without announce. */
 		if (_main->p2p->time_now.tv_sec > db->time_anno) {
-			snprintf(buffer, MAIN_BUF+1, "Storage size: %li--", _main->database->list->counter);
-			log_info(buffer);
-
 			db_del(i);
+
+			snprintf(buffer, MAIN_BUF+1, "Database size: %li (-1)",
+				_main->database->list->counter);
+			log_info(buffer);
 		}
 
 		i = n;

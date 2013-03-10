@@ -67,15 +67,15 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 struct obj_p2p *p2p_init( void ) {
 	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
 
-	p2p->time_expire = 0;
-	p2p->time_find = 0;
-	p2p->time_srch = 0;
-	p2p->time_ping = 0;
-	p2p->time_split = 0;
-	p2p->time_restart = 0;
-	p2p->time_multicast = 0;
 	p2p->time_maintainance = 0;
+	p2p->time_multicast = 0;
 	p2p->time_announce = 0;
+	p2p->time_restart = 0;
+	p2p->time_expire = 0;
+	p2p->time_split = 0;
+	p2p->time_find = 0;
+	p2p->time_ping = 0;
+
 	gettimeofday( &p2p->time_now, NULL );
 
 	/* Worker Concurrency */
@@ -371,12 +371,14 @@ void p2p_cron( void ) {
 
 		/* Expire objects every ~2 minutes */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_expire ) {
-			node_expire();
+			announce_expire();
 			cache_expire();
+			node_expire();
+			lkp_expire();
 			db_expire();
 			_main->p2p->time_expire = time_add_2_min_approx();
 		}
-	
+
 		/* Split container every ~2 minutes */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_split ) {
 			nbhd_split();
@@ -393,13 +395,6 @@ void p2p_cron( void ) {
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_find ) {
 			nbhd_find_myself();
 			_main->p2p->time_find = time_add_2_min_approx();
-		}
-
-		/* Expire searches every ~2 minutes */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_srch ) {
-			lkp_expire();
-			announce_expire();
-			_main->p2p->time_srch = time_add_2_min_approx();
 		}
 
 		/* Find random node every ~2 minutes for maintainance reasons */
