@@ -120,7 +120,7 @@ void db_expire(void) {
 		db = i->val;
 		n = list_next(i);
 
-		/* Delete node after 15 minutes without announce. */
+		/* Delete node after 15 minutes without announcement. */
 		if (_main->p2p->time_now.tv_sec > db->time_anno) {
 			db_del(i);
 
