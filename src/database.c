@@ -65,7 +65,6 @@ void db_free(void) {
 	myfree(_main->database, "db_free");
 }
 
-
 void db_put(UCHAR *host_id, IP *sa) {
 	ITEM *i = NULL;
 	DB *db = NULL;

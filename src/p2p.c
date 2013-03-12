@@ -151,7 +151,7 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 	}
 
 	/* Encrypted message or plaintext message */
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		p2p_decrypt( bencode, bensize, from );
 	} else {
 		p2p_decode( bencode, bensize, from );
@@ -800,7 +800,7 @@ void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from
 
 void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
 	UCHAR lkp_id[SHA_DIGEST_LENGTH];
-	UCHAR hash[SHA_DIGEST_LENGTH];
+	UCHAR host_id[SHA_DIGEST_LENGTH];
 	char buffer[MAIN_BUF+1];
 	IP *address;
 
@@ -811,12 +811,12 @@ void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
 		return;
 	}
 
-	/* sha1(hostname): That is the lookup key */
-	sha1_hash( hash, (char *)hostname, size );
+	/* That is the lookup key */
+	p2p_compute_realm_id( host_id, (char *)hostname );
 
 	/* Check my own DB for that node. */
 	mutex_block( _main->p2p->mutex );
-	address = db_address(hash);
+	address = db_address(host_id);
 	mutex_unblock( _main->p2p->mutex );
 
 	if( address != NULL ) {
@@ -834,7 +834,7 @@ void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
 
 	/* Start find process */
 	mutex_block( _main->p2p->mutex );
-	lkp_put( hash, lkp_id, from );
+	lkp_put( host_id, lkp_id, from );
 	mutex_unblock( _main->p2p->mutex );
 }
 
@@ -850,4 +850,16 @@ void p2p_announce_myself( void ) {
 
 	/* Start find process */
 	announce_put( lkp_id );
+}
+
+void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
+	char buffer[MAIN_BUF+1];
+
+	/* The realm influences the way, the lookup hash gets computed */
+	if( _main->conf->bool_realm == TRUE ) {
+		snprintf(buffer, MAIN_BUF+1, "%s.%s", hostname, _main->conf->realm);
+		sha1_hash( host_id, buffer, strlen(buffer) );
+	} else {
+		sha1_hash( host_id, hostname, strlen(hostname) );
+	}
 }

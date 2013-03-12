@@ -50,6 +50,8 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "sha1.h"
 #include "node_p2p.h"
 #include "search.h"
+#include "ben.h"
+#include "p2p.h"
 #endif
 
 void opts_load( int argc, char **argv ) {
@@ -123,11 +125,19 @@ void opts_interpreter( char *var, char *val ) {
 		snprintf( _main->conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", val );
 	} else if( strcmp( var, "-k") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->key, MAIN_BUF+1, "%s", val );
-		_main->conf->encryption = 1;
-
+		_main->conf->bool_encryption = TRUE;
 	} else if( strcmp( var, "-h") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->hostname, MAIN_BUF+1, "%s", val );
-		sha1_hash( (UCHAR *)_main->conf->host_id, val, strlen( val ) );
+
+		/* Compute host_id. Respect the realm. */
+		p2p_compute_realm_id( _main->conf->host_id, _main->conf->hostname );
+
+	} else if( strcmp( var, "-r") == 0 && val != NULL && strlen( val ) > 1 ) {
+		snprintf( _main->conf->realm, MAIN_BUF+1, "%s", val );
+		_main->conf->bool_realm = TRUE;
+
+		/* Change realm. Recompute the host_id. */
+		p2p_compute_realm_id( _main->conf->host_id, _main->conf->hostname );
 
 	} else if( strcmp( var, "-q") == 0 && val == NULL ) {
 		_main->conf->quiet = CONF_BEQUIET;

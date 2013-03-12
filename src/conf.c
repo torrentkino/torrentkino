@@ -47,6 +47,8 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "unix.h"
 #include "hex.h"
 #include "random.h"
+#include "ben.h"
+#include "p2p.h"
 #endif
 
 struct obj_conf *conf_init( void ) {
@@ -82,9 +84,17 @@ struct obj_conf *conf_init( void ) {
 	}
 #endif
 
+#ifdef MASALA
+	snprintf( conf->key, MAIN_BUF+1, "%s", CONF_KEY );
+	conf->bool_encryption = FALSE;
+
+	snprintf( conf->realm, MAIN_BUF+1, "%s", CONF_REALM );
+	conf->bool_realm = FALSE;
+#endif
+
 	/* SHA1 Hash of hostname */
 #ifdef MASALA
-	sha1_hash( conf->host_id, conf->hostname, strlen( conf->hostname) );
+	sha1_hash( conf->host_id, conf->hostname, strlen( conf->hostname ) );
 #endif
 
 #ifdef MASALA
@@ -116,8 +126,6 @@ struct obj_conf *conf_init( void ) {
 #ifdef MASALA
 	snprintf( conf->bootstrap_node, MAIN_BUF+1, "%s", CONF_BOOTSTRAP_NODE );
 	snprintf( conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", CONF_BOOTSTRAP_PORT );
-	snprintf( conf->key, MAIN_BUF+1, "%s", CONF_KEY );
-	conf->encryption = 0;
 #endif
 
 #ifdef TUMBLEWEED
@@ -227,7 +235,7 @@ void conf_check( void ) {
 
 	/* Encryption */
 #ifdef MASALA
-	if( _main->conf->encryption == 1 ) {
+	if( _main->conf->bool_encryption == 1 ) {
 		snprintf( buf, MAIN_BUF+1, "Encryption key: %s (-k)", _main->conf->key );
 		log_info( buf );
 	} else {
@@ -235,6 +243,19 @@ void conf_check( void ) {
 		log_info( buf );
 	}
 #endif
+
+	/* Realm */
+#ifdef MASALA
+	if( _main->conf->bool_realm == 1 ) {
+		snprintf( buf, MAIN_BUF+1, "Realm: %s (-r)", _main->conf->realm );
+		log_info( buf );
+	} else {
+		snprintf( buf, MAIN_BUF+1, "Realm: None (-r)" );
+		log_info( buf );
+	}
+#endif
+
+
 
 	snprintf( buf, MAIN_BUF+1, "Worker threads: %i", _main->conf->cores );
 #ifdef TUMBLEWEED

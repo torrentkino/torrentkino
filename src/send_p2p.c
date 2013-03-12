@@ -87,7 +87,7 @@ void send_ping( IP *sa, int type ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
 		send_exec( sa, raw );
@@ -134,7 +134,7 @@ void send_pong( IP *sa, UCHAR *node_sk ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
 		send_exec( sa, raw );
@@ -202,7 +202,7 @@ void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
 		send_exec( sa, raw );
@@ -318,7 +318,7 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_typ
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
 		send_exec( sa, raw );
@@ -393,7 +393,7 @@ void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
 		send_exec( sa, raw );
@@ -458,7 +458,7 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
 		send_exec( sa, raw );
@@ -524,7 +524,7 @@ void send_announce( IP *sa, UCHAR *lkp_id ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
-	if( _main->conf->encryption ) {
+	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
 		send_exec( sa, raw );

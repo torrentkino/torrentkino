@@ -3,20 +3,19 @@ masala(1) -- P2P name resolution daemon
 
 ## SYNOPSIS
 
-`masala`  [-d] [-q] [-h hostname] [-k password] [-p port] [-x server] [-y port] [-u username]
+`masala`  [-d] [-q] [-h hostname] [-k password] [-r realm] [-p port] [-x server] [-y port] [-u username]
 
 ## DESCRIPTION
 
 **masala** is a P2P name resolution daemon. It organizes IPv6 addresses in a
 distributed hash table. The basic design has been inspired by the Kademlia DHT.
 The communication between nodes is realized by using bencode encoded messages on
-top of UDP. There are 4 message types: PING, FIND, LOOKUP and ANNOUNCE. It is
-possible to encrypt the traffic with a PSK to isolate your nodes from a bigger
-swarm. By default, masala sends the first packet to a multicast address. So,
-there is no configuration necessary within your broadcast domain (LAN). With a
-bootstrap server, it is also possible to connect nodes around the globe. A NSS
-module makes any hostname with *.p2p* at the end transparently available to your
-Linux OS.
+top of UDP. There are 4 message types: PING, FIND, LOOKUP and ANNOUNCE. By
+default, masala sends the first packet to a multicast address. So there is no
+configuration necessary within your broadcast domain (LAN). With a bootstrap
+server, it is also possible to connect nodes around the globe. A NSS module
+makes any hostname with *.p2p* at the end transparently available to your Linux
+OS.
 
 ## FILES
 
@@ -30,7 +29,17 @@ Linux OS.
     By default /etc/hostname is used to determine the hostname.
 
   * `-k` *password*:
-	Setting a password results in encrypting each packet with AES256. The encrypted packet is encapsulated in bencode.
+	Setting a password results in encrypting each packet with AES256. The
+	encrypted packet is encapsulated in bencode. With this action you
+	effectively isolate your nodes from the rest of the world.
+
+  * `-r` *realm*:
+	Creating a realm affects the lookup process and the way how you announce
+	your hostname to the swarm. It helps you to isolate your nodes and be part
+	of a bigger swarm at the same time. This can be useful if you do not have
+	your own bootstrap server and do not want to get mixed up with the rest of
+	the swarm. You do not have problems with duplicate hostnames either as long
+	as you do not share your realm with others.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/8337)

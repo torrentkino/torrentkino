@@ -1,3 +1,9 @@
+masala (0.3) unstable; urgency=low
+
+  * Realm support
+
+ -- Aiko Barz <aiko@chroot.de>  Tue, 12 Mar 2013 20:50:00 +0100
+
 masala (0.2) unstable; urgency=low
 
   * Removed polarssl from the NSS module

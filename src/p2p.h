@@ -55,3 +55,5 @@ void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from
 
 void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from );
 void p2p_announce_myself( void );
+
+void p2p_compute_realm_id( UCHAR *host_id, char *hostname );
