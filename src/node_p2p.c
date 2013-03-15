@@ -89,9 +89,9 @@ NODE *node_put( UCHAR *id, IP *sa ) {
 		memcpy( n->id, id, SHA_DIGEST_LENGTH );
 
 		/* Timings */
-		n->time_ping = 0;
-		n->time_find = 0;
-		n->pinged = 0;
+		n->time_ping = time_add_5_min_approx();
+		n->time_find = time_add_5_min_approx();
+		n->pinged = 1;
 
 		/* Update IP address */
 		node_update_address( n, sa );
@@ -101,7 +101,6 @@ NODE *node_put( UCHAR *id, IP *sa ) {
 
 		/* Send a PING */
 		send_ping( &n->c_addr, SEND_UNICAST );
-		node_pinged( n->id );
 
 		/* New node: Ask for myself */
 		send_find( &n->c_addr, _main->conf->node_id, _main->conf->null_id );

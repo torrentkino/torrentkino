@@ -96,7 +96,7 @@ void send_ping( IP *sa, int type ) {
 	ben_free( dict );
 
 	/* Log */
-	log_udp( sa, "PING" );
+	log_complex( sa, "PING" );
 }
 
 void send_pong( IP *sa, UCHAR *node_sk ) {
@@ -109,7 +109,6 @@ void send_pong( IP *sa, UCHAR *node_sk ) {
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
 		1:q 1:o
-		[1:e 1:c]
 	*/
 
 	/* ID */
@@ -143,7 +142,73 @@ void send_pong( IP *sa, UCHAR *node_sk ) {
 	ben_free( dict );
 
 	/* Log */
-	log_udp( sa, "PONG" );
+	log_complex( sa, "PONG" );
+}
+
+void send_announce( IP *sa, UCHAR *lkp_id ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+	UCHAR skey[SHA_DIGEST_LENGTH];
+
+	/*
+		1:i 20:NODE_ID
+		1:k 20:SESSION_ID
+		1:l 20:LOOKUP_ID
+		1:f 20:NODE_ID
+		1:q 1:a
+	*/
+
+	rand_urandom( skey, SHA_DIGEST_LENGTH );
+	cache_put( skey, SEND_UNICAST );
+
+	/* ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"i", 1 );
+	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* Session key */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"k", 1 );
+	ben_str( val, skey, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* Lookup ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"l", 1 );
+	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* My host ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"f", 1 );
+	ben_str( val, _main->conf->host_id, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* Query Type: Search node or search value. */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"a", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_exec( sa, raw );
+	}
+	raw_free( raw );
+	ben_free( dict );
+
+	/* Log */
+	log_complex( sa, "ANNOUNCE to" );
 }
 
 void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
@@ -213,7 +278,77 @@ void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	/* Log */
 	hex_encode( hexbuf, node_id );
 	snprintf( buffer, MAIN_BUF+1, "FIND %s at", hexbuf );
-	log_udp( sa, buffer );
+	log_complex( sa, buffer );
+}
+
+void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+	UCHAR skey[SHA_DIGEST_LENGTH];
+	char buffer[MAIN_BUF+1];
+	char hexbuf[HEX_LEN+1];
+
+	/*
+		1:i 20:NODE_ID
+		1:k 20:SESSION_ID
+		1:l 20:LOOKUP_ID
+		1:f 20:FIND_ID
+		1:q 1:l
+	*/
+
+	rand_urandom( skey, SHA_DIGEST_LENGTH );
+	cache_put( skey, SEND_UNICAST );
+
+	/* ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"i", 1 );
+	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* Session key */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"k", 1 );
+	ben_str( val, skey, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* Lookup ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"l", 1 );
+	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* Target */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"f", 1 );
+	ben_str( val, node_id, SHA_DIGEST_LENGTH );
+	ben_dict( dict, key, val );
+
+	/* Query Type: Search node or search value. */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"l", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_exec( sa, raw );
+	}
+	raw_free( raw );
+	ben_free( dict );
+
+	/* Log */
+	hex_encode( hexbuf, node_id );
+	snprintf( buffer, MAIN_BUF+1, "LOOKUP %s at", hexbuf );
+	log_complex( sa, buffer );
 }
 
 void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_type ) {
@@ -237,8 +372,7 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_typ
 			1:i 20:NODE_ID
 			1:a 16:IP
 			1:p 2:PORT
-		1:q 1:n || 1:q 1:b || 1:q 1:x
-		[1:e 1:c]
+		1:q 1:A || 1:q 1:F || 1:q 1:L
 	*/
 
 	/* ID */
@@ -327,84 +461,18 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_typ
 	ben_free( dict );
 
 	/* Log */
-	if( *reply_type == 'n' ) {
-		snprintf(buffer, MAIN_BUF+1, "NODE reply via FIND to");
-	} else if( *reply_type == 'b' ) {
-		snprintf(buffer, MAIN_BUF+1, "NODE reply via ANNOUNCE to");
-	} else if( *reply_type == 'x' ) {
-		snprintf(buffer, MAIN_BUF+1, "NODE reply via LOOKUP to");
+	switch( *reply_type ) {
+		case 'A':
+			snprintf(buffer, MAIN_BUF+1, "NODES via ANNOUNCE to");
+			break;
+		case 'F':
+			snprintf(buffer, MAIN_BUF+1, "NODES via FIND to");
+			break;
+		case 'L':
+			snprintf(buffer, MAIN_BUF+1, "NODES via LOOKUP to");
+			break;
 	}
-	log_udp( sa, buffer );
-}
-
-void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	UCHAR skey[SHA_DIGEST_LENGTH];
-	char buffer[MAIN_BUF+1];
-	char hexbuf[HEX_LEN+1];
-
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:l 20:LOOKUP_ID
-		1:f 20:FIND_ID
-		1:q 1:l
-	*/
-
-	rand_urandom( skey, SHA_DIGEST_LENGTH );
-	cache_put( skey, SEND_UNICAST );
-
-	/* ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Session key */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, skey, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Lookup ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"l", 1 );
-	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Target */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"f", 1 );
-	ben_str( val, node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Query Type: Search node or search value. */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val, (UCHAR *)"l", 1 );
-	ben_dict( dict, key, val );
-
-	raw = ben_enc( dict );
-	if( _main->conf->bool_encryption ) {
-		send_aes( sa, raw );
-	} else {
-		send_exec( sa, raw );
-	}
-	raw_free( raw );
-	ben_free( dict );
-
-	/* Log */
-	hex_encode( hexbuf, node_id );
-	snprintf( buffer, MAIN_BUF+1, "LOOKUP %s at", hexbuf );
-	log_udp( sa, buffer );
+	log_complex( sa, buffer );
 }
 
 void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
@@ -418,8 +486,7 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 		1:k 20:SESSION_ID
 		1:l 20:LOOKUP_ID
 		1:a 16:IP
-		1:q 1:v
-		[1:e 1:c]
+		1:q 1:V
 	*/
 
 	/* ID */
@@ -454,7 +521,7 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val,( UCHAR *)"v", 1 );
+	ben_str( val,( UCHAR *)"V", 1 );
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
@@ -467,73 +534,7 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 	ben_free( dict );
 
 	/* Log */
-	log_udp( sa, "VALUE to" );
-}
-
-void send_announce( IP *sa, UCHAR *lkp_id ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	UCHAR skey[SHA_DIGEST_LENGTH];
-
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:l 20:LOOKUP_ID
-		1:f 20:NODE_ID
-		1:q 1:a
-	*/
-
-	rand_urandom( skey, SHA_DIGEST_LENGTH );
-	cache_put( skey, SEND_UNICAST );
-
-	/* ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Session key */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, skey, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Lookup ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"l", 1 );
-	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* My host ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"f", 1 );
-	ben_str( val, _main->conf->host_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Query Type: Search node or search value. */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val, (UCHAR *)"a", 1 );
-	ben_dict( dict, key, val );
-
-	raw = ben_enc( dict );
-	if( _main->conf->bool_encryption ) {
-		send_aes( sa, raw );
-	} else {
-		send_exec( sa, raw );
-	}
-	raw_free( raw );
-	ben_free( dict );
-
-	/* Log */
-	log_udp( sa, "ANNOUNCE to" );
+	log_complex( sa, "VALUE via LOOKUP to" );
 }
 
 void send_aes( IP *sa, struct obj_raw *raw ) {

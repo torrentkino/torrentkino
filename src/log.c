@@ -69,20 +69,43 @@ void log_complex( NODE *n, int code, const char *buffer ) {
 	memset( buf, '\0', INET6_ADDRSTRLEN+1 );
 	
 	if( _main->conf->mode == CONF_FOREGROUND ) {
-		printf( "[%.3li] <%.3u> %s (%s)\n",
-			_main->nodes->list->counter, code, buffer,
-			inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
-		);
+		printf( "%.3li %.3u %s %s\n",
+			_main->nodes->list->counter, code,
+			inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN ),
+			buffer );
 	} else {
 		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "[%.3li] <%.3u> %s (%s)",
-			_main->nodes->list->counter, code, buffer,
-			inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN)
-		);
+		syslog( LOG_INFO, "%.3li %.3u %s %s",
+			_main->nodes->list->counter, code,
+			inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN ),
+			buffer );
 		closelog();
 	}
 }
+#elif MASALA
+void log_complex( IP *c_addr, const char *buffer ) {
+	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
+	char buf[INET6_ADDRSTRLEN+1];
 
+	if( verbosity != CONF_VERBOSE ) {
+		return;
+	}
+
+	memset( buf, '\0', INET6_ADDRSTRLEN+1 );
+		
+	if( _main->conf->mode == CONF_FOREGROUND ) {
+		printf( "%s %s\n", buffer,
+			inet_ntop( AF_INET6, &c_addr->sin6_addr, buf, INET6_ADDRSTRLEN) );
+	} else {
+		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
+		syslog( LOG_INFO, "%s %s", buffer,
+			inet_ntop( AF_INET6, &c_addr->sin6_addr, buf, INET6_ADDRSTRLEN) );
+		closelog();
+	}
+}
+#endif
+
+#ifdef TUMBLEWEED
 void log_info( int code, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
 
@@ -95,40 +118,16 @@ void log_info( int code, const char *buffer ) {
 	}
 
 	if( _main->conf->mode == CONF_FOREGROUND ) {
-		printf( "[%.3li] <%.3u> %s\n", _main->nodes->list->counter, code, buffer );
+		printf( "%.3li %.3u ::1 %s\n", _main->nodes->list->counter,
+			code, buffer );
 	} else {
 		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "[%.3li] <%.3u> %s", _main->nodes->list->counter, code, buffer );
+		syslog( LOG_INFO, "%.3li %.3u ::1 %s", _main->nodes->list->counter,
+			code, buffer );
 		closelog();
 	}
 }
-
 #elif MASALA
-
-void log_udp( IP *c_addr, const char *buffer ) {
-	char v6buf[INET6_ADDRSTRLEN+1];
-	
-	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
-
-	if( verbosity != CONF_VERBOSE ) {
-		return;
-	}
-
-	memset( v6buf, '\0', INET6_ADDRSTRLEN+1 );
-		
-	if( _main->conf->mode == CONF_FOREGROUND ) {
-		printf( "%s %s\n",
-			buffer,
-			inet_ntop( AF_INET6, &c_addr->sin6_addr, v6buf, INET6_ADDRSTRLEN) );
-	} else {
-		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "%s %s",
-			buffer,
-			inet_ntop( AF_INET6, &c_addr->sin6_addr, v6buf, INET6_ADDRSTRLEN) );
-		closelog();
-	}
-}
-
 void log_info( const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
 

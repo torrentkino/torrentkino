@@ -321,25 +321,25 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 			p2p_pong( id->v.s->s, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
-		case 'n':
+		case 'F':
 			/* NODES via FIND */
 			mutex_block( _main->p2p->mutex );
 			p2p_node_find( packet, id->v.s->s, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
-		case 'b':
+		case 'A':
 			/* NODES via ANNOUNCE */
 			mutex_block( _main->p2p->mutex );
 			p2p_node_announce( packet, id->v.s->s, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
-		case 'x':
+		case 'L':
 			/* NODES via LOOKUP */
 			mutex_block( _main->p2p->mutex );
 			p2p_node_lookup( packet, id->v.s->s, key->v.s->s, from );
 			mutex_unblock( _main->p2p->mutex );
 			break;
-		case 'v':
+		case 'V':
 			/* VALUES via LOOKUP */
 			mutex_block( _main->p2p->mutex );
 			p2p_value( packet, id->v.s->s, key->v.s->s, from );
@@ -442,7 +442,7 @@ void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 	}
 
 	/* Reply */
-	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"n");
+	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"F");
 }
 
 void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
@@ -467,7 +467,7 @@ void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 	db_put(ben_host_id->v.s->s, from);
 
 	/* Reply nodes, that might suit even better */
-	nbhd_send( from, ben_host_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"b");
+	nbhd_send( from, ben_host_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"A");
 }
 
 void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
@@ -492,7 +492,7 @@ void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 	if ( !db_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk ) ) {
 
 		/* Reply closer nodes */
-		nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"x");
+		nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"L");
 	}
 
 }

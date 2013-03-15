@@ -19,11 +19,13 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef TUMBLEWEED
 void log_complex( NODE *n, int code, const char *buffer );
-void log_info( int code, const char *buffer );
+#elif MASALA
+void log_complex( IP *c_addr, const char *buffer );
 #endif
 
-#ifdef MASALA
-void log_udp( IP *c_addr, const char *buffer );
+#ifdef TUMBLEWEED
+void log_info( int code, const char *buffer );
+#elif MASALA
 void log_info( const char *buffer );
 #endif
 
