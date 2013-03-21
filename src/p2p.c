@@ -840,10 +840,6 @@ void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
 
 void p2p_announce_myself( void ) {
 	UCHAR lkp_id[SHA_DIGEST_LENGTH];
-	char buffer[MAIN_BUF+1];
-
-	snprintf( buffer, MAIN_BUF+1, "ANNOUNCE myself");
-	log_info( buffer );
 
 	/* Create random id to identify this search request */
 	rand_urandom( lkp_id, SHA_DIGEST_LENGTH );
