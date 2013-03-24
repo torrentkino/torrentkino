@@ -199,7 +199,9 @@ void *udp_thread( void *arg ) {
 			}
 		} else if( _main->status == MAIN_ONLINE && nfds == 0 ) {
 			/* Timed wakeup */
-			udp_cron();
+			if( id == 0 ) {
+				udp_cron();
+			}
 		} else if( _main->status == MAIN_ONLINE && nfds > 0 ) {
 			udp_worker( events, nfds, id );
 		} else {

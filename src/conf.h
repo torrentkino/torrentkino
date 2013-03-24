@@ -35,6 +35,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_SRVNAME "tumbleweed"
 #define CONF_PORT 8080
 #define CONF_INDEX_NAME "index.html"
+#define CONF_KEEPALIVE 5
 #elif MASALA
 #define CONF_USERNAME "masala"
 #define CONF_EPOLL_WAIT 2000

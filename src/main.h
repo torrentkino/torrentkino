@@ -28,6 +28,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define FALSE 0
 
 typedef unsigned char UCHAR;
+typedef unsigned long int ULONG;
 typedef struct sockaddr_in6 IP;
 
 struct obj_main {
