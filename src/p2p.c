@@ -166,18 +166,15 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Parse request */
 	packet = ben_dec( bencode, bensize );
-	if( packet == NULL ) {
+	if( !ben_is_dict( packet ) ) {
 		log_info( "Decoding AES packet failed" );
-		return;
-	} else if( packet->t != BEN_DICT ) {
-		log_info( "AES packet is not a dictionary" );
 		ben_free( packet );
 		return;
 	}
 
 	/* Salt */
 	salt = ben_searchDictStr( packet, "s" );
-	if( salt == NULL || salt->t != BEN_STR || salt->v.s->i != AES_IV_SIZE ) {
+	if( !ben_is_str( salt ) || ben_str_size( salt ) != AES_IV_SIZE ) {
 		log_info( "Salt missing or broken" );
 		ben_free( packet );
 		return;
@@ -185,7 +182,7 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Encrypted AES message */
 	aes = ben_searchDictStr( packet, "a" );
-	if( aes == NULL || aes->t != BEN_STR || aes->v.s->i <= 2 ) {
+	if( !ben_is_str( aes ) || ben_str_size( aes ) <= 2 ) {
 		log_info( "AES message missing or broken" );
 		ben_free( packet );
 		return;
@@ -245,7 +242,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Node ID */
 	id = ben_searchDictStr( packet, "i" );
-	if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( id ) ) {
 		log_info( "Node ID missing or broken" );
 		ben_free( packet );
 		return;
@@ -264,7 +261,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Session key */
 	key = ben_searchDictStr( packet, "k" );
-	if( key == NULL || key->t != BEN_STR || key->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( key ) ) {
 		log_info( "Session key missing or broken" );
 		ben_free( packet );
 		return;
@@ -281,7 +278,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Query Details */
 	q = ben_searchDictStr( packet, "q" );
-	if( q == NULL || q->t != BEN_STR || q->v.s->i != 1 ) {
+	if( !ben_is_str( q ) || ben_str_size( q ) != 1 ) {
 		log_info( "Query type missing or broken" );
 		ben_free( packet );
 		return;
@@ -429,14 +426,14 @@ void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 
 	/* Find ID */
 	ben_find_id = ben_searchDictStr( packet, "f" );
-	if( ben_find_id == NULL || ben_find_id->t != BEN_STR || ben_find_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_find_id ) ) {
 		log_info( "Missing or broken target node" );
 		return;
 	}
 
 	/* Lookup ID */
 	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_lkp_id ) ) {
 		log_info( "Missing or broken lookup ID" );
 		return;
 	}
@@ -451,14 +448,14 @@ void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 
 	/* Host ID */
 	ben_host_id = ben_searchDictStr( packet, "f" );
-	if( ben_host_id == NULL || ben_host_id->t != BEN_STR || ben_host_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_host_id ) ) {
 		log_info( "Missing or broken target node" );
 		return;
 	}
 
 	/* Lookup ID */
 	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_lkp_id ) ) {
 		log_info( "Missing or broken lookup ID" );
 		return;
 	}
@@ -476,14 +473,14 @@ void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 
 	/* Find ID */
 	ben_find_id = ben_searchDictStr( packet, "f" );
-	if( ben_find_id == NULL || ben_find_id->t != BEN_STR || ben_find_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_find_id ) ) {
 		log_info( "Missing or broken target node" );
 		return;
 	}
 
 	/* Lookup ID */
 	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_lkp_id ) ) {
 		log_info( "Missing or broken lookup ID" );
 		return;
 	}
@@ -526,14 +523,14 @@ void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *
 
 	/* Requirements */
 	nodes = ben_searchDictStr( packet, "n" );
-	if( nodes == NULL || nodes->t != BEN_LIST ) {
+	if( !ben_is_list( nodes ) ) {
 		log_info( "NODE FIND: Nodes key broken or missing" );
 		return;
 	}
 
 	/* Lookup ID */
 	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_lkp_id ) ) {
 		log_info( "Missing or broken lookup ID" );
 		return;
 	}
@@ -544,32 +541,28 @@ void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *
 		node = item->val;
 
 		/* Node */
-		if( node == NULL || node->t != BEN_DICT ) {
+		if( !ben_is_dict( node ) ) {
 			log_info( "Node key broken or missing" );
 			return;
 		}
 
 		/* ID */
 		id = ben_searchDictStr( node, "i" );
-		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
+		if( !p2p_is_hash( id ) ) {
 			log_info( "ID key broken or missing" );
 			return;
 		}
 
 		/* IP */
 		ip = ben_searchDictStr( node, "a" );
-		if( ip == NULL || ip->t != BEN_STR ) {
-			log_info( "IP key broken or missing" );
-			return;
-		}
-		if( ip->v.s->i != 16 ) {
+		if( !p2p_is_ip( ip ) ) {
 			log_info( "IP key broken or missing" );
 			return;
 		}
 
 		/* Port */
 		po = ben_searchDictStr( node, "p" );
-		if( po == NULL || po->t != BEN_STR || po->v.s->i != 2 ) {
+		if( !p2p_is_port( po ) ) {
 			log_info( "Port key broken or missing" );
 			return;
 		}
@@ -610,14 +603,14 @@ void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, 
 
 	/* Requirements */
 	nodes = ben_searchDictStr( packet, "n" );
-	if( nodes == NULL || nodes->t != BEN_LIST ) {
+	if( !ben_is_list( nodes ) ) {
 		log_info( "NODE ANNOUNCE: Nodes key broken or missing" );
 		return;
 	}
 
 	/* Lookup ID */
 	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_lkp_id ) ) {
 		log_info( "Missing or broken lookup ID" );
 		return;
 	}
@@ -631,32 +624,28 @@ void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, 
 		node = item->val;
 
 		/* Node */
-		if( node == NULL || node->t != BEN_DICT ) {
+		if( !ben_is_dict( node ) ) {
 			log_info( "Node key broken or missing" );
 			return;
 		}
 
 		/* ID */
 		id = ben_searchDictStr( node, "i" );
-		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
+		if( !p2p_is_hash( id ) ) {
 			log_info( "ID key broken or missing" );
 			return;
 		}
 
 		/* IP */
 		ip = ben_searchDictStr( node, "a" );
-		if( ip == NULL || ip->t != BEN_STR ) {
-			log_info( "IP key broken or missing" );
-			return;
-		}
-		if( ip->v.s->i != 16 ) {
+		if( !p2p_is_ip( ip ) ) {
 			log_info( "IP key broken or missing" );
 			return;
 		}
 
 		/* Port */
 		po = ben_searchDictStr( node, "p" );
-		if( po == NULL || po->t != BEN_STR || po->v.s->i != 2 ) {
+		if( !p2p_is_port( po ) ) {
 			log_info( "Port key broken or missing" );
 			return;
 		}
@@ -700,14 +689,14 @@ void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP
 
 	/* Requirements */
 	nodes = ben_searchDictStr( packet, "n" );
-	if( nodes == NULL || nodes->t != BEN_LIST ) {
+	if( !ben_is_list( nodes ) ) {
 		log_info( "LOOKUP: Nodes key broken or missing" );
 		return;
 	}
 
 	/* Lookup ID */
 	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_lkp_id ) ) {
 		log_info( "Missing or broken lookup ID" );
 		return;
 	}
@@ -721,32 +710,28 @@ void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP
 		node = item->val;
 
 		/* Node */
-		if( node == NULL || node->t != BEN_DICT ) {
+		if( !ben_is_dict( node ) ) {
 			log_info( "Node key broken or missing" );
 			return;
 		}
 
 		/* ID */
 		id = ben_searchDictStr( node, "i" );
-		if( id == NULL || id->t != BEN_STR || id->v.s->i != SHA_DIGEST_LENGTH ) {
+		if( !p2p_is_hash( id ) ) {
 			log_info( "ID key broken or missing" );
 			return;
 		}
 
 		/* IP */
 		ip = ben_searchDictStr( node, "a" );
-		if( ip == NULL || ip->t != BEN_STR ) {
-			log_info( "IP key broken or missing" );
-			return;
-		}
-		if( ip->v.s->i != 16 ) {
+		if( !p2p_is_ip( ip ) ) {
 			log_info( "IP key broken or missing" );
 			return;
 		}
 
 		/* Port */
 		po = ben_searchDictStr( node, "p" );
-		if( po == NULL || po->t != BEN_STR || po->v.s->i != 2 ) {
+		if( !p2p_is_port( po ) ) {
 			log_info( "Port key broken or missing" );
 			return;
 		}
@@ -782,14 +767,14 @@ void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from
 
 	/* Requirements */
 	ben_address = ben_searchDictStr( packet, "a" );
-	if( ben_address == NULL || ben_address->t != BEN_STR || ben_address->v.s->i != 16 ) {
+	if( !p2p_is_ip( ben_address ) ) {
 		log_info( "Missing or broken lookup address" );
 		return;
 	}
 
 	/* Lookup ID */
 	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( ben_lkp_id == NULL || ben_lkp_id->t != BEN_STR || ben_lkp_id->v.s->i != SHA_DIGEST_LENGTH ) {
+	if( !p2p_is_hash( ben_lkp_id ) ) {
 		log_info( "Missing or broken lookup ID" );
 		return;
 	}
@@ -816,7 +801,7 @@ void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
 
 	/* Check my own DB for that node. */
 	mutex_block( _main->p2p->mutex );
-	address = db_address(host_id);
+	address = db_address( host_id );
 	mutex_unblock( _main->p2p->mutex );
 
 	if( address != NULL ) {
@@ -858,4 +843,43 @@ void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
 	} else {
 		sha1_hash( host_id, hostname, strlen(hostname) );
 	}
+}
+
+int p2p_is_hash( struct obj_ben *node ) {
+	if( node == NULL ) {
+		return 0;
+	}
+	if( !ben_is_str( node ) ) {
+		return 0;
+	}
+	if( ben_str_size( node ) != SHA_DIGEST_LENGTH ) {
+		return 0;
+	}
+	return 1;
+}
+
+int p2p_is_ip( struct obj_ben *node ) {
+	if( node == NULL ) {
+		return 0;
+	}
+	if( !ben_is_str( node ) ) {
+		return 0;
+	}
+	if( ben_str_size( node ) != 16 ) {
+		return 0;
+	}
+	return 1;
+}
+
+int p2p_is_port( struct obj_ben *node ) {
+	if( node == NULL ) {
+		return 0;
+	}
+	if( !ben_is_str( node ) ) {
+		return 0;
+	}
+	if( ben_str_size( node ) != 2 ) {
+		return 0;
+	}
+	return 1;
 }

@@ -88,7 +88,17 @@ struct obj_ben *ben_dec_l( struct obj_raw *raw );
 struct obj_ben *ben_dec_i( struct obj_raw *raw );
 struct obj_ben *ben_dec_s( struct obj_raw *raw );
 
+int ben_is_dict(struct obj_ben *node);
+int ben_is_list(struct obj_ben *node);
+int ben_is_str(struct obj_ben *node);
+int ben_is_int(struct obj_ben *node);
+
 struct obj_ben *ben_searchDictKey( struct obj_ben *node, struct obj_ben *key );
 struct obj_ben *ben_searchDictStr( struct obj_ben *node, const char *buffer );
-void ben_sort( struct obj_ben *node );
+
 int ben_compare( struct obj_ben *key1, struct obj_ben *key2 );
+long int ben_str_size( struct obj_ben *node );
+
+void ben_sort( struct obj_ben *node );
+
+

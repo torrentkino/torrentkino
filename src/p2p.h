@@ -57,3 +57,7 @@ void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from );
 void p2p_announce_myself( void );
 
 void p2p_compute_realm_id( UCHAR *host_id, char *hostname );
+
+int p2p_is_hash( struct obj_ben *node );
+int p2p_is_ip( struct obj_ben *node );
+int p2p_is_port( struct obj_ben *node );

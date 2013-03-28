@@ -744,6 +744,54 @@ int ben_validate_i( struct obj_raw *raw ) {
 	return 1;
 }
 
+int ben_is_dict( struct obj_ben *node) {
+	if( node == NULL ) {
+		return 0;
+	}
+
+	if( node->t != BEN_DICT ) {
+		return 0;
+	}
+
+	return 1;
+}
+
+int ben_is_list( struct obj_ben *node ) {
+	if( node == NULL ) {
+		return 0;
+	}
+	
+	if( node->t != BEN_LIST ) {
+		return 0;
+	}
+
+	return 1;
+}
+
+int ben_is_str( struct obj_ben *node ) {
+	if( node == NULL ) {
+		return 0;
+	}
+
+	if( node->t != BEN_STR ) {
+		return 0;
+	}
+
+	return 1;
+}
+
+int ben_is_int (struct obj_ben *node ) {
+	if( node == NULL ) {
+		return 0;
+	}
+
+	if( node->t != BEN_INT ) {
+		return 0;
+	}
+
+	return 1;
+}
+
 struct obj_ben *ben_searchDictKey( struct obj_ben *node, struct obj_ben *key ) {
 	ITEM *item = NULL;
 	struct obj_ben *thiskey = NULL;
@@ -787,6 +835,47 @@ struct obj_ben *ben_searchDictStr( struct obj_ben *node, const char *buffer ) {
 	return result;
 }
 
+int ben_str_compare( struct obj_ben *key1, struct obj_ben *key2 ) {
+	long int size = 0;
+	long int i = 0;
+
+	if( !ben_is_str( key1 ) ) {
+		return -1;
+	}
+
+	if( !ben_is_str( key2 ) ) {
+		return 1;
+	}
+
+	size = (key1->v.s->i > key2->v.s->i) ? key1->v.s->i : key2->v.s->i;
+
+	for( i=0; i<size; i++ ) {
+		if( key1->v.s->s[i] > key2->v.s->s[i] ) {
+			return 1;
+		} else if( key1->v.s->s[i] < key2->v.s->s[i] ) {
+			return -1;
+		}
+	}
+
+	/* Strings are equal for the first $size characters */
+	if( key1->v.s->i > key2->v.s->i ) {
+		return 1;
+	} else if( key1->v.s->i < key2->v.s->i ) {
+		return -1;
+	}
+
+	/* Equal */
+	return 0;
+}
+
+long int ben_str_size( struct obj_ben *node ) {
+	if( ! ben_is_str( node ) ) {
+		return 0;
+	}
+
+	return node->v.s->i;
+}
+
 void ben_sort( struct obj_ben *node ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
@@ -798,9 +887,9 @@ void ben_sort( struct obj_ben *node ) {
 	int result = 0;
 	
 	if( node == NULL )
-		log_fail( "ben_sort( 1)" );
+		log_fail( "ben_sort( 1 )" );
 	if( node->t != BEN_DICT)
-		log_fail( "ben_sort( 2)" );
+		log_fail( "ben_sort( 2 )" );
 	if( node->v.d == NULL )
 		return;
 	if( node->v.d->counter < 2 )
@@ -831,7 +920,7 @@ void ben_sort( struct obj_ben *node ) {
 		key1 = tuple_this->key;
 		key2 = tuple_next->key;
 
-		result = ben_compare( key1, key2 );
+		result = ben_str_compare( key1, key2 );
 		if( result > 0 ) {
 			list_swap( node->v.d, item, next );
 			switchcounter++;
@@ -845,27 +934,4 @@ void ben_sort( struct obj_ben *node ) {
 			item = next;
 		}
 	}
-}
-
-int ben_compare( struct obj_ben *key1, struct obj_ben *key2 ) {
-	long int length = (key1->v.s->i > key2->v.s->i) ? key1->v.s->i : key2->v.s->i;
-	long int i = 0;
-
-	for( i=0; i<length; i++ ) {
-		if( key1->v.s->s[i] > key2->v.s->s[i] ) {
-			return 1;
-		} else if( key1->v.s->s[i] < key2->v.s->s[i] ) {
-			return -1;
-		}
-	}
-
-	/* Strings are equal for "length" characters */
-	if( key1->v.s->i > key2->v.s->i ) {
-		return 1;
-	} else if( key1->v.s->i < key2->v.s->i ) {
-		return -1;
-	}
-
-	/* Both strings are completely equal */
-	return 0;
 }
