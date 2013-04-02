@@ -160,7 +160,7 @@ void nbhd_find( UCHAR *find_id ) {
 			/* Maintainance search */
 			if( _main->p2p->time_now.tv_sec > n->time_find ) {
 
-				send_find( &n->c_addr, find_id, _main->conf->null_id );
+				send_find( &n->c_addr, find_id );
 				n->time_find = time_add_5_min_approx();
 			}
 

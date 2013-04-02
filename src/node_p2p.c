@@ -103,7 +103,7 @@ NODE *node_put( UCHAR *id, IP *sa ) {
 		send_ping( &n->c_addr, SEND_UNICAST );
 
 		/* New node: Ask for myself */
-		send_find( &n->c_addr, _main->conf->node_id, _main->conf->null_id );
+		send_find( &n->c_addr, _main->conf->node_id );
 	}
 
 	return n;

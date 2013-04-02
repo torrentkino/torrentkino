@@ -422,7 +422,6 @@ void p2p_ping( UCHAR *node_sk, IP *from ) {
 
 void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 	struct obj_ben *ben_find_id = NULL;
-	struct obj_ben *ben_lkp_id = NULL;
 
 	/* Find ID */
 	ben_find_id = ben_searchDictStr( packet, "f" );
@@ -431,15 +430,8 @@ void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
 		return;
 	}
 
-	/* Lookup ID */
-	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( !p2p_is_hash( ben_lkp_id ) ) {
-		log_info( "Missing or broken lookup ID" );
-		return;
-	}
-
 	/* Reply */
-	nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"F");
+	nbhd_send( from, ben_find_id->v.s->s, NULL, node_sk, (UCHAR *)"F");
 }
 
 void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
@@ -510,7 +502,6 @@ void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *
 	struct obj_ben *id = NULL;
 	struct obj_ben *ip = NULL;
 	struct obj_ben *po = NULL;
-	struct obj_ben *ben_lkp_id = NULL;
 	ITEM *item = NULL;
 	NODE *n = NULL;
 	IP sin;
@@ -525,13 +516,6 @@ void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *
 	nodes = ben_searchDictStr( packet, "n" );
 	if( !ben_is_list( nodes ) ) {
 		log_info( "NODE FIND: Nodes key broken or missing" );
-		return;
-	}
-
-	/* Lookup ID */
-	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( !p2p_is_hash( ben_lkp_id ) ) {
-		log_info( "Missing or broken lookup ID" );
 		return;
 	}
 

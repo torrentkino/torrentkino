@@ -24,7 +24,7 @@ void send_ping( IP *sa, int type );
 void send_pong( IP *sa, UCHAR *node_sk );
 
 void send_announce( IP *sa, UCHAR *lkp_id );
-void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id );
+void send_find( IP *sa, UCHAR *node_id );
 void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id );
 
 void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_type );

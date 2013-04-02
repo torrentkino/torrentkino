@@ -1,3 +1,8 @@
+masala (0.5) unstable; urgency=low
+
+  * Do not use lookup keys within FIND requests to save some bytes.
+
+ -- Aiko Barz <aiko@chroot.de>  Tue, 02 Apr 2013 19:42:00 +0100
 masala (0.4) unstable; urgency=low
 
   * Minor protocol changes

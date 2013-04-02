@@ -211,7 +211,7 @@ void send_announce( IP *sa, UCHAR *lkp_id ) {
 	log_complex( sa, "ANNOUNCE to" );
 }
 
-void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
+void send_find( IP *sa, UCHAR *node_id ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
@@ -223,7 +223,6 @@ void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	/*
 		1:i 20:NODE_ID
 		1:k 20:SESSION_ID
-		1:l 20:LOOKUP_ID
 		1:f 20:FIND_ID
 		1:q 1:f
 	*/
@@ -243,13 +242,6 @@ void send_find( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"k", 1 );
 	ben_str( val, skey, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Lookup ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"l", 1 );
-	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
 	ben_dict( dict, key, val );
 
 	/* Target */
@@ -389,12 +381,18 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_typ
 	ben_str( val, node_sk, SHA_DIGEST_LENGTH );
 	ben_dict( dict, key, val );
 
-	/* Lookup ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"l", 1 );
-	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	/* Lookup ID
+	 * Only needed for recursive requests like announces or lookups. */
+	switch( *reply_type ) {
+		case 'A':
+		case 'L':
+			key = ben_init( BEN_STR );
+			val = ben_init( BEN_STR );
+			ben_str( key,( UCHAR *)"l", 1 );
+			ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
+			ben_dict( dict, key, val );
+			break;
+	}
 
 	/* Nodes */
 	key = ben_init( BEN_STR );
