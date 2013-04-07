@@ -8,6 +8,6 @@ Homepage: https://github.com/torrentkino/masala
 
 Package: masala
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpolarssl0
 Description: P2P DNS
  This tool translates hostnames to IPv6 addresses using P2P technology.

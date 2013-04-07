@@ -30,7 +30,6 @@ along with Torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <signal.h>
 #include <sys/epoll.h>
-#include <openssl/ssl.h>
 
 #include "malloc.h"
 #include "main.h"
