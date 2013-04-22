@@ -11,16 +11,17 @@ CFLAGS += -DNSS
 export POST_LINKING = -lpthread
 #POST_LINKING += $(shell dpkg-buildflags --get LDFLAGS)
 #POST_LINKING += $(HARDENING_LDFLAGS)
+OBJS=nss-masala.o
 
 .PHONY: all clean install $(SUBDIRS)
 
 all: $(SUBDIRS) libnss_masala.so.2
 
-nss-masala.o: ../src/nss-masala.c ../src/nss-masala.h
-	$(CC) $(CFLAGS) -c ../src/nss-masala.c -o nss-masala.o
+%.o : ../src/%.c ../src/%.h
+	$(CC) $(CFLAGS) -c $<
 
-libnss_masala.so.2: nss-masala.o
-	$(CC) $(CFLAGS) -shared -Wl,-soname,libnss_masala.so.2 nss-masala.o -o libnss_masala.so.2 $(POST_LINKING)
+libnss_masala.so.2: $(OBJS)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,libnss_masala.so.2 $(OBJS) -o libnss_masala.so.2 $(POST_LINKING)
 
 clean:
 	rm -f *.o libnss_masala.so.2
