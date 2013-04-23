@@ -39,15 +39,15 @@ void *myalloc( long int size, const char *caller ) {
 	void *memory = NULL;
 
 	if( size == 0 ) {
-		log_memfail( "myalloc(): Zero size?!", caller );
+		log_fail( "myalloc(): Zero size?!", caller );
 	} else if( size < 0 ) {
-		log_memfail( "myalloc(): Negative size?!", caller );
+		log_fail( "myalloc(): Negative size?!", caller );
 	}
 
 	memory = (void *) malloc( size );
 	
 	if( memory == NULL ) {
-		log_memfail( "malloc() failed.", caller );
+		log_fail( "malloc() failed.", caller );
 	}
 
 	memset( memory, '\0', size );
@@ -61,15 +61,15 @@ void *myalloc( long int size, const char *caller ) {
 
 void *myrealloc( void *arg, long int size, const char *caller ) {
 	if( size == 0 ) {
-		log_memfail( "myrealloc(): Zero size?!", caller );
+		log_fail( "myrealloc(): Zero size?!", caller );
 	} else if( size < 0 ) {
-		log_memfail( "myrealloc(): Negative size?!", caller );
+		log_fail( "myrealloc(): Negative size?!", caller );
 	}
 
 	arg = (void *) realloc( arg, size );
 	
 	if( arg == NULL ) {
-		log_memfail( "realloc() failed.", caller );
+		log_fail( "realloc() failed.", caller );
 	}
 
 	return arg;

@@ -96,7 +96,7 @@ void send_ping( IP *sa, int type ) {
 	ben_free( dict );
 
 	/* Log */
-	log_complex( sa, "PING" );
+	log_info( sa, 0, "PING" );
 }
 
 void send_pong( IP *sa, UCHAR *node_sk ) {
@@ -142,7 +142,7 @@ void send_pong( IP *sa, UCHAR *node_sk ) {
 	ben_free( dict );
 
 	/* Log */
-	log_complex( sa, "PONG" );
+	log_info( sa, 0, "PONG" );
 }
 
 void send_announce( IP *sa, UCHAR *lkp_id ) {
@@ -208,7 +208,7 @@ void send_announce( IP *sa, UCHAR *lkp_id ) {
 	ben_free( dict );
 
 	/* Log */
-	log_complex( sa, "ANNOUNCE to" );
+	log_info( sa, 0, "ANNOUNCE to" );
 }
 
 void send_find( IP *sa, UCHAR *node_id ) {
@@ -217,7 +217,6 @@ void send_find( IP *sa, UCHAR *node_id ) {
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
 	UCHAR skey[SHA_DIGEST_LENGTH];
-	char buffer[MAIN_BUF+1];
 	char hexbuf[HEX_LEN+1];
 
 	/*
@@ -269,8 +268,7 @@ void send_find( IP *sa, UCHAR *node_id ) {
 
 	/* Log */
 	hex_encode( hexbuf, node_id );
-	snprintf( buffer, MAIN_BUF+1, "FIND %s at", hexbuf );
-	log_complex( sa, buffer );
+	log_info( sa, 0, "FIND %s at", hexbuf );
 }
 
 void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
@@ -279,7 +277,6 @@ void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
 	UCHAR skey[SHA_DIGEST_LENGTH];
-	char buffer[MAIN_BUF+1];
 	char hexbuf[HEX_LEN+1];
 
 	/*
@@ -339,8 +336,7 @@ void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
 
 	/* Log */
 	hex_encode( hexbuf, node_id );
-	snprintf( buffer, MAIN_BUF+1, "LOOKUP %s at", hexbuf );
-	log_complex( sa, buffer );
+	log_info( sa, 0, "LOOKUP %s at", hexbuf );
 }
 
 void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_type ) {
@@ -354,7 +350,6 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_typ
 	NODE *n = NULL;
 	long int i=0;
 	IP *sin = NULL;
-	char buffer[MAIN_BUF+1];
 
 	/*
 		1:i 20:NODE_ID
@@ -461,16 +456,15 @@ void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_typ
 	/* Log */
 	switch( *reply_type ) {
 		case 'A':
-			snprintf(buffer, MAIN_BUF+1, "NODES via ANNOUNCE to");
+			log_info( sa, 0, "NODES via ANNOUNCE to");
 			break;
 		case 'F':
-			snprintf(buffer, MAIN_BUF+1, "NODES via FIND to");
+			log_info( sa, 0, "NODES via FIND to");
 			break;
 		case 'L':
-			snprintf(buffer, MAIN_BUF+1, "NODES via LOOKUP to");
+			log_info( sa, 0, "NODES via LOOKUP to");
 			break;
 	}
-	log_complex( sa, buffer );
 }
 
 void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
@@ -532,7 +526,7 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 	ben_free( dict );
 
 	/* Log */
-	log_complex( sa, "VALUE via LOOKUP to" );
+	log_info( sa, 0, "VALUE via LOOKUP to" );
 }
 
 void send_aes( IP *sa, struct obj_raw *raw ) {
@@ -555,7 +549,7 @@ void send_aes( IP *sa, struct obj_raw *raw ) {
 	aes = aes_encrypt( raw->code, raw->size, salt, 
 			_main->conf->key, strlen( _main->conf->key) );
 	if( aes == NULL ) {
-		log_info( "Encoding AES message failed" );
+		log_info( NULL, 0,  "Encoding AES message failed" );
 		ben_free( dict );
 		return;
 	}

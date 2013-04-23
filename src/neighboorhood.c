@@ -236,9 +236,8 @@ void nbhd_print( void ) {
 	NODE *n = NULL;
 	long int j = 0, k = 0;
 	char hex[HEX_LEN+1];
-	char buf[MAIN_BUF+1];
 
-	log_info( "Bucket split:" );
+	log_info( NULL, 0, "Bucket split:" );
 
 	/* Cycle through all the buckets */
 	item_b = _main->nbhd->start;
@@ -246,8 +245,7 @@ void nbhd_print( void ) {
 		b = item_b->val;
 
 		hex_encode( hex, b->id );
-		snprintf( buf, MAIN_BUF+1, " Bucket: %s", hex );
-		log_info( buf );
+		log_info( NULL, 0, " Bucket: %s", hex );
 
 		/* Cycle through all the nodes */
 		item_n = b->nodes->start;
@@ -255,8 +253,7 @@ void nbhd_print( void ) {
 			n = item_n->val;
 
 			hex_encode( hex, n->id );
-			snprintf( buf, MAIN_BUF+1, "  Node: %s", hex );
-			log_info( buf );
+			log_info( NULL, 0, "  Node: %s", hex );
 
 			item_n = list_next( item_n );
 		}

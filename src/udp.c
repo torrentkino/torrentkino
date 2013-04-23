@@ -177,7 +177,6 @@ void udp_pool( void ) {
 
 void *udp_thread( void *arg ) {
 	struct epoll_event events[UDP_MAX_EVENTS];
-	char buffer[MAIN_BUF+1];
 	int nfds;
 	int id = 0;
 
@@ -185,8 +184,7 @@ void *udp_thread( void *arg ) {
 	id = _main->udp->id++;
 	mutex_unblock( _main->p2p->mutex );
 
-	snprintf( buffer, MAIN_BUF+1, "UDP Thread[%i] - Max events: %i", id, UDP_MAX_EVENTS );
-	log_info( buffer );
+	log_info( NULL, 0, "UDP Thread[%i] - Max events: %i", id, UDP_MAX_EVENTS );
 
 	while( _main->status == MAIN_ONLINE ) {
 		
@@ -194,8 +192,7 @@ void *udp_thread( void *arg ) {
 
 		if( _main->status == MAIN_ONLINE && nfds == -1 ) {
 			if( errno != EINTR ) {
-				log_info( "udp_thread: epoll_wait() failed" );
-				log_fail( strerror( errno) );
+				log_fail( "udp_thread: epoll_wait() failed / %s", strerror( errno) );
 			}
 		} else if( _main->status == MAIN_ONLINE && nfds == 0 ) {
 			/* Timed wakeup */
@@ -235,7 +232,7 @@ void udp_worker( struct epoll_event *events, int nfds, int thrd_id ) {
 			udp_input( events[i].data.fd );
 			udp_rearm( events[i].data.fd );
 		} else {
-			log_info( "udp_worker: Unknown event" );
+			log_info( NULL, 0, "udp_worker: Unknown event" );
 		}
 	}
 }
@@ -247,8 +244,7 @@ void udp_rearm( int sockfd ) {
 	ev.data.fd = sockfd;
 
 	if( epoll_ctl( _main->udp->epollfd, EPOLL_CTL_MOD, sockfd, &ev) == -1 ) {
-		log_info( strerror( errno) );
-		log_fail( "udp_rearm: epoll_ctl() failed" );
+		log_fail( "udp_rearm: epoll_ctl() failed / %s", strerror( errno ) );
 	}
 }
 
@@ -283,11 +279,11 @@ void udp_input( int sockfd ) {
 			if( errno == EAGAIN || errno == EWOULDBLOCK ) {
 				return;
 			} else {
-				log_info( "UDP error while recvfrom" );
+				log_info( NULL, 0, "UDP error while recvfrom" );
 				return;
 			}
 		} else if( bytes == 0 ) {
-			log_info( "UDP error 0 bytes" );
+			log_info( NULL, 0, "UDP error 0 bytes" );
 			return;
 		} else {
 			p2p_parse( buffer, bytes, &c_addr );
@@ -318,7 +314,7 @@ void udp_multicast( void ) {
 	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq)) == 0 ) {
 		_main->udp->multicast = 1;
 	} else {
-		log_info( "Trying to register multicast address failed: I will retry it later." );
+		log_info( NULL, 0, "Trying to register multicast address failed: I will retry it later." );
 	}
 	freeaddrinfo( multicast );
 }

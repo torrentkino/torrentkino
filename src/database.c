@@ -67,7 +67,6 @@ void db_free(void) {
 void db_put(UCHAR *host_id, IP *sa) {
 	ITEM *i = NULL;
 	DB *db = NULL;
-	char buffer[MAIN_BUF+1];
 
 	/* It's me */
 	if( node_me( host_id ) ) {
@@ -84,8 +83,7 @@ void db_put(UCHAR *host_id, IP *sa) {
 		i = list_put(_main->database->list, db);
 		hash_put(_main->database->hash, db->host_id, SHA_DIGEST_LENGTH, i );
 
-		snprintf(buffer, MAIN_BUF+1, "Database size: %li (+1)", _main->database->list->counter);
-		log_info(buffer);
+		log_info( NULL, 0, "Database size: %li (+1)", _main->database->list->counter);
 
 	} else {
 		db = i->val;
@@ -111,7 +109,6 @@ void db_expire(void) {
 	ITEM *n = NULL;
 	DB *db = NULL;
 	long int j=0;
-	char buffer[MAIN_BUF+1];
 
 	i = _main->database->list->start;
 	for (j=0; j<_main->database->list->counter; j++) {
@@ -122,9 +119,8 @@ void db_expire(void) {
 		if (_main->p2p->time_now.tv_sec > db->time_anno) {
 			db_del(i);
 
-			snprintf(buffer, MAIN_BUF+1, "Database size: %li (-1)",
+			log_info( NULL, 0, "Database size: %li (-1)",
 				_main->database->list->counter);
-			log_info(buffer);
 		}
 
 		i = n;

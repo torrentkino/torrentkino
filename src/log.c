@@ -32,6 +32,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <sys/epoll.h>
 #include <syslog.h>
+#include <stdarg.h>
 
 #ifdef TUMBLEWEED
 #include "malloc.h"
@@ -53,119 +54,67 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "hex.h"
 #endif
 
+void log_info( IP *c_addr, int code, const char *format, ... ) {
 #ifdef TUMBLEWEED
-void log_complex( NODE *n, int code, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
-	char buf[INET6_ADDRSTRLEN+1];
-
-	if( _main->nodes == NULL ) {
-		return;
-	}
-
-	if( verbosity != CONF_VERBOSE ) {
-		return;
-	}
-
-	memset( buf, '\0', INET6_ADDRSTRLEN+1 );
-	
-	if( _main->conf->mode == CONF_FOREGROUND ) {
-		printf( "%.3li %.3u %s %s\n",
-			_main->nodes->list->counter, code,
-			inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN ),
-			buffer );
-	} else {
-		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "%.3li %.3u %s %s",
-			_main->nodes->list->counter, code,
-			inet_ntop( AF_INET6, &n->c_addr.sin6_addr, buf, INET6_ADDRSTRLEN ),
-			buffer );
-		closelog();
-	}
-}
 #elif MASALA
-void log_complex( IP *c_addr, const char *buffer ) {
 	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
-	char buf[INET6_ADDRSTRLEN+1];
+#endif
+	char ip_buf[INET6_ADDRSTRLEN+1];
+	char log_buf[MAIN_BUF+1];
+	char va_buf[MAIN_BUF+1];
+	va_list vlist;
 
 	if( verbosity != CONF_VERBOSE ) {
 		return;
 	}
 
-	memset( buf, '\0', INET6_ADDRSTRLEN+1 );
-		
-	if( _main->conf->mode == CONF_FOREGROUND ) {
-		printf( "%s %s\n", buffer,
-			inet_ntop( AF_INET6, &c_addr->sin6_addr, buf, INET6_ADDRSTRLEN) );
-	} else {
-		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "%s %s", buffer,
-			inet_ntop( AF_INET6, &c_addr->sin6_addr, buf, INET6_ADDRSTRLEN) );
-		closelog();
-	}
-}
-#endif
+	va_start(vlist, format);
+	vsnprintf(va_buf, MAIN_BUF+1, format, vlist);
+	va_end(vlist);
 
+	if( c_addr != NULL ) {
+		memset( ip_buf, '\0', INET6_ADDRSTRLEN+1 );
 #ifdef TUMBLEWEED
-void log_info( int code, const char *buffer ) {
-	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
-
-	if( _main->nodes == NULL ) {
-		return;
-	}
-
-	if( verbosity != CONF_VERBOSE ) {
-		return;
-	}
-
-	if( _main->conf->mode == CONF_FOREGROUND ) {
-		printf( "%.3li %.3u ::1 %s\n", _main->nodes->list->counter,
-			code, buffer );
-	} else {
-		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "%.3li %.3u ::1 %s", _main->nodes->list->counter,
-			code, buffer );
-		closelog();
-	}
-}
+		snprintf(log_buf, MAIN_BUF+1, "%.3li %.3u %s %s",
+			_main->nodes->list->counter, code,
+			inet_ntop( AF_INET6, &c_addr->sin6_addr, ip_buf, INET6_ADDRSTRLEN), 
+			va_buf);
 #elif MASALA
-void log_info( const char *buffer ) {
-	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
-
-	if( verbosity != CONF_VERBOSE ) {
-		return;
+		snprintf(log_buf, MAIN_BUF+1, "%s %s", va_buf,
+			inet_ntop( AF_INET6, &c_addr->sin6_addr, ip_buf, INET6_ADDRSTRLEN) );
+#endif
+	} else {
+#ifdef TUMBLEWEED
+		snprintf(log_buf, MAIN_BUF+1, "%.3li %.3u ::1 %s",
+			_main->nodes->list->counter, code, va_buf);
+#elif MASALA
+		strncpy(log_buf, va_buf, MAIN_BUF);
+#endif
 	}
 
 	if( _main->conf->mode == CONF_FOREGROUND ) {
-		printf( "%s\n", buffer );
+		printf( "%s\n", log_buf );
 	} else {
 		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "%s", buffer );
+		syslog( LOG_INFO, "%s", log_buf );
 		closelog();
 	}
 }
-#endif
 
-void log_simple( const char *buffer ) {
-	printf( "%s\n", buffer );
-}
+void log_fail( const char *format, ... ) {
+	char va_buf[MAIN_BUF+1];
+	va_list vlist;
 
-void log_fail( const char *buffer ) {
+	va_start(vlist, format);
+	vsnprintf(va_buf, MAIN_BUF+1, format, vlist);
+	va_end(vlist);
+
 	if( _main->conf->mode == CONF_FOREGROUND ) {
-		fprintf( stderr, "%s\n", buffer );
+		fprintf( stderr, "%s\n", va_buf );
 	} else {
 		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER|LOG_PERROR );
-		syslog( LOG_INFO, "%s", buffer );
-		closelog();
-	}
-	exit( 1 );
-}
-
-void log_memfail( const char *buffer, const char *caller ) {
-	if( _main->conf->mode == CONF_FOREGROUND ) {
-		fprintf( stderr, "Memfail in %s: %s\n", caller, buffer );
-	} else {
-		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER|LOG_PERROR );
-		syslog( LOG_INFO, "Memfail in %s: %s", caller, buffer );
+		syslog( LOG_INFO, "%s", va_buf );
 		closelog();
 	}
 	exit( 1 );

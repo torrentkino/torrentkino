@@ -76,7 +76,6 @@ void unix_signal( void ) {
 
 void unix_sig_stop( int signo ) {
 	_main->status = MAIN_SHUTDOWN;
-	log_simple( "Shutting down server" );
 }
 
 void unix_sig_time( int signo ) {
@@ -116,7 +115,6 @@ void unix_limits( void ) {
 	int guess = 2 * UDP_MAX_EVENTS * _main->conf->cores + 50;
 #endif
 	int limit = (guess < 4096) ? 4096 : guess; /* RLIM_INFINITY; */
-	char buffer[MAIN_BUF+1];
 	
 	if( getuid() != 0 ) {
 		return;
@@ -129,17 +127,11 @@ void unix_limits( void ) {
 		log_fail( strerror( errno) );
 	}
 
-	snprintf( buffer, MAIN_BUF+1, "Max open files: %i", limit );
-#ifdef TUMBLEWEED
-	log_info( 0, buffer );
-#else
-	log_info( buffer );
-#endif
+	log_info( NULL, 0, "Max open files: %i", limit );
 }
 
 void unix_dropuid0( void ) {
 	struct passwd *pw = NULL;
-	char buffer[MAIN_BUF+1];
 	
 	if( getuid() != 0 ) {
 		return;
@@ -167,14 +159,10 @@ void unix_dropuid0( void ) {
 		log_fail( "ERROR: Managed to regain root privileges?" );
 	}
 
-	snprintf( buffer, MAIN_BUF+1, "uid: %i, gid: %i( -u)", pw->pw_uid, pw->pw_gid );
-#ifdef TUMBLEWEED
-	log_info( 0, buffer );
-#else
-	log_info( buffer );
-#endif
+	log_info( NULL, 0, "uid: %i, gid: %i( -u)", pw->pw_uid, pw->pw_gid );
 }
 
+/*
 void unix_environment( void ) {
 	char buffer[MAIN_BUF+1];
 #ifdef __i386__
@@ -184,6 +172,7 @@ void unix_environment( void ) {
 #endif
 	log_simple( buffer );
 }
+*/
 
 int unix_cpus( void ) {
 	return sysconf( _SC_NPROCESSORS_ONLN );

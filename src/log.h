@@ -17,18 +17,5 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef TUMBLEWEED
-void log_complex( NODE *n, int code, const char *buffer );
-#elif MASALA
-void log_complex( IP *c_addr, const char *buffer );
-#endif
-
-#ifdef TUMBLEWEED
-void log_info( int code, const char *buffer );
-#elif MASALA
-void log_info( const char *buffer );
-#endif
-
-void log_simple( const char *buffer );
-void log_fail( const char *buffer );
-void log_memfail( const char *buffer, const char *caller );
+void log_info( IP *c_addr, int code, const char *format, ... );
+void log_fail( const char *format, ... );
