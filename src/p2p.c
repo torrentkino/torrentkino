@@ -281,70 +281,55 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		ben_free( packet );
 		return;
 	}
+	
+	mutex_block( _main->p2p->mutex );
+	
 	switch( *q->v.s->s ) {
 
 		/* Requests */
 		case 'p':
 			/* PING */
-			mutex_block( _main->p2p->mutex );
 			p2p_ping( key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'f':
 			/* FIND */
-			mutex_block( _main->p2p->mutex );
 			p2p_find( packet, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'a':
 			/* ANNOUNCE */
-			mutex_block( _main->p2p->mutex );
 			p2p_announce( packet, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'l':
 			/* LOOKUP */
-			mutex_block( _main->p2p->mutex );
 			p2p_lookup( packet, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 
 		/* Replies */
 		case 'o':
 			/* PONG via PING */
-			mutex_block( _main->p2p->mutex );
 			p2p_pong( id->v.s->s, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'F':
 			/* NODES via FIND */
-			mutex_block( _main->p2p->mutex );
 			p2p_node_find( packet, id->v.s->s, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'A':
 			/* NODES via ANNOUNCE */
-			mutex_block( _main->p2p->mutex );
 			p2p_node_announce( packet, id->v.s->s, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'L':
 			/* NODES via LOOKUP */
-			mutex_block( _main->p2p->mutex );
 			p2p_node_lookup( packet, id->v.s->s, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		case 'V':
 			/* VALUES via LOOKUP */
-			mutex_block( _main->p2p->mutex );
 			p2p_value( packet, id->v.s->s, key->v.s->s, from );
-			mutex_unblock( _main->p2p->mutex );
 			break;
 		default:
 			log_info( NULL, 0, "Unknown query type" );
-			ben_free( packet );
-			return;
 	}
+	
+	mutex_unblock( _main->p2p->mutex );
 
 	/* Free */
 	ben_free( packet );
