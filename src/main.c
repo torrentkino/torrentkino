@@ -127,8 +127,10 @@ int main( int argc, char **argv ) {
 	/* Check configuration */
 	conf_check();
 
+#ifdef MASALA
 	/* Create first token */
 	tkn_put();
+#endif
 
 	/* Increase limits */
 	unix_limits();

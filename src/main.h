@@ -41,6 +41,7 @@ struct obj_main {
 #ifdef TUMBLEWEED
 	struct obj_mime *mime;
 	struct obj_tcp *tcp;
+	struct obj_nodes *nodes;
 #elif MASALA
 	struct obj_transaction *transaction;
 	struct obj_database *database;
