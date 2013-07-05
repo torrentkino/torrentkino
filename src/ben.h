@@ -42,6 +42,7 @@ struct obj_ben {
 		LIST *l;
 	} v;
 };
+typedef struct obj_ben BEN;
 
 struct obj_tuple {
 	struct obj_ben *key;

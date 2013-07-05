@@ -48,6 +48,11 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "hex.h"
 #include "random.h"
 #include "ben.h"
+#include "hash.h"
+#include "token.h"
+#include "neighbourhood.h"
+#include "lookup.h"
+#include "transaction.h"
 #include "p2p.h"
 #endif
 
@@ -147,7 +152,7 @@ void conf_free( void ) {
 
 void conf_check( void ) {
 #ifdef MASALA
-	char hex[HEX_LEN+1];
+	char hex[HEX_LEN];
 #endif
 
 #ifdef MASALA
@@ -155,10 +160,10 @@ void conf_check( void ) {
 #endif
 
 #ifdef MASALA
-	hex_encode( hex, _main->conf->node_id );
+	hex_hash_encode( hex, _main->conf->node_id );
 	log_info( NULL, 0, "Node ID: %s", hex );
 
-	hex_encode( hex, _main->conf->host_id );
+	hex_hash_encode( hex, _main->conf->host_id );
 	log_info( NULL, 0, "Host ID: %s", hex );
 #endif
 

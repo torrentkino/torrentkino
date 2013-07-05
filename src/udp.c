@@ -47,8 +47,11 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "udp.h"
 #include "unix.h"
 #include "ben.h"
+#include "token.h"
+#include "neighbourhood.h"
+#include "lookup.h"
+#include "transaction.h"
 #include "p2p.h"
-#include "node_p2p.h"
 #include "bucket.h"
 #include "time.h"
 
@@ -186,20 +189,20 @@ void *udp_thread( void *arg ) {
 
 	log_info( NULL, 0, "UDP Thread[%i] - Max events: %i", id, UDP_MAX_EVENTS );
 
-	while( _main->status == MAIN_ONLINE ) {
+	while( _main->status == RUMBLE ) {
 		
 		nfds = epoll_wait( _main->udp->epollfd, events, UDP_MAX_EVENTS, CONF_EPOLL_WAIT );
 
-		if( _main->status == MAIN_ONLINE && nfds == -1 ) {
+		if( _main->status == RUMBLE && nfds == -1 ) {
 			if( errno != EINTR ) {
 				log_fail( "udp_thread: epoll_wait() failed / %s", strerror( errno) );
 			}
-		} else if( _main->status == MAIN_ONLINE && nfds == 0 ) {
+		} else if( _main->status == RUMBLE && nfds == 0 ) {
 			/* Timed wakeup */
 			if( id == 0 ) {
 				udp_cron();
 			}
-		} else if( _main->status == MAIN_ONLINE && nfds > 0 ) {
+		} else if( _main->status == RUMBLE && nfds > 0 ) {
 			udp_worker( events, nfds, id );
 		} else {
 			/* Shutdown server */
@@ -211,14 +214,10 @@ void *udp_thread( void *arg ) {
 }
 
 void *udp_client( void *arg ) {
-	/* Send PING or FIND request to init the network */
-	if( node_counter() == 0 ) {
-		
-		/* Bootstrap PING */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_restart ) {
-			p2p_bootstrap();
-			_main->p2p->time_restart = time_add_2_min_approx();
-		}
+	
+	if( nbhd_is_empty( _main->nbhd ) ) {
+		p2p_bootstrap();
+		time_add_1_min_approx( &_main->p2p->time_restart );
 	}
 
 	pthread_exit( NULL );
@@ -267,7 +266,7 @@ void udp_input( int sockfd ) {
 	IP c_addr;
 	socklen_t c_addrlen = sizeof(IP );
 
-	while( _main->status == MAIN_ONLINE ) {
+	while( _main->status == RUMBLE ) {
 		/* Clean Source */
 		memset( &c_addr, '\0', c_addrlen );
 		memset( buffer, '\0', UDP_BUF+1 );

@@ -32,7 +32,11 @@ ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id );
 ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id );
 ITEM *bckt_find_node( LIST *thislist, const UCHAR *id );
 
-int bckt_split( LIST *thislist, const UCHAR *id );
+int bckt_split( LIST *thislist, const UCHAR *target );
+void bckt_split_loop( LIST *l, UCHAR *target );
+void bckt_split_print( LIST *l );
+
+int bckt_is_empty( LIST *l );
 
 int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id_return );
 int bckt_significant_bit( const UCHAR *id );

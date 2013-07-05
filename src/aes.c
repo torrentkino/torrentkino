@@ -45,7 +45,7 @@ struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, char *key, i
 
 	/* Plaintext out of boundary */
 	if( plainlen <= 0 || plainlen > AES_MSG_SIZE ) {
-		log_info( NULL, 0,  "aes2_encrypt: Broken plaintext" );
+		log_info( NULL, 0, "aes2_encrypt: Broken plaintext" );
 		return NULL;
 	}
 
@@ -55,7 +55,7 @@ struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, char *key, i
 
 	/* Plaintext out of boundary */
 	if( plainlen_padded <= 0 || plainlen_padded > AES_MSG_SIZE ) {
-		log_info( NULL, 0,  "aes2_encrypt: Broken plaintext" );
+		log_info( NULL, 0, "aes2_encrypt: Broken plaintext" );
 		return NULL;
 	}
 
@@ -69,13 +69,13 @@ struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, char *key, i
 	/* Setup AES context with the key and the IV */
 	aes_key_setup( digest, iv_local, key, keylen );
 	if( aes_setkey_enc( &aes_ctx, digest, 256 ) != 0 ) {
-		log_info( NULL, 0,  "aes_setkey_enc() failed" );
+		log_info( NULL, 0, "aes_setkey_enc() failed" );
 		return NULL;
 	}
 
 	/* Encrypt message */
 	if( aes_crypt_cbc( &aes_ctx, AES_ENCRYPT, plainlen_padded, iv_local, plain_padded, ciphertext ) != 0 ) {
-		log_info( NULL, 0,  "aes_crypt_cbc() failed" );
+		log_info( NULL, 0, "aes_crypt_cbc() failed" );
 		return NULL;
 	}
 	cipher = str_init( ciphertext, plainlen_padded );
@@ -90,21 +90,21 @@ struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *iv, char *key,
 	struct obj_str *plain = NULL;
 
 	if( cipherlen % AES_BLOCK_SIZE != 0 ) {
-		log_info( NULL, 0,  "aes2_decrypt: Broken cipher" );
+		log_info( NULL, 0, "aes2_decrypt: Broken cipher" );
 		return NULL;
 	}
 
 	/* Setup AES context with the key and the IV */
 	aes_key_setup( digest, iv, key, keylen );
 	if( aes_setkey_dec( &aes_ctx, digest, 256 ) != 0 ) {
-		log_info( NULL, 0,  "aes_setkey_enc() failed" );
+		log_info( NULL, 0, "aes_setkey_enc() failed" );
 		return NULL;
 	}
 
 	/* Decrypt message */
 	memset( plaintext, '\0', AES_MSG_SIZE );
 	if( aes_crypt_cbc( &aes_ctx, AES_DECRYPT, cipherlen, iv, cipher, plaintext ) != 0 ) {
-		log_info( NULL, 0,  "aes_crypt_cbc() failed" );
+		log_info( NULL, 0, "aes_crypt_cbc() failed" );
 		return NULL;
 	}
 	plain = str_init( plaintext, cipherlen );

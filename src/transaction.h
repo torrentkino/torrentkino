@@ -17,22 +17,33 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-struct obj_cache {
+#define TID_SIZE 4
+#define TID_SIZE_MAX 16
+
+struct obj_transaction {
 	LIST *list;
 	HASH *hash;
 };
 
-struct obj_key {
-	UCHAR id[SHA_DIGEST_LENGTH];
+struct obj_tid {
+	UCHAR id[TID_SIZE];
 	time_t time;
 	int type;
+	int mode;
+	struct obj_lookup *lookup;
 };
+typedef struct obj_tid TID;
 
-struct obj_cache *cache_init( void );
-void cache_free( void );
+struct obj_transaction *tdb_init( void );
+void tdb_free( void );
 
-void cache_put( UCHAR *id, int type );
-void cache_del( UCHAR *id );
+ITEM *tdb_put( int type, UCHAR *target, IP *from );
+void tdb_del( ITEM *i );
 
-void cache_expire( void );
-int cache_validate( UCHAR *id );
+void tdb_create_random_id( UCHAR *id );
+void tdb_expire( void );
+ITEM *tdb_item( UCHAR *id );
+
+int tdb_type( ITEM *i );
+LOOKUP *tdb_ldb( ITEM *i );
+UCHAR *tdb_tid( ITEM *i );

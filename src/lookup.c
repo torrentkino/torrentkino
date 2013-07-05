@@ -47,143 +47,55 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "unix.h"
 #include "udp.h"
 #include "ben.h"
-#include "p2p.h"
-#include "time.h"
+#include "token.h"
+#include "neighbourhood.h"
 #include "lookup.h"
-#include "announce.h"
-#include "node_p2p.h"
-#include "neighboorhood.h"
+#include "transaction.h"
+#include "p2p.h"
 #include "bucket.h"
+#include "time.h"
 #include "send_p2p.h"
+#include "random.h"
+#include "hex.h"
 
-LOOKUPS *lkp_init( void ) {
-	LOOKUPS *lookups = (LOOKUPS *) myalloc( sizeof(LOOKUPS), "lkp_init" );
-	lookups->list = list_init();
-	lookups->hash = hash_init( 4096 );
-	return lookups;
-}
+LOOKUP *ldb_init( UCHAR *target, IP *from ) {
+	LOOKUP *ldb = (LOOKUP *) myalloc( sizeof(LOOKUP), "ldb_init" );
 
-void lkp_free( void ) {
-	list_clear( _main->lkps->list );
-	list_free( _main->lkps->list );
-	hash_free( _main->lkps->hash );
-	myfree( _main->lkps, "lkp_free" );
-}
-
-LOOKUP *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from ) {
-	ITEM *i = NULL;
-	LOOKUP *l = NULL;
-
-	l = (LOOKUP *) myalloc( sizeof(LOOKUP), "lkp_put" );
-
-	/* Remember nodes that have been asked */
-	l->list = list_init();
-	l->hash = hash_init( 100 );
-
-	/* ID */
-	memcpy( l->find_id, find_id, SHA_DIGEST_LENGTH );
-	memcpy( l->lkp_id, lkp_id, SHA_DIGEST_LENGTH );
-
-	/* Socket */
-	memcpy( &l->c_addr, from, sizeof(IP) );
-
-	/* Timings */
-	l->time_find = 0;
-
-	/* Remember lookup request */
-	i = list_put( _main->lkps->list, l );
-	hash_put( _main->lkps->hash, l->lkp_id, SHA_DIGEST_LENGTH, i );
-
-	/* Search the requested name */
-	nbhd_lookup( l );
-
-	return l;
-}
-
-void lkp_del( ITEM *i ) {
-	LOOKUP *l = i->val;
-
-	/* Free lookup cache */
-	list_clear( l->list );
-	list_free( l->list );
-	hash_free( l->hash );
-
-	/* Delete lookup item */
-	hash_del( _main->lkps->hash, l->lkp_id, SHA_DIGEST_LENGTH );
-	list_del( _main->lkps->list, i );
-	myfree( l, "lkp_del" );
-}
-
-void lkp_expire( void ) {
-	ITEM *i = NULL;
-	ITEM *next = NULL;
-	LOOKUP *l = NULL;
-	long int j = 0;
-
-	i = _main->lkps->list->start;
-	for( j=0; j<_main->lkps->list->counter; j++ ) {
-		l = i->val;
-		next = list_next( i );
-
-		if( _main->p2p->time_now.tv_sec > l->time_find ) {
-			lkp_del( i );
-		}
-		i = next;
+	memcpy(ldb->target, target, SHA_DIGEST_LENGTH);
+	
+	if( from == NULL ) {
+		memset( &ldb->c_addr, '\0', sizeof( IP ) );
+	} else {
+		memcpy( &ldb->c_addr, from, sizeof( IP ) );
 	}
+
+	ldb->nbhd = nbhd_init();
+	
+	return ldb;
 }
 
-void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr ) {
-	ITEM *i = NULL;
-	LOOKUP *l = NULL;
-
-	/* Lookup the lookup ID */
-	if( ( i = hash_get( _main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
+void ldb_free( LOOKUP *ldb ) {
+	if( ldb == NULL ) {
 		return;
 	}
-	l = i->val;
 
-	/* Ask every node only once */
-	if( hash_exists( l->hash, node_id, SHA_DIGEST_LENGTH) ) {
+	nbhd_free( ldb->nbhd );
+	
+	myfree( ldb, "ldb_free" );
+}
+
+int ldb_contacted_node( LOOKUP *ldb, UCHAR *node_id ) {
+	return hash_exists( ldb->nbhd->hash, node_id, SHA_DIGEST_LENGTH);
+}
+
+void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, struct obj_ben *token, IP *from ) {
+	NODE *n = NULL;
+
+	if( ( n = hash_get( ldb->nbhd->hash, node_id, SHA_DIGEST_LENGTH) ) == NULL ) {
 		return;
 	}
-		
-	/* Ask the node just once */
-	if( !node_me( node_id ) ) {
-		send_lookup( c_addr, l->find_id, lkp_id );
-	}
-
-	/* Remember that node */
-	lkp_remember( l, node_id );
-}
-
-void lkp_success( UCHAR *lkp_id, UCHAR *address ) {
-	ITEM *i = NULL;
-	LOOKUP *l = NULL;
-	socklen_t addrlen = sizeof(IP);
-
-	/* Lookup the lookup ID */
-	if( ( i = hash_get( _main->lkps->hash, lkp_id, SHA_DIGEST_LENGTH)) == NULL ) {
-		return;
-	}
-	l = i->val;
-
-	sendto( _main->udp->sockfd, address, 16, 0, (const struct sockaddr *)&l->c_addr, addrlen );
-
-	/* Done */
-	lkp_del( i );
-}
-
-void lkp_local( IP *address, IP *from ) {
-	socklen_t addrlen = sizeof(IP);
-	sendto( _main->udp->sockfd, &address->sin6_addr, 16, 0, (const struct sockaddr *)from, addrlen );
-}
-
-void lkp_remember( LOOKUP *l, UCHAR *node_id ) {
-	UCHAR *buffer = NULL;
-
-	/* Remember that node */
-	buffer = (UCHAR *) myalloc( SHA_DIGEST_LENGTH*sizeof(char), "lkp_remember" );
-	memcpy( buffer, node_id, SHA_DIGEST_LENGTH );
-	list_put( l->list, buffer );
-	hash_put( l->hash, buffer, SHA_DIGEST_LENGTH, buffer );
+	
+	memcpy( &n->c_addr, from, sizeof( IP ) );
+	memcpy( &n->token, token->v.s->s, token->v.s->i );
+	n->token_size = token->v.s->i;
 }

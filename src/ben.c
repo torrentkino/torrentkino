@@ -158,56 +158,56 @@ void ben_dict( struct obj_ben *node, struct obj_ben *key, struct obj_ben *val ) 
 	struct obj_tuple *tuple = NULL;
 
 	if( node == NULL )
-		log_fail( "ben_dict( 1)" );
+		log_fail( "ben_dict( 1 )" );
 	if( node->t != BEN_DICT)
-		log_fail( "ben_dict( 2)" );
+		log_fail( "ben_dict( 2 )" );
 	if( node->v.d == NULL )
-		log_fail( "ben_dict( 3)" );
+		log_fail( "ben_dict( 3 )" );
 	if( key == NULL )
-		log_fail( "ben_dict( 4)" );
+		log_fail( "ben_dict( 4 )" );
 	if( key->t != BEN_STR)
-		log_fail( "ben_dict( 5)" );
+		log_fail( "ben_dict( 5 )" );
 	if( val == NULL )
-		log_fail( "ben_dict( 6)" );
+		log_fail( "ben_dict( 6 )" );
 
 	tuple = tuple_init( key, val );
 	
 	if( list_put( node->v.d, tuple) == NULL )
-		log_fail( "ben_dict( 7)" );
+		log_fail( "ben_dict( 7 )" );
 }
 
 void ben_list( struct obj_ben *node, struct obj_ben *val ) {
 	if( node == NULL )
-		log_fail( "ben_list( 1)" );
+		log_fail( "ben_list( 1 )" );
 	if( node->t != BEN_LIST)
-		log_fail( "ben_list( 2)" );
+		log_fail( "ben_list( 2 )" );
 	if( node->v.l == NULL )
-		log_fail( "ben_list( 3)" );
+		log_fail( "ben_list( 3 )" );
 	if( val == NULL )
-		log_fail( "ben_list( 4)" );
+		log_fail( "ben_list( 4 )" );
 
 	if( list_put( node->v.l, val) == NULL )
-		log_fail( "ben_list( 5)" );
+		log_fail( "ben_list( 5 )" );
 }
 
 void ben_str( struct obj_ben *node, UCHAR *str, long int len ) {
 	if( node == NULL )
-		log_fail( "ben_str( 1)" );
+		log_fail( "ben_str( 1 )" );
 	if( node->t != BEN_STR)
-		log_fail( "ben_str( 2)" );
+		log_fail( "ben_str( 2 )" );
 	if( str == NULL )
-		log_fail( "ben_str( 3)" );
-	if( len <= 0)
-		log_fail( "ben_str( 4)" );
+		log_fail( "ben_str( 3 )" );
+	if( len < 0 )
+		log_fail( "ben_str( 4 )" );
 
 	node->v.s = str_init( str, len );
 }
 
 void ben_int( struct obj_ben *node, long int i ) {
 	if( node == NULL )
-		log_fail( "ben_int( 1)" );
+		log_fail( "ben_int( 1 )" );
 	if( node->t != BEN_INT)
-		log_fail( "ben_int( 2)" );
+		log_fail( "ben_int( 2 )" );
 	
 	node->v.i = i;
 }
@@ -233,7 +233,7 @@ long int ben_enc_size( struct obj_ben *node ) {
 
 			item = node->v.d->start;
 			do {
-				tuple = item->val;
+				tuple = list_value( item );
 
 				if( tuple->key != NULL && tuple->val != NULL ) {
 					size += ben_enc_size( tuple->key );
@@ -273,7 +273,7 @@ long int ben_enc_size( struct obj_ben *node ) {
 
 		case BEN_STR:
 			snprintf( buf, MAIN_BUF+1, "%li:", node->v.s->i );
-			size += strlen( buf) + node->v.s->i;
+			size += strlen( buf ) + node->v.s->i;
 			break;
 
 	}
@@ -319,7 +319,7 @@ UCHAR *ben_enc_rec( struct obj_ben *node, UCHAR *p ) {
 			if( node->v.d != NULL && node->v.d->counter > 0 ) {
 				item = node->v.d->start;
 				do {
-					tuple = item->val;
+					tuple = list_value( item );
 
 					if( tuple->key != NULL && tuple->val != NULL ) {
 						if( ( p = ben_enc_rec( tuple->key, p)) == NULL )
@@ -368,8 +368,10 @@ UCHAR *ben_enc_rec( struct obj_ben *node, UCHAR *p ) {
 			memcpy( p, buf, len );
 			p += len;
 			/* Data */
-			memcpy( p, node->v.s->s, node->v.s->i );
-			p += node->v.s->i;
+			if( node->v.s->i > 0 ) {
+				memcpy( p, node->v.s->s, node->v.s->i );
+				p += node->v.s->i;
+			}
 			break;
 
 	}
@@ -480,7 +482,7 @@ struct obj_ben *ben_dec_s( struct obj_raw *raw ) {
 				myfree( buf, "ben_dec_s" );
 	
 				raw->p += 1;
-				ben_str( node,raw->p,l );
+				ben_str( node, raw->p, l );
 				raw->p += l;
 				
 				run = 0;
@@ -667,8 +669,8 @@ int ben_validate_s( struct obj_raw *raw ) {
 				i = atol( (char *)buf );
 				myfree( buf, "ben_validate_s" );
 
-				/* i <= 0 makes no sense */
-				if( i <= 0 || i > BEN_STR_MAXSIZE )
+				/* i < 0 makes no sense */
+				if( i < 0 || i > BEN_STR_MAXSIZE )
 					return 0;
 
 				raw->p += i+1;
@@ -723,7 +725,7 @@ int ben_validate_i( struct obj_raw *raw ) {
 					return 0;
 
 				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_validate_i" );
-				memcpy( buf,start,i );
+				memcpy( buf, start, i );
 				result = atol( (char *)buf );
 				myfree( buf, "ben_validate_i" );
 
@@ -814,7 +816,7 @@ struct obj_ben *ben_searchDictKey( struct obj_ben *node, struct obj_ben *key ) {
 	item = node->v.d->start;
 
 	do {
-		tuple = item->val;
+		tuple = list_value( item );
 		thiskey = tuple->key;
 		if( thiskey->v.s->i == key->v.s->i && memcmp( thiskey->v.s->s, key->v.s->s, key->v.s->i) == 0 ) {
 			return tuple->val;
@@ -915,8 +917,8 @@ void ben_sort( struct obj_ben *node ) {
 			next = list_next( item );
 		}
 
-		tuple_this = item->val;
-		tuple_next = next->val;
+		tuple_this = list_value( item );
+		tuple_next = list_value( next );
 		key1 = tuple_this->key;
 		key2 = tuple_next->key;
 

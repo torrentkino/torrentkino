@@ -42,48 +42,64 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "list.h"
 #include "ben.h"
 #include "hash.h"
-#include "node_p2p.h"
-#include "p2p.h"
+#include "token.h"
+#include "neighbourhood.h"
 #include "bucket.h"
 #include "send_p2p.h"
-#include "cache.h"
+#include "lookup.h"
+#include "transaction.h"
+#include "p2p.h"
 #include "hex.h"
 
-void send_ping( IP *sa, int type ) {
+/*
+	{
+	"t": "aa",
+	"y": "q",
+	"q": "ping",
+	"a": {
+		"id": "abcdefghij0123456789"
+		}
+	}
+*/
+
+void send_ping( IP *sa, UCHAR *tid ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
-	UCHAR skey[SHA_DIGEST_LENGTH];
+	struct obj_ben *arg = ben_init( BEN_DICT );
 
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:q 1:p
-	*/
-
-	rand_urandom( skey, SHA_DIGEST_LENGTH );
-	cache_put( skey, type );
-
-	/* ID */
+	/* Node ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
+	ben_str( key, (UCHAR *)"id", 2 );
 	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	ben_dict( arg, key, val );
 
-	/* Session key */
+	/* Argument */
 	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, skey, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	ben_str( key, (UCHAR *)"a", 1 );
+	ben_dict( dict, key, arg );
 
 	/* Query type */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val,( UCHAR *)"p", 1 );
+	ben_str( key, (UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"ping", 4 );
+	ben_dict( dict, key, val );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, TID_SIZE );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"q", 1 );
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
@@ -95,41 +111,50 @@ void send_ping( IP *sa, int type ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	/* Log */
 	log_info( sa, 0, "PING" );
 }
 
-void send_pong( IP *sa, UCHAR *node_sk ) {
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id": "mnopqrstuvwxyz123456"
+		}
+	}
+*/
+
+void send_pong( IP *sa, UCHAR *tid, int tid_size ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
+	struct obj_ben *arg = ben_init( BEN_DICT );
 
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:q 1:o
-	*/
-
-	/* ID */
+	/* Node ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
+	ben_str( key,( UCHAR *)"id", 2 );
 	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	ben_dict( arg, key, val );
 
-	/* Session key */
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Transaction ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, node_sk, SHA_DIGEST_LENGTH );
+	ben_str( key,( UCHAR *)"t", 1 );
+	ben_str( val, tid, tid_size );
 	ben_dict( dict, key, val );
 
-	/* Query Type */
+	/* Type of message */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val,( UCHAR *)"o", 1 );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"r", 1 );
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
@@ -141,61 +166,443 @@ void send_pong( IP *sa, UCHAR *node_sk ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	/* Log */
 	log_info( sa, 0, "PONG" );
 }
 
-void send_announce( IP *sa, UCHAR *lkp_id ) {
+/*
+	{
+	"t": "aa",
+	"y": "q",
+	"q": "find_node",
+	"a": {
+		"id": "abcdefghij0123456789",
+		"target": "mnopqrstuvwxyz123456"
+		}
+	}
+*/
+
+void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
-	UCHAR skey[SHA_DIGEST_LENGTH];
+	struct obj_ben *arg = ben_init( BEN_DICT );
+	char hexbuf[HEX_LEN];
 
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:l 20:LOOKUP_ID
-		1:f 20:NODE_ID
-		1:q 1:a
-	*/
-
-	rand_urandom( skey, SHA_DIGEST_LENGTH );
-	cache_put( skey, SEND_UNICAST );
-
-	/* ID */
+	/* Node ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
+	ben_str( key, (UCHAR *)"id", 2 );
 	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	ben_dict( arg, key, val );
 
-	/* Session key */
+	/* Target */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, skey, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	ben_str( key,( UCHAR *)"target", 6 );
+	ben_str( val, node_id, SHA_DIGEST_LENGTH );
+	ben_dict( arg, key, val );
 
-	/* Lookup ID */
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"a", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Query type */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"l", 1 );
-	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
+	ben_str( key, (UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"find_node", 9 );
 	ben_dict( dict, key, val );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, TID_SIZE );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"q", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_exec( sa, raw );
+	}
+	raw_free( raw );
+	ben_free( dict );
+
+	hex_hash_encode( hexbuf, node_id );
+	log_info( sa, 0, "FIND %s at", hexbuf );
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id":"0123456789abcdefghij",
+		"nodes": "def456..."
+		}
+	}
+*/
+
+void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+	struct obj_ben *arg = ben_init( BEN_DICT );
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"id", 2 );
+	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_dict( arg, key, val );
+
+	/* Nodes */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"nodes6", 6 );
+	ben_str( val, nodes_compact_list, nodes_compact_size );
+	ben_dict( arg, key, val );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, tid_size );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_exec( sa, raw );
+	}
+	raw_free( raw );
+	ben_free( dict );
+
+	log_info( sa, 0, "NODES via FIND_NODE to");
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "q",
+	"q": "get_peers",
+	"a": {
+		"id": "abcdefghij0123456789",
+		"info_hash": "mnopqrstuvwxyz123456"
+		}
+	}
+*/
+
+void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+	struct obj_ben *arg = ben_init( BEN_DICT );
+	char hexbuf[HEX_LEN];
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"id", 2 );
+	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_dict( arg, key, val );
+
+	/* info_hash */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"info_hash", 9 );
+	ben_str( val, node_id, SHA_DIGEST_LENGTH );
+	ben_dict( arg, key, val );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"a", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Query type */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"get_peers", 9 );
+	ben_dict( dict, key, val );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, TID_SIZE );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"q", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_exec( sa, raw );
+	}
+	raw_free( raw );
+	ben_free( dict );
+
+	hex_hash_encode( hexbuf, node_id );
+	log_info( sa, 0, "GET_PEERS %s at", hexbuf );
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id":"abcdefghij0123456789",
+		"token":"aoeusnth",
+		"nodes": "def456..."
+		}
+	}
+*/
+
+void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+	struct obj_ben *arg = ben_init( BEN_DICT );
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"id", 2 );
+	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_dict( arg, key, val );
+
+	/* Nodes */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"nodes6", 6 );
+	ben_str( val, nodes_compact_list, nodes_compact_size );
+	ben_dict( arg, key, val );
+
+	/* Token */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"token", 5 );
+	ben_str( val, tkn_read(), TOKEN_SIZE );
+	ben_dict( arg, key, val );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, tid_size );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_exec( sa, raw );
+	}
+	raw_free( raw );
+	ben_free( dict );
+
+	log_info( sa, 0, "NODES via GET_PEERS to");
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id":"abcdefghij0123456789",
+		"token":"aoeusnth",
+		"values": ["axje.u", "idhtnm"]
+		}
+	}
+*/
+
+void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *list = ben_init( BEN_LIST );
+	struct obj_ben *arg = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+	UCHAR *p = nodes_compact_list;
+	int j = 0;
+
+	/* Values list */
+	for( j=0; j<nodes_compact_size; j+=18 ) {
+		val = ben_init( BEN_STR );
+		ben_str( val, p, 18 );
+		p += 18;
+		ben_list( list, val );
+	}
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"id", 2 );
+	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_dict( arg, key, val );
+
+	/* Token */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"token", 5 );
+	ben_str( val, tkn_read(), TOKEN_SIZE );
+	ben_dict( arg, key, val );
+
+	/* Values */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"values", 6 );
+	ben_dict( arg, key, list );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, tid_size );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_exec( sa, raw );
+	}
+	raw_free( raw );
+	ben_free( dict );
+
+	log_info( sa, 0, "VALUES via GET_PEERS to" );
+}
+
+/*
+{
+	"t": "aa",
+	"y": "q",
+	"q": "announce_peer",
+	"a": {
+		"id": "abcdefghij0123456789",
+		"info_hash": "mnopqrstuvwxyz123456",
+		"port": 6881,
+		"token": "aoeusnth"
+		}
+	}
+*/
+
+void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+	struct obj_ben *arg = ben_init( BEN_DICT );
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"id", 2 );
+	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_dict( arg, key, val );
 
 	/* My host ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"f", 1 );
+	ben_str( key,( UCHAR *)"info_hash", 9 );
 	ben_str( val, _main->conf->host_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	ben_dict( arg, key, val );
 
-	/* Query Type: Search node or search value. */
+	/* Port */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_INT );
+	ben_str( key,( UCHAR *)"port", 4 );
+	ben_int( val, _main->conf->port );
+	ben_dict( arg, key, val );
+
+	/* Token */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val, (UCHAR *)"a", 1 );
+	ben_str( key,( UCHAR *)"token", 5 );
+	ben_str( val, token, token_size );
+	ben_dict( arg, key, val );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"a", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Query type */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"announce_peer", 13 );
+	ben_dict( dict, key, val );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, TID_SIZE );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"q", 1 );
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
@@ -207,313 +614,50 @@ void send_announce( IP *sa, UCHAR *lkp_id ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	/* Log */
-	log_info( sa, 0, "ANNOUNCE to" );
+	log_info( sa, 0, "ANNOUNCE_PEER to" );
 }
 
-void send_find( IP *sa, UCHAR *node_id ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	UCHAR skey[SHA_DIGEST_LENGTH];
-	char hexbuf[HEX_LEN+1];
-
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:f 20:FIND_ID
-		1:q 1:f
-	*/
-
-	rand_urandom( skey, SHA_DIGEST_LENGTH );
-	cache_put( skey, SEND_UNICAST );
-
-	/* ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Session key */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, skey, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Target */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"f", 1 );
-	ben_str( val, node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Query Type: Search node or search value. */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val, (UCHAR *)"f", 1 );
-	ben_dict( dict, key, val );
-
-	raw = ben_enc( dict );
-	if( _main->conf->bool_encryption ) {
-		send_aes( sa, raw );
-	} else {
-		send_exec( sa, raw );
-	}
-	raw_free( raw );
-	ben_free( dict );
-
-	/* Log */
-	hex_encode( hexbuf, node_id );
-	log_info( sa, 0, "FIND %s at", hexbuf );
-}
-
-void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	UCHAR skey[SHA_DIGEST_LENGTH];
-	char hexbuf[HEX_LEN+1];
-
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:l 20:LOOKUP_ID
-		1:f 20:FIND_ID
-		1:q 1:l
-	*/
-
-	rand_urandom( skey, SHA_DIGEST_LENGTH );
-	cache_put( skey, SEND_UNICAST );
-
-	/* ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Session key */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, skey, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Lookup ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"l", 1 );
-	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Target */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"f", 1 );
-	ben_str( val, node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Query Type: Search node or search value. */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val, (UCHAR *)"l", 1 );
-	ben_dict( dict, key, val );
-
-	raw = ben_enc( dict );
-	if( _main->conf->bool_encryption ) {
-		send_aes( sa, raw );
-	} else {
-		send_exec( sa, raw );
-	}
-	raw_free( raw );
-	ben_free( dict );
-
-	/* Log */
-	hex_encode( hexbuf, node_id );
-	log_info( sa, 0, "LOOKUP %s at", hexbuf );
-}
-
-void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_type ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *list_id = NULL;
-	struct obj_ben *dict_node = NULL;
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	ITEM *item_n = NULL;
-	NODE *n = NULL;
-	long int i=0;
-	IP *sin = NULL;
-
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:l 20:LOOKUP_ID
-		1:n
-			1:i 20:NODE_ID
-			1:a 16:IP
-			1:p 2:PORT
-		1:q 1:A || 1:q 1:F || 1:q 1:L
-	*/
-
-	/* ID */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Session key */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, node_sk, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* Lookup ID
-	 * Only needed for recursive requests like announces or lookups. */
-	switch( *reply_type ) {
-		case 'A':
-		case 'L':
-			key = ben_init( BEN_STR );
-			val = ben_init( BEN_STR );
-			ben_str( key,( UCHAR *)"l", 1 );
-			ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
-			ben_dict( dict, key, val );
-			break;
-	}
-
-	/* Nodes */
-	key = ben_init( BEN_STR );
-	list_id = ben_init( BEN_LIST );
-	ben_str( key,( UCHAR *)"n", 1 );
-	ben_dict( dict, key, list_id );
-
-	/* Insert nodes */
-	item_n = b->nodes->start;
-	for( i=0; i<b->nodes->counter; i++ ) {
-		n = item_n->val;
-
-		/* Do not include nodes, that are questionable */
-		if( n->pinged > 0 ) {
-			item_n = list_next( item_n );
-			continue;
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id": "mnopqrstuvwxyz123456"
 		}
-
-		/* Network data */
-		sin = (IP*)&n->c_addr;
-
-		/* List object */
-		dict_node = ben_init( BEN_DICT );
-		ben_list( list_id, dict_node );
-
-		/* ID Dictionary */
-		key = ben_init( BEN_STR );
-		val = ben_init( BEN_STR );
-		ben_str( key,( UCHAR *)"i", 1 );
-		ben_str( val, n->id, SHA_DIGEST_LENGTH );
-		ben_dict( dict_node, key, val );
-
-		/* IP */
-		key = ben_init( BEN_STR );
-		val = ben_init( BEN_STR );
-		ben_str( key,( UCHAR *)"a", 1 );
-		ben_str( val,( UCHAR *)&sin->sin6_addr, 16 );
-		ben_dict( dict_node, key, val );
-
-		/* Port */
-		key = ben_init( BEN_STR );
-		val = ben_init( BEN_STR );
-		ben_str( key,( UCHAR *)"p", 1 );
-		ben_str( val,( UCHAR *)&sin->sin6_port, 2 );
-		ben_dict( dict_node, key, val );
-
-		item_n = list_next( item_n );
 	}
+*/
 
-	/* Query */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val, reply_type, 1 );
-	ben_dict( dict, key, val );
-
-	raw = ben_enc( dict );
-	if( _main->conf->bool_encryption ) {
-		send_aes( sa, raw );
-	} else {
-		send_exec( sa, raw );
-	}
-	raw_free( raw );
-	ben_free( dict );
-
-	/* Log */
-	switch( *reply_type ) {
-		case 'A':
-			log_info( sa, 0, "NODES via ANNOUNCE to");
-			break;
-		case 'F':
-			log_info( sa, 0, "NODES via FIND to");
-			break;
-		case 'L':
-			log_info( sa, 0, "NODES via LOOKUP to");
-			break;
-	}
-}
-
-void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
+void send_announce_reply( IP *sa, UCHAR *tid, int tid_size ) {
 	struct obj_ben *dict = ben_init( BEN_DICT );
 	struct obj_ben *key = NULL;
 	struct obj_ben *val = NULL;
 	struct obj_raw *raw = NULL;
+	struct obj_ben *arg = ben_init( BEN_DICT );
 
-	/*
-		1:i 20:NODE_ID
-		1:k 20:SESSION_ID
-		1:l 20:LOOKUP_ID
-		1:a 16:IP
-		1:q 1:V
-	*/
-
-	/* ID */
+	/* Node ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"i", 1 );
+	ben_str( key,( UCHAR *)"id", 2 );
 	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
+	ben_dict( arg, key, val );
 
-	/* Session key */
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Transaction ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"k", 1 );
-	ben_str( val, node_sk, SHA_DIGEST_LENGTH );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, tid_size );
 	ben_dict( dict, key, val );
 
-	/* Lookup ID */
+	/* Type of message */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"l", 1 );
-	ben_str( val, lkp_id, SHA_DIGEST_LENGTH );
-	ben_dict( dict, key, val );
-
-	/* IP */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"a", 1 );
-	ben_str( val,( UCHAR *)&value->sin6_addr, 16 );
-	ben_dict( dict, key, val );
-
-	/* Query */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)"q", 1 );
-	ben_str( val,( UCHAR *)"V", 1 );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"r", 1 );
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
@@ -525,8 +669,7 @@ void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	/* Log */
-	log_info( sa, 0, "VALUE via LOOKUP to" );
+	log_info( sa, 0, "ANNOUNCE_PEER SUCCESS to" );
 }
 
 void send_aes( IP *sa, struct obj_raw *raw ) {
@@ -549,7 +692,7 @@ void send_aes( IP *sa, struct obj_raw *raw ) {
 	aes = aes_encrypt( raw->code, raw->size, salt, 
 			_main->conf->key, strlen( _main->conf->key) );
 	if( aes == NULL ) {
-		log_info( NULL, 0,  "Encoding AES message failed" );
+		log_info( NULL, 0, "Encoding AES message failed" );
 		ben_free( dict );
 		return;
 	}

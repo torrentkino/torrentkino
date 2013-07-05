@@ -17,38 +17,42 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-struct obj_nodes {
-	LIST *list;
+struct obj_nbhd {
+	LIST *bucket;
 	HASH *hash;
 };
-typedef struct obj_nodes NODES;
+typedef struct obj_nbhd NBHD;
 
 struct obj_node {
 	IP c_addr;
 
 	UCHAR id[SHA_DIGEST_LENGTH];
+	UCHAR token[TOKEN_SIZE_MAX];
+	int token_size;
 
 	time_t time_ping;
 	time_t time_find;
+
 	int pinged;
 };
 typedef struct obj_node NODE;
 
-NODES *nodes_init( void );
-void nodes_free( void );
+NBHD *nbhd_init( void );
+void nbhd_free( NBHD *nbhd );
 
-NODE *node_put( UCHAR *id, IP *sa );
-void node_del( ITEM *i );
+void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa );
+void nbhd_del( NBHD *nbhd, NODE *n );
 
-void node_update_address( NODE *node, IP *sa );
+void nbhd_update_address( NODE *node, IP *sa );
 
-void node_pinged( UCHAR *id );
-void node_ponged( UCHAR *id, IP *sa );
+void nbhd_pinged( UCHAR *id );
+void nbhd_ponged( UCHAR *id, IP *sa );
 
-void node_expire( void );
-long int node_counter( void );
+void nbhd_expire( void );
+void nbhd_split( NBHD *nbhd, UCHAR *target );
 
-int node_me( UCHAR *node_id );
-int node_equal( const UCHAR *node_a, const UCHAR *node_b );
+int nbhd_is_empty( NBHD *nbhd );
+int nbhd_me( UCHAR *node_id );
+int nbhd_equal( const UCHAR *node_a, const UCHAR *node_b );
 
-int node_conn_from_localhost( IP *from );
+int nbhd_conn_from_localhost( IP *from );

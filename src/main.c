@@ -50,14 +50,13 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #elif MASALA
 #include "udp.h"
 #include "ben.h"
-#include "node_p2p.h"
+#include "token.h"
+#include "neighbourhood.h"
 #include "bucket.h"
-#include "lookup.h"
-#include "announce.h"
 #include "search.h"
-#include "neighboorhood.h"
+#include "lookup.h"
+#include "transaction.h"
 #include "p2p.h"
-#include "cache.h"
 #include "database.h"
 #endif
 #include "log.h"
@@ -78,18 +77,16 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->mime = NULL;
 	_main->tcp  = NULL;
 #elif MASALA
-	_main->p2p = NULL;
-	_main->nodes = NULL;
-	_main->cache = NULL;
-	_main->nbhd = NULL;
-	_main->udp = NULL;
-	_main->announce = NULL;
+	_main->transaction = NULL;
 	_main->database = NULL;
-	_main->lkps = NULL;
+	_main->token = NULL;
+	_main->nbhd = NULL;
+	_main->p2p = NULL;
+	_main->udp = NULL;
 #endif
 
 	/* Server is doing a shutdown if this value changes */
-	_main->status = MAIN_ONLINE;
+	_main->status = RUMBLE;
 
 	return _main;
 }
@@ -108,14 +105,12 @@ int main( int argc, char **argv ) {
 	_main->mime = mime_init();
 #else
 	_main->conf = conf_init();
-	_main->nodes = nodes_init();
 #ifdef MASALA
 	_main->nbhd = nbhd_init();
-	_main->lkps = lkp_init();
-	_main->announce = announce_init();
 	_main->database = db_init();
 #endif
-	_main->cache = cache_init();
+	_main->transaction = tdb_init();
+	_main->token = tkn_init();
 	_main->p2p = p2p_init();
 	_main->udp = udp_init();
 #endif
@@ -131,6 +126,9 @@ int main( int argc, char **argv ) {
 
 	/* Check configuration */
 	conf_check();
+
+	/* Create first token */
+	tkn_put();
 
 	/* Increase limits */
 	unix_limits();
@@ -156,11 +154,9 @@ int main( int argc, char **argv ) {
 	tcp_free();
 #elif MASALA
 	db_free();
-	announce_free();
-	lkp_free();
-	nbhd_free();
-	nodes_free();
-	cache_free();
+	nbhd_free(_main->nbhd);
+	tdb_free();
+	tkn_free();
 	p2p_free();
 	udp_free();
 #endif

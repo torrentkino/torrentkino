@@ -49,7 +49,9 @@ struct obj_str *str_init( UCHAR *buf, long int len ) {
 	struct obj_str *str = (struct obj_str *) myalloc( sizeof(struct obj_str), "str_init" );
 	
 	str->s = (UCHAR *) myalloc( (len+1) * sizeof(UCHAR), "str_init" );
-	memcpy( str->s,buf,len );
+	if( len > 0 ) {
+		memcpy( str->s, buf, len );
+	}
 	str->i = len;
 	
 	return str;

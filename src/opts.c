@@ -48,9 +48,12 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "file.h"
 #include "opts.h"
 #include "sha1.h"
-#include "node_p2p.h"
-#include "search.h"
 #include "ben.h"
+#include "token.h"
+#include "neighbourhood.h"
+#include "lookup.h"
+#include "search.h"
+#include "transaction.h"
 #include "p2p.h"
 #endif
 

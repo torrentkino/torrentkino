@@ -49,15 +49,14 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "udp.h"
 #include "ben.h"
 #include "aes.h"
-#include "node_p2p.h"
+#include "token.h"
+#include "neighbourhood.h"
 #include "bucket.h"
 #include "lookup.h"
-#include "announce.h"
-#include "neighboorhood.h"
+#include "transaction.h"
 #include "p2p.h"
 #include "send_p2p.h"
 #include "search.h"
-#include "cache.h"
 #include "time.h"
 #include "random.h"
 #include "sha1.h"
@@ -73,6 +72,7 @@ struct obj_p2p *p2p_init( void ) {
 	p2p->time_restart = 0;
 	p2p->time_expire = 0;
 	p2p->time_split = 0;
+	p2p->time_token = 0;
 	p2p->time_find = 0;
 	p2p->time_ping = 0;
 
@@ -95,6 +95,7 @@ void p2p_bootstrap( void ) {
 	struct addrinfo *p = NULL;
 	int rc = 0;
 	int i = 0;
+	ITEM *ti = NULL;
 
 	log_info( NULL, 0, "Connecting to a bootstrap server" );
 
@@ -104,24 +105,254 @@ void p2p_bootstrap( void ) {
 	hints.ai_family = AF_INET6;
 	rc = getaddrinfo( _main->conf->bootstrap_node, _main->conf->bootstrap_port, &hints, &info );
 	if( rc != 0 ) {
-		log_info( NULL, 0, "getaddrinfo: %s", gai_strerror( rc) );
+		log_info( NULL, 0, "getaddrinfo: %s", gai_strerror( rc ) );
 		return;
 	}
 
 	p = info;
-	while( p != NULL && i < XP2P_MAX_BOOTSTRAP_NODES ) {
+	while( p != NULL && i < P2P_MAX_BOOTSTRAP_NODES ) {
 
 		/* Send PING to a bootstrap node */
-		if( strcmp( _main->conf->bootstrap_node, CONF_BOOTSTRAP_NODE) == 0 ) {
-			send_ping( (IP *)p->ai_addr, SEND_MULTICAST );
+		if( strcmp( _main->conf->bootstrap_node, CONF_BOOTSTRAP_NODE ) == 0 ) {
+			ti = tdb_put(P2P_PING_MULTICAST, NULL, NULL);
+			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		} else {
-			send_ping( (IP *)p->ai_addr, SEND_UNICAST );
+			ti = tdb_put(P2P_PING, NULL, NULL);
+			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		}
 		
 		p = p->ai_next;	i++;
 	}
 	
 	freeaddrinfo( info );
+}
+
+void p2p_cron( void ) {
+	/* Tick Tock */
+	gettimeofday( &_main->p2p->time_now, NULL );
+
+	if( nbhd_is_empty( _main->nbhd ) ) {
+		
+		/* Bootstrap PING */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_restart ) {
+			p2p_bootstrap();
+			time_add_1_min_approx( &_main->p2p->time_restart );
+		}
+	
+	} else {
+
+		/* Expire objects. Run once a minute. */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_expire ) {
+			tdb_expire();
+			nbhd_expire();
+			db_expire();
+			tkn_expire();
+			time_add_1_min_approx( &_main->p2p->time_expire );
+		}
+
+		/* Split buckets. Evolve neighbourhood. Run once a minute. */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_split ) {
+			nbhd_split( _main->nbhd, _main->conf->node_id );
+			time_add_1_min_approx( &_main->p2p->time_split );
+		}
+	
+		/* Ping all nodes every ~5 minutes. Run once a minute. */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_ping ) {
+			p2p_cron_ping();
+			time_add_1_min_approx( &_main->p2p->time_ping );
+		}
+	
+		/* Find nodes every ~5 minutes. Run once a minute. */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_find ) {
+			p2p_cron_find_myself();
+			time_add_1_min_approx( &_main->p2p->time_find );
+		}
+
+		/* Find random node every ~5 minutes for maintainance reasons. Run once
+		 * a minute */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_maintainance ) {
+			p2p_cron_find_random();
+			time_add_1_min_approx( &_main->p2p->time_maintainance );
+		}
+
+		/* Announce my hostname every ~5 minutes. This includes a full search
+		 * to get the needed tokens first. */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce ) {
+			p2p_cron_announce_start();
+			time_add_5_min_approx( &_main->p2p->time_announce );
+		}
+
+		/* Create a new token every ~5 minutes */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_token ) {
+			tkn_put();
+			time_add_5_min_approx( &_main->p2p->time_token );
+		}
+	}
+
+	/* Try to register multicast address until it works. */
+	if( _main->udp->multicast == 0 ) {
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_multicast ) {
+			udp_multicast();
+			time_add_5_min_approx( &_main->p2p->time_multicast );
+		}
+	}
+}
+
+void p2p_cron_ping( void ) {
+	ITEM *item_b = NULL;
+	BUCK *b = NULL;
+	ITEM *item_n = NULL;
+	NODE *n = NULL;
+	long int j = 0, k = 0;
+	ITEM *ti = NULL;
+
+	/* Cycle through all the buckets */
+	item_b = _main->nbhd->bucket->start;
+	for( k=0; k<_main->nbhd->bucket->counter; k++ ) {
+		b = list_value( item_b );
+
+		/* Cycle through all the nodes */
+		item_n = b->nodes->start;
+		for( j=0; j<b->nodes->counter; j++ ) {
+			n = list_value( item_n );
+
+			/* It's time for pinging */
+			if( _main->p2p->time_now.tv_sec > n->time_ping ) {
+
+				/* Ping the first 8 nodes. Ignore the rest. */
+				if( j < 8 ) {
+					ti = tdb_put(P2P_PING, NULL, NULL);
+					send_ping( &n->c_addr, tdb_tid( ti ) );
+					nbhd_pinged( n->id );
+				} else {
+					nbhd_pinged( n->id );
+				}
+			}
+
+			item_n = list_next( item_n );
+		}
+
+		item_b = list_next( item_b );
+	}
+}
+
+void p2p_cron_find_myself( void ) {
+	p2p_cron_find( _main->conf->node_id );
+}
+
+void p2p_cron_find_random( void ) {
+	UCHAR node_id[SHA_DIGEST_LENGTH];
+	rand_urandom( node_id, SHA_DIGEST_LENGTH );
+	p2p_cron_find( node_id );
+}
+
+void p2p_cron_find( UCHAR *target ) {
+	ITEM *item_b = NULL;
+	BUCK *b = NULL;
+	ITEM *item_n = NULL;
+	NODE *n = NULL;
+	long int j = 0;
+	ITEM *ti = NULL;
+
+	if( ( item_b = bckt_find_any_match( _main->nbhd->bucket, target)) == NULL ) {
+		return;
+	} else {
+		b = list_value( item_b );
+	}
+
+	item_n = b->nodes->start;
+	for( j = 0; j < b->nodes->counter && j < 8; j++ ) {
+		n = list_value( item_n );
+
+		if( _main->p2p->time_now.tv_sec > n->time_find ) {
+
+			ti = tdb_put(P2P_FIND_NODE, NULL, NULL);
+			send_find_node_request( &n->c_addr, target, tdb_tid( ti ) );
+			time_add_5_min_approx( &n->time_find );
+		}
+
+		item_n = list_next( item_n );
+	}
+}
+
+void p2p_cron_announce_start( void ) {
+	LOOKUP *l = NULL;
+	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) or 8*(16+2) */
+	UCHAR *target = _main->conf->host_id;
+	ITEM *ti = NULL;
+	UCHAR *p = NULL;
+	int nodes_compact_size = 0;
+	int j = 0;
+	IP sin;
+	UCHAR *id = NULL;
+
+	/* Start the incremental remote search program */
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target );
+
+	/* Create tid and get the lookup table */
+	ti = tdb_put( P2P_ANNOUNCE_GET_PEERS, target, NULL );
+	l = tdb_ldb( ti );
+
+	p = nodes_compact_list;
+	for( j=0; j<nodes_compact_size; j+=38 ) {
+
+		/* Remember node_id */
+		id = p;
+		p += SHA_DIGEST_LENGTH;
+
+		/* IP + Port */
+		memset( &sin, '\0', sizeof(IP) );
+		sin.sin6_family = AF_INET6;
+		
+		memcpy( &sin.sin6_addr, p, 16 ); p += 16;
+		memcpy( &sin.sin6_port, p, 2 ); p += 2;
+
+		/* Query node */
+		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
+
+		/* Remember queried node */
+		nbhd_put( l->nbhd, id, (IP *)&sin );
+	}
+}
+
+int p2p_cron_announce_now( ITEM *ti ) {
+	ITEM *t_new = NULL;
+	int j = 0;
+	ITEM *item = NULL;
+	BUCK *b = NULL;
+	NODE *n = NULL;
+	TID *tid = list_value( ti );
+	LOOKUP *l = tid->lookup;
+	int result = FALSE;
+
+	/* Called by tdb_expire: One minute is over. Sort the nodes within the
+	 * buckets. */
+	nbhd_split( l->nbhd, l->target );
+
+	/* Find matching bucket */
+	if( ( item = bckt_find_any_match( l->nbhd->bucket, l->target)) == NULL ) {
+		return TRUE; /* Give up */
+	} else {
+		b = list_value( item );
+	}
+
+	item = b->nodes->start;
+	for( j = 0; j < b->nodes->counter && j < 8; j++ ) {
+		n = list_value( item );
+
+		if( n->token_size > 0 ) {
+			t_new = tdb_put(P2P_ANNOUNCE, NULL, NULL);
+			send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
+			result = TRUE;
+		} else {
+			log_info( NULL, 0, "Get token: Retry" );
+			send_get_peers_request( (IP *)&n->c_addr, l->target, tdb_tid( ti ) );
+		}
+
+		item = list_next( item );
+	}
+
+	return result;
 }
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
@@ -137,8 +368,8 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 	}
 
 	/* Recursive lookup request from localhost ::1 */
-	if( node_conn_from_localhost(from) ) {
-		p2p_lookup_nss( bencode, bensize, from );
+	if( nbhd_conn_from_localhost(from) ) {
+		p2p_localhost_get_request( bencode, bensize, from );
 		return;
 	}
 
@@ -157,9 +388,9 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 }
 
 void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
-	struct obj_ben *packet = NULL;
-	struct obj_ben *salt = NULL;
-	struct obj_ben *aes = NULL;
+	BEN *packet = NULL;
+	BEN *salt = NULL;
+	BEN *aes = NULL;
 	struct obj_str *plain = NULL;
 
 	/* Parse request */
@@ -221,11 +452,8 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 }
 
 void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
-	struct obj_ben *packet = NULL;
-	struct obj_ben *q = NULL;
-	struct obj_ben *id = NULL;
-	struct obj_ben *key = NULL;
-	NODE *n = NULL;
+	BEN *packet = NULL;
+	BEN *y = NULL;
 
 	/* Parse request */
 	packet = ben_dec( bencode, bensize );
@@ -238,522 +466,551 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		return;
 	}
 
-	/* Node ID */
-	id = ben_searchDictStr( packet, "i" );
-	if( !p2p_is_hash( id ) ) {
-		log_info( NULL, 0, "Node ID missing or broken" );
-		ben_free( packet );
-		return;
-	} else if( node_me( id->v.s->s) ) {
-		if( node_counter() > 0 ) {
-			/* Received packet from myself 
-			 * If the node_counter is 0, 
-			 * then you may see multicast requests from yourself.
-			 * Do not warn about them.
-			 */
-			log_info( NULL, 0, "WARNING: Received a packet from myself..." );
-		}
+	/* Type of message */
+	y = ben_searchDictStr( packet, "y" );
+	if( !ben_is_str( y ) || ben_str_size( y ) != 1 ) {
+		log_info( NULL, 0, "Message type missing or broken" );
 		ben_free( packet );
 		return;
 	}
 
-	/* Session key */
-	key = ben_searchDictStr( packet, "k" );
-	if( !p2p_is_hash( key ) ) {
-		log_info( NULL, 0, "Session key missing or broken" );
-		ben_free( packet );
-		return;
-	}
-
-	/* Remember node. This does not update the IP address. */
-	n = node_put( id->v.s->s, (IP *)from );
-
-	/* The neighboorhood */
-	nbhd_put( n );
-
-	/* Update IP if necessary. */
-	node_update_address( n, (IP *)from );
-
-	/* Query Details */
-	q = ben_searchDictStr( packet, "q" );
-	if( !ben_is_str( q ) || ben_str_size( q ) != 1 ) {
-		log_info( NULL, 0, "Query type missing or broken" );
-		ben_free( packet );
-		return;
-	}
-	
 	mutex_block( _main->p2p->mutex );
-	
-	switch( *q->v.s->s ) {
 
-		/* Requests */
-		case 'p':
-			/* PING */
-			p2p_ping( key->v.s->s, from );
-			break;
-		case 'f':
-			/* FIND */
-			p2p_find( packet, key->v.s->s, from );
-			break;
-		case 'a':
-			/* ANNOUNCE */
-			p2p_announce( packet, key->v.s->s, from );
-			break;
-		case 'l':
-			/* LOOKUP */
-			p2p_lookup( packet, key->v.s->s, from );
-			break;
+	switch( *y->v.s->s ) {
 
-		/* Replies */
-		case 'o':
-			/* PONG via PING */
-			p2p_pong( id->v.s->s, key->v.s->s, from );
+		case 'q':
+			p2p_request( packet, from );
 			break;
-		case 'F':
-			/* NODES via FIND */
-			p2p_node_find( packet, id->v.s->s, key->v.s->s, from );
-			break;
-		case 'A':
-			/* NODES via ANNOUNCE */
-			p2p_node_announce( packet, id->v.s->s, key->v.s->s, from );
-			break;
-		case 'L':
-			/* NODES via LOOKUP */
-			p2p_node_lookup( packet, id->v.s->s, key->v.s->s, from );
-			break;
-		case 'V':
-			/* VALUES via LOOKUP */
-			p2p_value( packet, id->v.s->s, key->v.s->s, from );
+		case 'r':
+			p2p_reply( packet, from );
 			break;
 		default:
-			log_info( NULL, 0, "Unknown query type" );
+			log_info( NULL, 0, "Unknown message type" );
 	}
 	
 	mutex_unblock( _main->p2p->mutex );
 
-	/* Free */
 	ben_free( packet );
 }
 
-void p2p_cron( void ) {
-	/* Tick Tock */
-	gettimeofday( &_main->p2p->time_now, NULL );
 
-	if( node_counter() == 0 ) {
+void p2p_request( BEN *packet, IP *from ) {
+	BEN *q = NULL;
+	BEN *a = NULL;
+	BEN *t = NULL;
+	BEN *id = NULL;
+
+	/* Query Type */
+	q = ben_searchDictStr( packet, "q" );
+	if( !ben_is_str( q ) ) {
+		log_info( NULL, 0, "Query type missing or broken" );
+		return;
+	}
+
+	/* Argument */
+	a = ben_searchDictStr( packet, "a" );
+	if( !ben_is_dict( a ) ) {
+		log_info( NULL, 0, "Argument missing or broken" );
+		return;
+	}
+
+	/* Node ID */
+	id = ben_searchDictStr( a, "id" );
+	if( !p2p_is_hash( id ) ) {
+		log_info( NULL, 0, "Node ID missing or broken" );
+		return;
+	}
+
+	/* Do not talk to myself */
+	if( p2p_packet_from_myself( id->v.s->s ) ) {
+		return;
+	}
+
+	/* Transaction ID */
+	t = ben_searchDictStr( packet, "t" );
+	if( !ben_is_str( t ) ) {
+		log_info( NULL, 0, "Transaction ID missing or broken" );
+		return;
+	}
+	if( ben_str_size( t ) > TID_SIZE_MAX ) {
+		log_info( NULL, 0, "Transaction ID too big" );
+		return;
+	}
+
+	/* Remember node. This does not update the IP address. */
+	nbhd_put( _main->nbhd, id->v.s->s, (IP *)from );
+
+	/* PING */
+	if( ben_str_size( q ) == 4 && memcmp( q->v.s->s, "ping", 4 ) == 0 ) {
+		p2p_ping( t, from );
+		return;
+	}
+
+	/* FIND_NODE */
+	if( ben_str_size( q ) == 9 && memcmp( q->v.s->s, "find_node", 9 ) == 0 ) {
+		p2p_find_node_get_request( a, t, from );
+		return;
+	}
+
+	/* GET_PEERS */
+	if( ben_str_size( q ) == 9 && memcmp( q->v.s->s, "get_peers", 9 ) == 0 ) {
+		p2p_get_peers_get_request( a, t, from );
+		return;
+	}
+
+	/* ANNOUNCE */
+	if( ben_str_size( q ) == 13 && memcmp( q->v.s->s, "announce_peer", 13 ) == 0 ) {
+		p2p_announce_get_request( a, id->v.s->s, t, from );
+		return;
+	}
+	
+	log_info( NULL, 0, "Unknown query type" );
+}
+
+void p2p_reply( BEN *packet, IP *from ) {
+	BEN *r = NULL;
+	BEN *t = NULL;
+	BEN *id = NULL;
+	ITEM *ti = NULL;
+
+	/* Argument */
+	r = ben_searchDictStr( packet, "r" );
+	if( !ben_is_dict( r ) ) {
+		log_info( NULL, 0, "Argument missing or broken" );
+		return;
+	}
+
+	/* Node ID */
+	id = ben_searchDictStr( r, "id" );
+	if( !p2p_is_hash( id ) ) {
+		log_info( NULL, 0, "Node ID missing or broken" );
+		return;
+	}
+	
+	/* Do not talk to myself */
+	if( p2p_packet_from_myself( id->v.s->s ) ) {
+		return;
+	}
+
+	/* Transaction ID */
+	t = ben_searchDictStr( packet, "t" );
+	if( !ben_is_str( t ) && ben_str_size( t ) != TID_SIZE ) {
+		log_info( NULL, 0, "Transaction ID missing or broken" );
+		return;
+	}
+
+	/* Remember node. */
+	nbhd_put( _main->nbhd, id->v.s->s, (IP *)from );
+
+	ti = tdb_item( t->v.s->s );
+
+	/* Get Query type by looking at the TDB */
+	switch( tdb_type( ti ) ) {
+		case P2P_PING:
+		case P2P_PING_MULTICAST:
+			p2p_pong( id->v.s->s, from );
+			break;
+		case P2P_FIND_NODE:
+			p2p_find_node_get_reply( r, id->v.s->s, from );
+			break;
+		case P2P_GET_PEERS:
+		case P2P_ANNOUNCE_GET_PEERS:
+			p2p_get_peers_get_reply( r, id->v.s->s, ti, from );
+			break;
+		case P2P_ANNOUNCE:
+			p2p_announce_get_reply( r, id->v.s->s, ti, from );
+			break;
+		default:
+			log_info( NULL, 0, "Unknown Transaction ID..." );
+			return;
+	}
+
+	/* Cleanup. The TID gets reused by GET_PEERS and ANNOUNCE_PEER requests. The
+	 * TID is also persistant for multicast requests since multiple answers are
+	 * likely possible. */
+	switch( tdb_type( ti ) ) {
+		case P2P_PING:
+		case P2P_FIND_NODE:
+		case P2P_ANNOUNCE:
+			tdb_del( ti );
+			break;
+	}
+}
+
+int p2p_packet_from_myself( UCHAR *node_id ) {
+	if( nbhd_me( node_id ) ) {
 		
-		/* Bootstrap PING */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_restart ) {
-			p2p_bootstrap();
-			_main->p2p->time_restart = time_add_2_min_approx();
+		/* Received packet from myself 
+		 * If the neighbourhood is empty, 
+		 * then you may see multicast requests from yourself.
+		 * Do not warn about them.
+		 */
+		if( !nbhd_is_empty( _main->nbhd ) ) {
+			log_info( NULL, 0, "WARNING: Received a packet from myself..." );
 		}
+
+		/* Yep */
+		return 1;
+	}
+
+	/* No */
+	return 0;
+}
+
+void p2p_ping( BEN *tid, IP *from ) {
+	send_pong( from, tid->v.s->s, tid->v.s->i );
+}
+
+void p2p_pong( UCHAR *node_id, IP *from ) {
+	nbhd_ponged( node_id, from );
+}
+
+void p2p_find_node_get_request( BEN *arg, BEN *tid, IP *from ) {
+	BEN *target = NULL;
+	UCHAR nodes_compact_list[304]; /* 8 * (20+16+2) */
+	int nodes_compact_size = 0;
+
+	/* Target */
+	target = ben_searchDictStr( arg, "target" );
+	if( !p2p_is_hash( target ) ) {
+		log_info( NULL, 0, "Missing or broken target" );
+		return;
+	}
+
+	/* Create compact node list */
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target->v.s->s );
+
+	/* Send reply */
+	if( nodes_compact_size > 0 ) {
+		send_find_node_reply( from, nodes_compact_list, nodes_compact_size,
+			tid->v.s->s, tid->v.s->i );
+	}
+}
+
+void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
+	BEN *nodes = NULL;
+	UCHAR *id = NULL;
+	UCHAR *p = NULL;
+	long int i = 0;
+	IP sin;
+
+	nodes = ben_searchDictStr( arg, "nodes6" );
+	if( !ben_is_str( nodes ) ) {
+		log_info( NULL, 0, "nodes6 key missing" );
+		return;
+	}
+
+	if( ben_str_size( nodes ) % 38 != 0 ) {
+		log_info( NULL, 0, "nodes6 key broken" );
+		return;
+	}
+
+	p = nodes->v.s->s;
+	for( i=0; i<nodes->v.s->i; i+=38 ) {
+		memset( &sin, '\0', sizeof(IP) );
+
+		/* ID */
+		id = p;
+		p += SHA_DIGEST_LENGTH;
+
+		/* IP */
+		sin.sin6_family = AF_INET6;
+		memcpy( &sin.sin6_addr, p, 16 );
+		p += 16;
+
+		/* Port */
+		memcpy( &sin.sin6_port, p, 2 );
+		p += 2;
+
+		/* Store node */
+		if( !nbhd_me( id ) ) {
+			nbhd_put( _main->nbhd, id, ( IP *)&sin );
+		}
+	}
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "q",
+	"q": "get_peers",
+	"a": {
+		"id": "abcdefghij0123456789",
+		"info_hash": "mnopqrstuvwxyz123456"
+		}
+	}
+*/
+
+void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
+	BEN *info_hash = NULL;
+	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) or 8*(16+2) */
+	int nodes_compact_size = 0;
+
+	/* info_hash */
+	info_hash = ben_searchDictStr( arg, "info_hash" );
+	if( !p2p_is_hash( info_hash ) ) {
+		log_info( NULL, 0, "Missing or broken info_hash" );
+		return;
+	}
+
+	/* Look at the database */
+	nodes_compact_size = p2p_value_compact_list( nodes_compact_list, info_hash->v.s->s );
+
+	if( nodes_compact_size > 0 ) {
+		send_get_peers_values( from, nodes_compact_list, nodes_compact_size,
+			tid->v.s->s, tid->v.s->i );
+		return;
+	}
+
+	/* Look at the routing table */
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, info_hash->v.s->s );
+
+	/* Send reply */
+	if( nodes_compact_size > 0 ) {
+		send_get_peers_nodes( from, nodes_compact_list, nodes_compact_size,
+			tid->v.s->s, tid->v.s->i );
+	}
+}
+
+void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
+	BEN *token = NULL;
+	BEN *nodes = NULL;
+	BEN *values = NULL;
+
+	token = ben_searchDictStr( arg, "token" );
+	if( !ben_is_str( token ) ) {
+		log_info( NULL, 0, "token key missing or broken" );
+		return;
+	} else if( ben_str_size( token ) > TOKEN_SIZE_MAX ) {
+		log_info( NULL, 0, "Token key too big" );
+		return;
+	} else if( ben_str_size( token ) <= 0 ) {
+		log_info( NULL, 0, "Token key too small" );
+		return;
+	}
+
+	values = ben_searchDictStr( arg, "values" );
+	nodes = ben_searchDictStr( arg, "nodes6" );
+
+	if( values != NULL ) {
+		if( !ben_is_list( values ) ) {
+			log_info( NULL, 0, "values key missing or broken" );
+			return;
+		} else {
+			p2p_get_peers_get_values( values, node_id, ti, token, from );
+			return;
+		}
+	}
 	
+	if( nodes != NULL ) {
+		if( !ben_is_str( nodes ) || ben_str_size( nodes ) % 38 != 0 ) {
+			log_info( NULL, 0, "nodes6 key missing or broken" );
+			return;
+		} else {
+			p2p_get_peers_get_nodes( nodes, node_id, ti, token, from );
+			return;
+		}
+	}
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id":"abcdefghij0123456789",
+		"token":"aoeusnth",
+		"nodes": "def456..."
+		}
+	}
+*/
+
+void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, IP *from ) {
+	LOOKUP *l = tdb_ldb( ti );
+	UCHAR *target = NULL;
+	UCHAR *id = NULL;
+	UCHAR *p = NULL;
+	long int i = 0;
+	IP sin;
+
+	if( l == NULL ) {
+		return;
 	} else {
-
-		/* Expire objects every ~2 minutes */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_expire ) {
-			announce_expire();
-			cache_expire();
-			node_expire();
-			lkp_expire();
-			db_expire();
-			_main->p2p->time_expire = time_add_2_min_approx();
-		}
-
-		/* Split container every ~2 minutes */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_split ) {
-			nbhd_split();
-			_main->p2p->time_split = time_add_2_min_approx();
-		}
-	
-		/* Ping all nodes every ~2 minutes */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_ping ) {
-			nbhd_ping();
-			_main->p2p->time_ping = time_add_2_min_approx();
-		}
-	
-		/* Find nodes every ~2 minutes */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_find ) {
-			nbhd_find_myself();
-			_main->p2p->time_find = time_add_2_min_approx();
-		}
-
-		/* Find random node every ~2 minutes for maintainance reasons */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_maintainance ) {
-			nbhd_find_random();
-			_main->p2p->time_maintainance = time_add_2_min_approx();
-		}
-
-		/* Announce my hostname every ~5 minutes */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce ) {
-			p2p_announce_myself();
-			_main->p2p->time_announce = time_add_5_min_approx();
-		}
+		target = l->target;
 	}
 
-	/* Try to register multicast address until it works. */
-	if( _main->udp->multicast == 0 ) {
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_multicast ) {
-			udp_multicast();
-			_main->p2p->time_multicast = time_add_5_min_approx();
-		}
-	}
-}
+	ldb_update_token( l, node_id, token, from );
 
-void p2p_ping( UCHAR *node_sk, IP *from ) {
-	send_pong( from, node_sk );
-}
-
-void p2p_find( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
-	struct obj_ben *ben_find_id = NULL;
-
-	/* Find ID */
-	ben_find_id = ben_searchDictStr( packet, "f" );
-	if( !p2p_is_hash( ben_find_id ) ) {
-		log_info( NULL, 0, "Missing or broken target node" );
-		return;
-	}
-
-	/* Reply */
-	nbhd_send( from, ben_find_id->v.s->s, NULL, node_sk, (UCHAR *)"F");
-}
-
-void p2p_announce( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
-	struct obj_ben *ben_host_id = NULL;
-	struct obj_ben *ben_lkp_id = NULL;
-
-	/* Host ID */
-	ben_host_id = ben_searchDictStr( packet, "f" );
-	if( !p2p_is_hash( ben_host_id ) ) {
-		log_info( NULL, 0, "Missing or broken target node" );
-		return;
-	}
-
-	/* Lookup ID */
-	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( !p2p_is_hash( ben_lkp_id ) ) {
-		log_info( NULL, 0, "Missing or broken lookup ID" );
-		return;
-	}
-
-	/* Store announced host_id */
-	db_put(ben_host_id->v.s->s, from);
-
-	/* Reply nodes, that might suit even better */
-	nbhd_send( from, ben_host_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"A");
-}
-
-void p2p_lookup( struct obj_ben *packet, UCHAR *node_sk, IP *from ) {
-	struct obj_ben *ben_find_id = NULL;
-	struct obj_ben *ben_lkp_id = NULL;
-
-	/* Find ID */
-	ben_find_id = ben_searchDictStr( packet, "f" );
-	if( !p2p_is_hash( ben_find_id ) ) {
-		log_info( NULL, 0, "Missing or broken target node" );
-		return;
-	}
-
-	/* Lookup ID */
-	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( !p2p_is_hash( ben_lkp_id ) ) {
-		log_info( NULL, 0, "Missing or broken lookup ID" );
-		return;
-	}
-
-	/* Local database. */
-	if ( !db_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk ) ) {
-
-		/* Reply closer nodes */
-		nbhd_send( from, ben_find_id->v.s->s, ben_lkp_id->v.s->s, node_sk, (UCHAR *)"L");
-	}
-
-}
-
-void p2p_pong( UCHAR *node_id, UCHAR *node_sk, IP *from ) {
-	if( !cache_validate( node_sk) ) {
-		log_info( NULL, 0, "Unexpected reply! Many answers to one multicast request?" );
-		return;
-	}
-
-	/* Reply */
-	node_ponged( node_id, from );
-}
-
-void p2p_node_find( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
-	struct obj_ben *nodes = NULL;
-	struct obj_ben *node = NULL;
-	struct obj_ben *id = NULL;
-	struct obj_ben *ip = NULL;
-	struct obj_ben *po = NULL;
-	ITEM *item = NULL;
-	NODE *n = NULL;
-	IP sin;
-	long int i = 0;
-
-	if( !cache_validate( node_sk ) ) {
-		log_info( NULL, 0, "Unexpected reply!" );
-		return;
-	}
-
-	/* Requirements */
-	nodes = ben_searchDictStr( packet, "n" );
-	if( !ben_is_list( nodes ) ) {
-		log_info( NULL, 0, "NODE FIND: Nodes key broken or missing" );
-		return;
-	}
-
-	/* Reply */
-	item = nodes->v.l->start;
-	for( i=0; i<nodes->v.l->counter; i++ ) {
-		node = item->val;
-
-		/* Node */
-		if( !ben_is_dict( node ) ) {
-			log_info( NULL, 0, "Node key broken or missing" );
-			return;
-		}
+	p = nodes->v.s->s;
+	for( i=0; i<nodes->v.s->i; i+=38 ) {
+		memset( &sin, '\0', sizeof(IP) );
 
 		/* ID */
-		id = ben_searchDictStr( node, "i" );
-		if( !p2p_is_hash( id ) ) {
-			log_info( NULL, 0, "ID key broken or missing" );
-			return;
-		}
+		id = p;
+		p += SHA_DIGEST_LENGTH;
 
 		/* IP */
-		ip = ben_searchDictStr( node, "a" );
-		if( !p2p_is_ip( ip ) ) {
-			log_info( NULL, 0, "IP key broken or missing" );
-			return;
-		}
+		sin.sin6_family = AF_INET6;
+		memcpy( &sin.sin6_addr, p, 16 );
+		p += 16;
 
 		/* Port */
-		po = ben_searchDictStr( node, "p" );
-		if( !p2p_is_port( po ) ) {
-			log_info( NULL, 0, "Port key broken or missing" );
-			return;
-		}
-
-		/* Compute source */
-		memset( &sin, '\0', sizeof(IP) );
-		sin.sin6_family = AF_INET6;
-		memcpy( &sin.sin6_addr, ip->v.s->s, 16 );
-		memcpy( &sin.sin6_port, po->v.s->s, 2 );
+		memcpy( &sin.sin6_port, p, 2 );
+		p += 2;
 
 		/* Store node */
-		if( !node_me( id->v.s->s) ) {
-			n = node_put( id->v.s->s, ( IP *)&sin );
-			node_update_address( n,( IP *)&sin );
-			nbhd_put( n );
+		if( !nbhd_me( id ) ) {
+			nbhd_put( _main->nbhd, id, (IP *)&sin );
 		}
 
-		item = list_next( item );
+		/* Start new lookup */
+		if( !nbhd_me( id ) ) {
+			if( !ldb_contacted_node( l, id ) ) {
+
+				/* Query node */
+				send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
+
+				/* Remember queried node */
+				nbhd_put( l->nbhd, id, (IP *)&sin );
+			}
+		}
 	}
 }
 
-void p2p_node_announce( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
-	struct obj_ben *nodes = NULL;
-	struct obj_ben *node = NULL;
-	struct obj_ben *id = NULL;
-	struct obj_ben *ip = NULL;
-	struct obj_ben *po = NULL;
-	struct obj_ben *ben_lkp_id = NULL;
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id":"abcdefghij0123456789",
+		"token":"aoeusnth",
+		"values": ["axje.u", "idhtnm"]
+		}
+	}
+*/
+
+void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token, IP *from ) {
+	UCHAR nodes_compact_list[144]; /* 8*(16+2) */
+	UCHAR *p = nodes_compact_list;
+	LOOKUP *l = tdb_ldb( ti );
+	int nodes_compact_size = 0;
+	BEN *val = NULL;
 	ITEM *item = NULL;
-	NODE *n = NULL;
+	long int j = 0;
+	int type = tdb_type( ti );
+
+	if( l == NULL ) {
+		return;
+	}
+
+	ldb_update_token( l, node_id, token, from );
+
+	/* Get values */
+	item = values->v.l->start;
+	for( j=0; j<values->v.l->counter && j < 8; j++ ) {
+		val = list_value( item );
+
+		if( !ben_is_str( val ) || ben_str_size( val ) != 18 ) {
+			log_info( NULL, 0, "Values list broken" );
+			return;
+		}
+
+		memcpy( p, val->v.s->s, val->v.s->i );
+		nodes_compact_size += 18;
+		p += 18;
+
+		item = list_next(item);
+	}
+
+	/* Send reply */
+	if( type == P2P_GET_PEERS && nodes_compact_size > 0 ) {
+		sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
+			(const struct sockaddr *)&l->c_addr, sizeof( IP ) );
+	}
+}
+
+/*
+{
+"t": "aa",
+"y": "q",
+"q": "announce_peer",
+"a": {
+	"id": "abcdefghij0123456789",
+	"info_hash": "mnopqrstuvwxyz123456",
+	"port": 6881,
+	"token": "aoeusnth"
+	}
+}
+*/
+
+void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from ) {
+	BEN *info_hash = NULL;
+	BEN *token = NULL;
+	BEN *port = NULL;
+
+	/* info_hash */
+	info_hash = ben_searchDictStr( arg, "info_hash" );
+	if( !p2p_is_hash( info_hash ) ) {
+		log_info( NULL, 0, "Missing or broken info_hash" );
+		return;
+	}
+
+	/* Token */
+	token = ben_searchDictStr( arg, "token" );
+	if( !ben_is_str( token ) || ben_str_size( token ) > TOKEN_SIZE_MAX ) {
+		log_info( NULL, 0, "token key missing or broken" );
+		return;
+	}
+
+	if( !tkn_validate( token->v.s->s ) ) {
+		log_info( NULL, 0, "Invalid token" );
+		return;
+	}
+
+	/* Port */
+	port = ben_searchDictStr( arg, "port" );
+	if( !ben_is_int( port ) ) {
+		log_info( NULL, 0, "Missing or broken port" );
+		return;
+	}
+
+	if( port->v.i < 1 || port->v.i > 65535 ) {
+		log_info( NULL, 0, "Invalid port number" );
+		return;
+	}
+
+	/* Store info_hash */
+	db_put( info_hash->v.s->s, port->v.i, node_id, from );
+
+	/* Send ack */
+	send_announce_reply( from, tid->v.s->s, tid->v.s->i );
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id": "mnopqrstuvwxyz123456"
+		}
+	}
+*/
+
+void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
+	ITEM *ti, IP *from ) {
+	/* Nothing to do */
+}
+
+void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
+	UCHAR target[SHA_DIGEST_LENGTH];
+	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) or 8*(16+2) */
+	int nodes_compact_size = 0;
 	IP sin;
-	long int i = 0;
-
-	if( !cache_validate( node_sk ) ) {
-		log_info( NULL, 0, "Unexpected reply!" );
-		return;
-	}
-
-	/* Requirements */
-	nodes = ben_searchDictStr( packet, "n" );
-	if( !ben_is_list( nodes ) ) {
-		log_info( NULL, 0, "NODE ANNOUNCE: Nodes key broken or missing" );
-		return;
-	}
-
-	/* Lookup ID */
-	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( !p2p_is_hash( ben_lkp_id ) ) {
-		log_info( NULL, 0, "Missing or broken lookup ID" );
-		return;
-	}
-
-	/* Announce myself */
-	announce_resolve( ben_lkp_id->v.s->s, node_id, from );
-
-	/* Reply */
-	item = nodes->v.l->start;
-	for( i=0; i<nodes->v.l->counter; i++ ) {
-		node = item->val;
-
-		/* Node */
-		if( !ben_is_dict( node ) ) {
-			log_info( NULL, 0, "Node key broken or missing" );
-			return;
-		}
-
-		/* ID */
-		id = ben_searchDictStr( node, "i" );
-		if( !p2p_is_hash( id ) ) {
-			log_info( NULL, 0, "ID key broken or missing" );
-			return;
-		}
-
-		/* IP */
-		ip = ben_searchDictStr( node, "a" );
-		if( !p2p_is_ip( ip ) ) {
-			log_info( NULL, 0, "IP key broken or missing" );
-			return;
-		}
-
-		/* Port */
-		po = ben_searchDictStr( node, "p" );
-		if( !p2p_is_port( po ) ) {
-			log_info( NULL, 0, "Port key broken or missing" );
-			return;
-		}
-
-		/* Compute source */
-		memset( &sin, '\0', sizeof(IP) );
-		sin.sin6_family = AF_INET6;
-		memcpy( &sin.sin6_addr, ip->v.s->s, 16 );
-		memcpy( &sin.sin6_port, po->v.s->s, 2 );
-
-		/* Announce myself */
-		announce_resolve( ben_lkp_id->v.s->s, id->v.s->s, &sin );
-
-		/* Store node */
-		if( !node_me( id->v.s->s) ) {
-			n = node_put( id->v.s->s, (IP *)&sin );
-			node_update_address( n, (IP *)&sin );
-			nbhd_put( n );
-		}
-
-		item = list_next( item );
-	}
-}
-
-void p2p_node_lookup( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
-	struct obj_ben *nodes = NULL;
-	struct obj_ben *node = NULL;
-	struct obj_ben *id = NULL;
-	struct obj_ben *ip = NULL;
-	struct obj_ben *po = NULL;
-	struct obj_ben *ben_lkp_id = NULL;
-	ITEM *item = NULL;
-	NODE *n = NULL;
-	IP sin;
-	long int i = 0;
-
-	if( !cache_validate( node_sk ) ) {
-		log_info( NULL, 0, "Unexpected reply!" );
-		return;
-	}
-
-	/* Requirements */
-	nodes = ben_searchDictStr( packet, "n" );
-	if( !ben_is_list( nodes ) ) {
-		log_info( NULL, 0, "LOOKUP: Nodes key broken or missing" );
-		return;
-	}
-
-	/* Lookup ID */
-	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( !p2p_is_hash( ben_lkp_id ) ) {
-		log_info( NULL, 0, "Missing or broken lookup ID" );
-		return;
-	}
-
-	/* Lookup the requested hostname */
-	lkp_resolve( ben_lkp_id->v.s->s, node_id, from );
-
-	/* Reply */
-	item = nodes->v.l->start;
-	for( i=0; i<nodes->v.l->counter; i++ ) {
-		node = item->val;
-
-		/* Node */
-		if( !ben_is_dict( node ) ) {
-			log_info( NULL, 0, "Node key broken or missing" );
-			return;
-		}
-
-		/* ID */
-		id = ben_searchDictStr( node, "i" );
-		if( !p2p_is_hash( id ) ) {
-			log_info( NULL, 0, "ID key broken or missing" );
-			return;
-		}
-
-		/* IP */
-		ip = ben_searchDictStr( node, "a" );
-		if( !p2p_is_ip( ip ) ) {
-			log_info( NULL, 0, "IP key broken or missing" );
-			return;
-		}
-
-		/* Port */
-		po = ben_searchDictStr( node, "p" );
-		if( !p2p_is_port( po ) ) {
-			log_info( NULL, 0, "Port key broken or missing" );
-			return;
-		}
-
-		/* Compute source */
-		memset( &sin, '\0', sizeof(IP) );
-		sin.sin6_family = AF_INET6;
-		memcpy( &sin.sin6_addr, ip->v.s->s, 16 );
-		memcpy( &sin.sin6_port, po->v.s->s, 2 );
-
-		/* Lookup the requested hostname */
-		lkp_resolve( ben_lkp_id->v.s->s, id->v.s->s, &sin );
-
-		/* Store node */
-		if( !node_me( id->v.s->s) ) {
-			n = node_put( id->v.s->s, (IP *)&sin );
-			node_update_address( n,( IP *)&sin );
-			nbhd_put( n );
-		}
-
-		item = list_next( item );
-	}
-}
-
-void p2p_value( struct obj_ben *packet, UCHAR *node_id, UCHAR *node_sk, IP *from ) {
-	struct obj_ben *ben_address = NULL;
-	struct obj_ben *ben_lkp_id = NULL;
-
-	if( !cache_validate( node_sk ) ) {
-		log_info( NULL, 0, "Unexpected reply!" );
-		return;
-	}
-
-	/* Requirements */
-	ben_address = ben_searchDictStr( packet, "a" );
-	if( !p2p_is_ip( ben_address ) ) {
-		log_info( NULL, 0, "Missing or broken lookup address" );
-		return;
-	}
-
-	/* Lookup ID */
-	ben_lkp_id = ben_searchDictStr( packet, "l" );
-	if( !p2p_is_hash( ben_lkp_id ) ) {
-		log_info( NULL, 0, "Missing or broken lookup ID" );
-		return;
-	}
-
-	/* Return IP to NSS */
-	lkp_success(ben_lkp_id->v.s->s, ben_address->v.s->s);
-}
-
-void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
-	UCHAR lkp_id[SHA_DIGEST_LENGTH];
-	UCHAR host_id[SHA_DIGEST_LENGTH];
-	IP *address;
+	UCHAR *p = NULL;
+	UCHAR *id = NULL;
+	int j = 0;
+	ITEM *ti = NULL;
+	LOOKUP *l = NULL;
 
 	/* Validate hostname */
 	if ( !str_isValidHostname( (char *)hostname, size ) ) {
@@ -761,41 +1018,58 @@ void p2p_lookup_nss( UCHAR *hostname, size_t size, IP *from ) {
 		return;
 	}
 
-	/* That is the lookup key */
-	p2p_compute_realm_id( host_id, (char *)hostname );
+	/* Compute lookup key */
+	p2p_compute_realm_id( target, (char *)hostname );
 
-	/* Check my own DB for that node. */
+	/* Check my own DB for that target. */
 	mutex_block( _main->p2p->mutex );
-	address = db_address( host_id );
+	nodes_compact_size = p2p_value_compact_list( nodes_compact_list, target );
 	mutex_unblock( _main->p2p->mutex );
 
-	if( address != NULL ) {
+	/* Direct reply if possible */
+	if( nodes_compact_size > 0 ) {
 		log_info( NULL, 0, "LOOKUP %s (Local)", hostname );
-		lkp_local( address, from );
+		sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
+			(const struct sockaddr *)from, sizeof( IP ) );
 		return;
 	}
 
+	/* Start the incremental remote search program */
 	log_info( NULL, 0, "LOOKUP %s (Remote)", hostname );
-
-	/* Create random id to identify this search request */
-	rand_urandom( lkp_id, SHA_DIGEST_LENGTH );
-
-	/* Start find process */
 	mutex_block( _main->p2p->mutex );
-	lkp_put( host_id, lkp_id, from );
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target );
 	mutex_unblock( _main->p2p->mutex );
+
+	/* Create tid and get the lookup table */
+	ti = tdb_put(P2P_GET_PEERS, target, from );
+	l = tdb_ldb( ti );
+
+	p = nodes_compact_list;
+	for( j=0; j<nodes_compact_size; j+=38 ) {
+		memset( &sin, '\0', sizeof(IP) );
+
+		/* ID */
+		id = p;
+		p += SHA_DIGEST_LENGTH;
+
+		/* IP */
+		sin.sin6_family = AF_INET6;
+		memcpy( &sin.sin6_addr, p, 16 );
+		p += 16;
+
+		/* Port */
+		memcpy( &sin.sin6_port, p, 2 );
+		p += 2;
+
+		/* Query node */
+		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
+
+		/* Remember queried node */
+		nbhd_put( l->nbhd, id, (IP *)&sin );
+	}
 }
 
-void p2p_announce_myself( void ) {
-	UCHAR lkp_id[SHA_DIGEST_LENGTH];
-
-	/* Create random id to identify this search request */
-	rand_urandom( lkp_id, SHA_DIGEST_LENGTH );
-
-	/* Start find process */
-	announce_put( lkp_id );
-}
-
+/* FIXME: XOR */
 void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
 	char buffer[MAIN_BUF+1];
 
@@ -808,7 +1082,99 @@ void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
 	}
 }
 
-int p2p_is_hash( struct obj_ben *node ) {
+int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
+	UCHAR *p = nodes_compact_list;
+	ITEM *item = NULL;
+	BUCK *b = NULL;
+	NODE *n = NULL;
+	long int i = 0;
+	IP *sin = NULL;
+	int size = 0;
+
+	/* Find matching bucket */
+	if( ( item = bckt_find_any_match( l, target)) == NULL ) {
+		return 0;
+	} else {
+		b = list_value( item );
+	}
+
+/* FIXME: Always send 8 nodes, even if there are bad ones in between */
+
+	/* Walkthrough bucket */
+	item = b->nodes->start;
+	for( i=0; i<b->nodes->counter && i<8; i++ ) {
+		n = list_value( item );
+		
+		/* Do not include nodes, that are questionable */
+		if( n->pinged > 0 ) {
+			item = list_next( item );
+			continue;
+		}
+
+		/* Network data */
+		sin = (IP*)&n->c_addr;
+
+		/* Node ID */
+		memcpy( p, n->id, SHA_DIGEST_LENGTH );
+		p += SHA_DIGEST_LENGTH;
+
+		/* IP */
+		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );
+		p += 16;
+
+		/* Port */
+		memcpy( p, (UCHAR *)&sin->sin6_port, 2 );
+		p += 2;
+
+		size += 38;
+
+		item = list_next( item );
+	}
+	
+	return size;
+}
+
+int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target ) {
+	UCHAR *p = nodes_compact_list;
+	DB_NODE *db_node = NULL;
+	DB_ID *db_id = NULL;
+	ITEM *item = NULL;
+	long int j = 0;
+	IP *sin = NULL;
+	int size = 0;
+
+	/* Look into the local database */
+	if( ( item = db_find_id( target ) ) == NULL ) {
+		return 0;
+	} else {
+		db_id = list_value( item );
+	}
+
+	/* Walkthrough local database */
+	item = db_id->list->start;
+	for( j = 0; j < db_id->list->counter && j < 8; j++ ) {
+		db_node = list_value( item );
+
+		/* Network data */
+		sin = (IP*)&db_node->c_addr;
+
+		/* IP */
+		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );
+		p += 16;
+
+		/* Port */
+		memcpy( p, (UCHAR *)&sin->sin6_port, 2 );
+		p += 2;
+
+		size += 18;
+
+		item = list_next( item );
+	}
+	
+	return size;
+}
+
+int p2p_is_hash( BEN *node ) {
 	if( node == NULL ) {
 		return 0;
 	}
@@ -821,7 +1187,7 @@ int p2p_is_hash( struct obj_ben *node ) {
 	return 1;
 }
 
-int p2p_is_ip( struct obj_ben *node ) {
+int p2p_is_ip( BEN *node ) {
 	if( node == NULL ) {
 		return 0;
 	}
@@ -834,7 +1200,7 @@ int p2p_is_ip( struct obj_ben *node ) {
 	return 1;
 }
 
-int p2p_is_port( struct obj_ben *node ) {
+int p2p_is_port( BEN *node ) {
 	if( node == NULL ) {
 		return 0;
 	}

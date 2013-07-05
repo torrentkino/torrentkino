@@ -36,12 +36,12 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "malloc.h"
 #include "log.h"
 
-void hex_encode( char *out, const UCHAR *in ) {
+void hex_hash_encode( char *out, const UCHAR *in ) {
 	UCHAR *p0 = (UCHAR *)in;
 	char *p1 = out;
 	long int i = 0;
 
-	memset( out, '\0', HEX_LEN+1 );
+	memset( out, '\0', HEX_LEN );
 
 	for( i=0; i<SHA_DIGEST_LENGTH; i++ ) {
 		snprintf( p1, 3, "%02x", *p0 ); 

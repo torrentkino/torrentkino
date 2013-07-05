@@ -17,34 +17,21 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-struct obj_lookups {
-	LIST *list;
-	HASH *hash;
-};
-typedef struct obj_lookups LOOKUPS;
-
 struct obj_lookup {
-	LIST *list;
-	HASH *hash;
 
-	UCHAR find_id[SHA_DIGEST_LENGTH+1];
-	UCHAR lkp_id[SHA_DIGEST_LENGTH+1];
+	/* What are we looking for */
+    UCHAR target[SHA_DIGEST_LENGTH];
 
+	/* Organize replies like our own neighbourhood */
+	NBHD *nbhd;
+
+	/* Caller */
 	IP c_addr;
-	time_t time_find;
-
 };
 typedef struct obj_lookup LOOKUP;
 
-LOOKUPS *lkp_init( void );
-void lkp_free( void );
+LOOKUP *ldb_init( UCHAR *target, IP *from );
+void ldb_free( LOOKUP *ldb );
 
-LOOKUP *lkp_put( UCHAR *find_id, UCHAR *lkp_id, IP *from );
-void lkp_del( ITEM *i );
-
-void lkp_expire( void );
-
-void lkp_resolve( UCHAR *lkp_id, UCHAR *node_id, IP *c_addr );
-void lkp_success( UCHAR *lkp_id, UCHAR *address );
-void lkp_local( IP *address, IP *from );
-void lkp_remember( LOOKUP *l, UCHAR *node_id );
+int ldb_contacted_node(LOOKUP *ldb, UCHAR *node_id);
+void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, struct obj_ben *token, IP *from );

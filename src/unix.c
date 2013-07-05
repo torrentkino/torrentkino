@@ -75,11 +75,11 @@ void unix_signal( void ) {
 }
 
 void unix_sig_stop( int signo ) {
-	_main->status = MAIN_SHUTDOWN;
+	_main->status = GAMEOVER;
 }
 
 void unix_sig_time( int signo ) {
-	_main->status = MAIN_SHUTDOWN;
+	_main->status = GAMEOVER;
 }
 
 void unix_set_time( int seconds ) {

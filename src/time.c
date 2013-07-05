@@ -41,21 +41,25 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "file.h"
 #include "unix.h"
 #include "ben.h"
+#include "token.h"
+#include "neighbourhood.h"
+#include "lookup.h"
+#include "transaction.h"
 #include "p2p.h"
 #include "time.h"
 
-time_t time_add_1_min( void ) {
-	return _main->p2p->time_now.tv_sec + TIME_1_MINUTE;
+void time_add_1_min( time_t *time ) {
+	*time = _main->p2p->time_now.tv_sec + 60;
 }
 
-time_t time_add_15_min( void ) {
-	return _main->p2p->time_now.tv_sec + TIME_15_MINUTES;
+void time_add_30_min( time_t *time ) {
+	*time = _main->p2p->time_now.tv_sec + 1800;
 }
 
-time_t time_add_2_min_approx( void ) {
-	return _main->p2p->time_now.tv_sec + TIME_1_MINUTE + random() % TIME_2_MINUTES;
+void time_add_1_min_approx( time_t *time ) {
+	*time = _main->p2p->time_now.tv_sec + 50 + random() % 20;
 }
 
-time_t time_add_5_min_approx( void ) {
-	return _main->p2p->time_now.tv_sec + TIME_4_MINUTES + random() % TIME_2_MINUTES;
+void time_add_5_min_approx( time_t *time ) {
+	*time = _main->p2p->time_now.tv_sec + 240 + random() % 120;
 }

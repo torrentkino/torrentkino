@@ -41,19 +41,22 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 #include "unix.h"
 #include "hash.h"
-#include "node_p2p.h"
+#include "token.h"
+#include "neighbourhood.h"
+#include "lookup.h"
+#include "transaction.h"
 #include "p2p.h"
 #include "bucket.h"
 #include "send_p2p.h"
 #include "database.h"
 #include "search.h"
 #include "time.h"
-
+#include "hex.h"
 
 struct obj_database *db_init(void) {
 	struct obj_database *database = (struct obj_database *) myalloc(sizeof(struct obj_database), "db_init");
 	database->list = list_init();
-	database->hash = hash_init( 4096 );
+	database->hash = hash_init( 100 );
 	return database;
 }
 
@@ -64,103 +67,114 @@ void db_free(void) {
 	myfree(_main->database, "db_free");
 }
 
-void db_put(UCHAR *host_id, IP *sa) {
+void db_put(UCHAR *target, int port, UCHAR *node_id, IP *sa) {
+	DB_NODE *db_node = NULL;
+	DB_ID *db_id = NULL;
 	ITEM *i = NULL;
-	DB *db = NULL;
+	char hex[HEX_LEN];
 
-	/* It's me */
-	if( node_me( host_id ) ) {
-		return;
-	}
+	/* ID list */
+	if ( (i = db_find_id( target )) == NULL ) {
 
-	/* Create new storage place holder if necessary */
-	if ( (i = db_find( host_id )) == NULL ) {
+		db_id = (DB_ID *) myalloc(sizeof(DB_ID), "db_put");
+		memcpy(db_id->id, target, SHA_DIGEST_LENGTH);
+		db_id->list = list_init();
+		db_id->hash = hash_init( 100 );
 
-		db = (DB *) myalloc(sizeof(DB), "db_put");
-		memcpy(db->host_id, host_id, SHA_DIGEST_LENGTH);
-		db_update(db, sa);
+		i = list_put(_main->database->list, db_id);
+		hash_put(_main->database->hash, db_id->id, SHA_DIGEST_LENGTH, i );
 
-		i = list_put(_main->database->list, db);
-		hash_put(_main->database->hash, db->host_id, SHA_DIGEST_LENGTH, i );
-
-		log_info( NULL, 0, "Database size: %li (+1)", _main->database->list->counter);
+		hex_hash_encode( hex, target );
+		log_info( NULL, 0, "INFO_HASH: %li (+) %s",
+			_main->database->list->counter, hex );
 
 	} else {
-		db = i->val;
+		db_id = list_value( i );
 	}
 
-	db_update(db, sa);
+	/* Node list */
+	if ( (i = db_find_node( db_id->hash, node_id )) == NULL ) {
+
+		db_node = (DB_NODE *) myalloc(sizeof(DB_NODE), "db_put");
+		memcpy(db_node->id, node_id, SHA_DIGEST_LENGTH);
+
+		i = list_put(db_id->list, db_node);
+		hash_put(db_id->hash, db_node->id, SHA_DIGEST_LENGTH, i );
+	} else {
+		db_node = list_value( i );
+	}
+
+	db_update(db_node, sa, port);
 }
 
-void db_update(DB *db, IP *sa) {
-	db->time_anno = time_add_15_min();
+void db_update(DB_NODE *db, IP *sa, int port) {
+	time_add_30_min( &db->time_anno );
+	
+	/* Store announcing IP address */
 	memcpy(&db->c_addr, sa, sizeof(IP));
+
+	/* Store the announced port, not the the source port of the sender */
+	db->c_addr.sin6_port = htons(port);
 }
 
-void db_del(ITEM *i) {
-	DB *db = i->val;
-	hash_del(_main->database->hash, db->host_id, SHA_DIGEST_LENGTH );
-	list_del(_main->database->list, i);
-	myfree(db, "db_del");
+void db_del_id(ITEM *i_id) {
+	DB_ID *db_id = list_value( i_id );
+	hash_del(_main->database->hash, db_id->id, SHA_DIGEST_LENGTH );
+	list_del(_main->database->list, i_id);
+	myfree(db_id, "db_del");
+}
+
+void db_del_node(DB_ID *db_id, ITEM *i_node) {
+	DB_NODE *db_node = list_value( i_node );
+	hash_del(db_id->hash, db_node->id, SHA_DIGEST_LENGTH );
+	list_del(db_id->list, i_node);
+	myfree(db_node, "db_del");
 }
 
 void db_expire(void) {
-	ITEM *i = NULL;
-	ITEM *n = NULL;
-	DB *db = NULL;
-	long int j=0;
+	ITEM *i_id = NULL;
+	ITEM *n_id = NULL;
+	DB_ID *db_id = NULL;
+	ITEM *i_node = NULL;
+	ITEM *n_node = NULL;
+	DB_NODE *db_node = NULL;
+	long int j = 0, k = 0;
+	char hex[HEX_LEN];
 
-	i = _main->database->list->start;
-	for (j=0; j<_main->database->list->counter; j++) {
-		db = i->val;
-		n = list_next(i);
+	i_id = _main->database->list->start;
+	for( j = 0; j < _main->database->list->counter; j++ ) {
+		n_id = list_next(i_id);
+		db_id = list_value( i_id );
 
-		/* Delete node after 15 minutes without announcement. */
-		if (_main->p2p->time_now.tv_sec > db->time_anno) {
-			db_del(i);
+		i_node = db_id->list->start;
+		for( k = 0; k < db_id->list->counter; k++ ) {
+			n_node = list_next(i_node);
+			db_node = list_value( i_node );
 
-			log_info( NULL, 0, "Database size: %li (-1)",
-				_main->database->list->counter);
+			/* Delete info_hash after 30 minutes without announcement. */
+			if( _main->p2p->time_now.tv_sec > db_node->time_anno ) {
+				db_del_node(db_id, i_node);
+			}
+
+			i_node = n_node;
+		}
+		
+		if( db_id->list->counter == 0 ) {
+			db_del_id(i_id);
+
+			hex_hash_encode( hex, db_id->id );
+			log_info( NULL, 0, "INFO_HASH: %li (-) %s",
+				_main->database->list->counter, hex );
 		}
 
-		i = n;
+		i_id = n_id;
 	}
 }
 
-ITEM *db_find(UCHAR *host_id) {
-	ITEM *i = NULL;
-
-	if ( (i = hash_get( _main->database->hash, host_id, SHA_DIGEST_LENGTH )) != NULL ) {
-		return i;
-	}
-
-	return NULL;
+ITEM *db_find_id(UCHAR *target) {
+	return hash_get( _main->database->hash, target, SHA_DIGEST_LENGTH );
 }
 
-int db_send(IP *from, UCHAR *host_id, UCHAR *lkp_id, UCHAR *key_id) {
-	ITEM *i = NULL;
-	DB *db = NULL;
-	
-	if ( (i = db_find(host_id)) == NULL ) {
-		return 0;
-	}
-	db = i->val;
-
-	/* Reply the stored IP address. */
-	send_value( from, &db->c_addr, key_id, lkp_id );
-
-	return 1;
-}
-
-IP *db_address(UCHAR *host_id) {
-	ITEM *i = NULL;
-	DB *db = NULL;
-	
-	if ( (i = db_find(host_id)) == NULL ) {
-		return NULL;
-	}
-	db = i->val;
-
-	/* Reply the stored IP address. */
-	return &db->c_addr;
+ITEM *db_find_node(HASH *hash, UCHAR *node_id) {
+	return hash_get( hash, node_id, SHA_DIGEST_LENGTH );
 }

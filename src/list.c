@@ -111,8 +111,8 @@ ITEM *list_put( LIST *list, void *payload ) {
 	return newItem;
 }
 
-ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
-	ITEM *new = NULL;
+ITEM *list_join( LIST *list, ITEM *orig, void *payload ) {
+	ITEM *item = NULL;
 	ITEM *next = NULL;
 
 	/* Overflow */
@@ -121,33 +121,32 @@ ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
 	}
 
 	/* This insert is like a normal list_put */
-	if( list->counter <= 1 ) {
+	if( list->counter < 2 ) {
 		return list_put( list, payload );
 	}
 
-	/* Data */
-	new = (ITEM *) myalloc( sizeof(ITEM), "list_app" );
-	new->val = payload;
-
-	/* Setup pointer */
-	next = here->next;
-	new->next = here->next;
-	new->prev = here;
-	here->next = new;
-	next->prev = new;
-
-	/* Fix start and stop */
-	if( here == list->start && list->counter == 2 ) {
-		list->stop = here->next;
-	} else if( here == list->stop ) {
-		list->start = here->next;
+	/* This insert is like a normal list_put */
+	if( orig == list->stop ) {
+		return list_put( list, payload );
 	}
+
+	/* Payload */
+	item = (ITEM *) myalloc( sizeof(ITEM), "list_join" );
+	item->val = payload;
+
+	/* Pointer */
+	next = orig->next;
 	
-	/* Increment counter */
+	item->next = next;
+	item->prev = orig;
+	
+	orig->next = item;
+	next->prev = item;
+
+	/* Counter */
 	list->counter++;
 
-	/* Return pointer to the new entry */
-	return new;
+	return item;
 }
 
 ITEM *list_del( LIST *list, ITEM *item ) {
@@ -304,4 +303,8 @@ void list_swap( LIST *list, ITEM *item1, ITEM *item2 ) {
 		printf( "#Nachher: %s > %s > %s\n", key1->v.s->s, key2->v.s->s, key3->v.s->s );
 		*/
 	}
+}
+
+void *list_value( ITEM *item ) {
+	return item->val;
 }

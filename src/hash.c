@@ -144,13 +144,13 @@ void hash_del( HASH *map, UCHAR *key, long int keysize ) {
 	}
 	
 	if( bucket->count == 1 ) {
-		myfree( bucket->pairs, "hash_rem" );
+		myfree( bucket->pairs, "hash_del" );
 		bucket->pairs = NULL;
 		bucket->count = 0;
 	} else if( bucket->count > 1 ) {
 		/* Get new memory and remember the old one */
 		oldpair = bucket->pairs;
-		newpair = myalloc( (bucket->count - 1) * sizeof(PAIR), "hash_rem" );
+		newpair = myalloc( (bucket->count - 1) * sizeof(PAIR), "hash_del" );
 
 		/* Copy pairs except the one to delete */
 		p_old = oldpair;
@@ -163,7 +163,7 @@ void hash_del( HASH *map, UCHAR *key, long int keysize ) {
 			p_old++;
 		}
 
-		myfree( oldpair, "hash_rem" );
+		myfree( oldpair, "hash_del" );
 		bucket->pairs = newpair;
 		bucket->count--;
 	}

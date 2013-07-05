@@ -18,8 +18,6 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define MAIN_BUF 1023
-#define MAIN_ONLINE	0
-#define MAIN_SHUTDOWN 1
 #define MAIN_PROTVER 1
 #define MAIN_IPBUF 39
 #define SHA_DIGEST_LENGTH 20
@@ -27,29 +25,29 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define TRUE 1
 #define FALSE 0
 
+#define GAMEOVER 0
+#define RUMBLE 1
+
 typedef unsigned char UCHAR;
 typedef unsigned long int ULONG;
 typedef struct sockaddr_in6 IP;
 
 struct obj_main {
-	/* Main arguments */
 	int argc;
 	char **argv;
 
 	/* Data */
 	struct obj_conf	*conf;
-	struct obj_nodes *nodes;
 #ifdef TUMBLEWEED
 	struct obj_mime *mime;
 	struct obj_tcp *tcp;
 #elif MASALA
+	struct obj_transaction *transaction;
+	struct obj_database *database;
+	struct obj_token *token;
+	struct obj_nbhd *nbhd;
 	struct obj_udp *udp;
 	struct obj_p2p *p2p;
-	struct obj_cache *cache;
-	struct obj_list *nbhd;
-	struct obj_lookups *lkps;
-	struct obj_database *database;
-	struct obj_announce *announce;
 #endif
 
 	/* Thread terminater */

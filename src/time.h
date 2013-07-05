@@ -17,14 +17,7 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define TIME_1_MINUTE 60
-#define TIME_2_MINUTES 120
-#define TIME_3_MINUTES 180
-#define TIME_4_MINUTES 240
-#define TIME_5_MINUTES 300
-#define TIME_15_MINUTES 900
-
-time_t time_add_1_min( void );
-time_t time_add_15_min( void );
-time_t time_add_2_min_approx( void );
-time_t time_add_5_min_approx( void );
+void time_add_1_min( time_t *time );
+void time_add_30_min( time_t *time );
+void time_add_1_min_approx( time_t *time );
+void time_add_5_min_approx( time_t *time );

@@ -17,18 +17,18 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SEND_UNICAST 0
-#define SEND_MULTICAST 1
+void send_ping( IP *sa, UCHAR *tid );
+void send_pong( IP *sa, UCHAR *tid, int tid_size );
 
-void send_ping( IP *sa, int type );
-void send_pong( IP *sa, UCHAR *node_sk );
+void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid );
+void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size );
 
-void send_announce( IP *sa, UCHAR *lkp_id );
-void send_find( IP *sa, UCHAR *node_id );
-void send_lookup( IP *sa, UCHAR *node_id, UCHAR *lkp_id );
+void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid );
+void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size );
+void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size );
 
-void send_node( IP *sa, BUCK *b, UCHAR *node_sk, UCHAR *lkp_id, UCHAR *reply_type );
-void send_value( IP *sa, IP *value, UCHAR *node_sk, UCHAR *lkp_id );
+void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size );
+void send_announce_reply( IP *sa, UCHAR *tid, int tid_size );
 
 void send_aes( IP *sa, struct obj_raw *raw );
 void send_exec( IP *sa, struct obj_raw *raw );

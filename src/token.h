@@ -17,20 +17,26 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-LIST *nbhd_init( void );
-void nbhd_free( void );
+#define TOKEN_SIZE 8
+#define TOKEN_SIZE_MAX 20
 
-void nbhd_put( NODE *n );
-void nbhd_del( NODE *n );
+struct obj_token {
+	LIST *list;
+	HASH *hash;
+};
 
-void nbhd_split( void );
-void nbhd_ping( void );
+struct obj_tkn {
+	UCHAR id[TOKEN_SIZE];
+	time_t time;
+};
 
-void nbhd_find_myself( void );
-void nbhd_find_random( void );
-void nbhd_find( UCHAR *find_id );
-void nbhd_lookup( LOOKUP *l );
-void nbhd_announce( ANNOUNCE *a );
+struct obj_token *tkn_init( void );
+void tkn_free( void );
 
-void nbhd_send( IP *sa, UCHAR *node_id, UCHAR *lkp_id, UCHAR *node_sk, UCHAR *reply_type );
-void nbhd_print( void );
+void tkn_put( void );
+void tkn_del( UCHAR *id );
+
+void tkn_create( UCHAR *id );
+void tkn_expire( void );
+int tkn_validate( UCHAR *id );
+UCHAR *tkn_read( void );

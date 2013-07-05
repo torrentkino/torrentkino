@@ -47,8 +47,10 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "unix.h"
 #include "udp.h"
 #include "ben.h"
-#include "node_p2p.h"
+#include "token.h"
+#include "neighbourhood.h"
 #include "bucket.h"
+#include "hex.h"
 
 LIST *bckt_init( void ) {
 	BUCK *b = (BUCK *) myalloc( sizeof(BUCK), "bckt_init" );
@@ -71,12 +73,10 @@ void bckt_free( LIST *thislist ) {
 
 	i = thislist->start;
 	for( j=0; j<thislist->counter; j++ ) {
-		b = i->val;
+		b = list_value( i );
 
-		/* Delete node references */
+		list_clear( b->nodes );
 		list_free( b->nodes );
-
-		/* Delete bucket */
 		myfree( b, "bckt_free" );
 
 		i = list_next( i );
@@ -96,10 +96,10 @@ void bckt_put( LIST *l, NODE *n ) {
 		log_fail( "Something is terribly broken: No appropriate bucket found for ID" );
 		return;
 	}
-	b = i->val;
+	b = list_value( i );
 
 	if( bckt_find_node( l, n->id) != NULL ) {
-		/* Node node found */
+		/* Node found */
 		return;
 	}
 
@@ -119,7 +119,7 @@ void bckt_del( LIST *l, NODE *n ) {
 		log_fail( "Something is terribly broken: No appropriate bucket found for ID" );
 		return;
 	}
-	b = item_b->val;
+	b = list_value( item_b );
 
 	if( ( item_n = bckt_find_node( l, n->id)) == NULL ) {
 		/* Node node found */
@@ -139,7 +139,7 @@ ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id ) {
 	item = thislist->start;
 	for( i=0; i<thislist->counter-1; i++ ) {
 		next = list_next( item );
-		b = next->val;
+		b = list_value( next );
 
 		/* Does this bucket fits better than the next one? */
 		if( memcmp( id, b->id, SHA_DIGEST_LENGTH) < 0 ) {
@@ -159,7 +159,7 @@ ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id ) {
 	long int j=0;
 
 	i = bckt_find_best_match( thislist, id );
-	b = i->val;
+	b = list_value( i );
 
 	/* Success, */
 	if( b->nodes->counter > 0 ) {
@@ -169,7 +169,7 @@ ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id ) {
 	/* This bucket is empty: Find another one. */
 	for( j=0; j<thislist->counter; j++ ) {
 
-		b = i->val;
+		b = list_value( i );
 		if( b->nodes->counter > 0 ) {
 			return i;
 		}
@@ -190,13 +190,13 @@ ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	if( ( item_b = bckt_find_best_match( thislist, id)) == NULL ) {
 		return NULL;
 	}
-	b = item_b->val;
+	b = list_value( item_b );
 
 	list_n = b->nodes;
 	item_n = list_n->start;
 	for( i=0; i<list_n->counter; i++ ) {
-		n = item_n->val;
-		if( node_equal( n->id, id ) ) {
+		n = list_value( item_n );
+		if( nbhd_equal( n->id, id ) ) {
 			return item_n;
 		}
 		item_n = list_next( item_n );
@@ -205,7 +205,7 @@ ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	return NULL;
 }
 
-int bckt_split( LIST *thislist, const UCHAR *id ) {
+int bckt_split( LIST *thislist, const UCHAR *target ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	LIST *list_n = NULL;
@@ -218,19 +218,19 @@ int bckt_split( LIST *thislist, const UCHAR *id ) {
 	long int i = 0;
 
 	/* Search bucket we want to evolve */
-	if( ( item_b = bckt_find_best_match( thislist, id)) == NULL ) {
-		return 0;
+	if( ( item_b = bckt_find_best_match( thislist, target)) == NULL ) {
+		return FALSE;
 	}
-	b = item_b->val;
+	b = list_value( item_b );
 
 	/* Split whenever there are more than 8 nodes within a bucket */
 	if( b->nodes->counter <= 8 ) {
-		return 0;
+		return FALSE;
 	}
 
 	/* Compute id of the new bucket */
 	if( bckt_compute_id( thislist, item_b, id_new) < 0 ) {
-		return 0;
+		return FALSE;
 	}
 	
 	/* Create new bucket */
@@ -239,7 +239,7 @@ int bckt_split( LIST *thislist, const UCHAR *id ) {
 	b_new->nodes = list_init();
 	
 	/* Insert new bucket */
-	list_ins( thislist, item_b, b_new );
+	list_join( thislist, item_b, b_new );
 
 	/* Remember nodes */
 	list_n = b->nodes;
@@ -250,10 +250,10 @@ int bckt_split( LIST *thislist, const UCHAR *id ) {
 	/* Walk through the existing nodes and find an adequate bucket */
 	item_n = list_n->start;
 	for( i=0; i<list_n->counter; i++ ) {
-		n = item_n->val;
+		n = list_value( item_n );
 		item_s = bckt_find_best_match( thislist, n->id );
 
-		s = item_s->val;
+		s = list_value( item_s );
 		list_put( s->nodes, n );
 
 		item_n = list_next( item_n );
@@ -263,11 +263,80 @@ int bckt_split( LIST *thislist, const UCHAR *id ) {
 	list_free( list_n );
 
 	/* Bucket successfully split */
-	return 1;
+	return TRUE;
 }
 
-int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id_return ) {
-	BUCK *b = item_b->val;
+void bckt_split_loop( LIST *l, UCHAR *target ) {
+/*	int change = FALSE; */
+
+	/* Do as many splits as neccessary */
+	for( ;; ) {
+		if( !bckt_split( l, target) ) {
+			break;
+/*			change = TRUE; */
+		}
+	}
+
+/*	if( change == TRUE ) {
+		bckt_split_print( l );
+	} */
+}
+
+void bckt_split_print( LIST *l ) {
+	ITEM *item_b = NULL;
+	BUCK *b = NULL;
+	ITEM *item_n = NULL;
+	NODE *n = NULL;
+	long int j = 0, k = 0;
+	char hex[HEX_LEN];
+
+	log_info( NULL, 0, "Bucket split:" );
+
+	/* Cycle through all the buckets */
+	item_b = l->start;
+	for( k = 0; k < l->counter; k++ ) {
+		b = list_value( item_b );
+
+		hex_hash_encode( hex, b->id );
+		log_info( NULL, 0, " Bucket: %s", hex );
+
+		/* Cycle through all the nodes */
+		item_n = b->nodes->start;
+		for( j=0; j<b->nodes->counter; j++ ) {
+			n = list_value( item_n );
+
+			hex_hash_encode( hex, n->id );
+			log_info( NULL, 0, "  Node: %s", hex );
+
+			item_n = list_next( item_n );
+		}
+
+		item_b = list_next( item_b );
+	}
+}
+
+int bckt_is_empty( LIST *l ) {
+	ITEM *i = NULL;
+	BUCK *b = NULL;
+	long int j = 0;
+
+	/* Cycle through all the buckets */
+	i = l->start;
+	for( j = 0; j < l->counter; j++ ) {
+		b = list_value( i );
+
+		if( b->nodes->counter > 0 ) {
+			return FALSE;
+		}
+
+		i = list_next( i );
+	}
+
+	return TRUE;
+}
+
+int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id ) {
+	BUCK *b = list_value( item_b );
 	ITEM *item_next = NULL;
 	BUCK *b_next = NULL;
 	int bit1 = 0;
@@ -277,19 +346,19 @@ int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id_return ) {
 	/* Is there a container next to this one? */
 	if( item_b != thislist->stop ) {
 		item_next = list_next( item_b );
-		b_next = item_next->val;
+		b_next = list_value( item_next );
 	}
 
 	bit1 = bckt_significant_bit( b->id );
-	bit2 = (b_next != NULL) ? bckt_significant_bit( b_next->id) : -1;
-	bit = (bit1 >= bit2) ? bit1 : bit2; bit++;
+	bit2 = ( b_next != NULL ) ? bckt_significant_bit( b_next->id ) : -1;
+	bit = ( bit1 >= bit2 ) ? bit1 : bit2; bit++;
 
 	if( bit >= 160 ) {
 		return -1;
 	}
 
-	memcpy( id_return, b->id, 20 );
-	id_return[bit / 8] |= (0x80 >>( bit % 8) );
+	memcpy( id, b->id, SHA_DIGEST_LENGTH );
+	id[bit / 8] |= ( 0x80 >> ( bit % 8 ) );
 
 	return 1;
 }
@@ -308,7 +377,7 @@ int bckt_significant_bit( const UCHAR *id ) {
 	}
 
 	for( j = 7; j >= 0; j-- ) {
-		if( ( id[i] &( 0x80 >> j)) != 0 ) {
+		if( ( id[i] & ( 0x80 >> j ) ) != 0 ) {
 			break;
 		}
 	}

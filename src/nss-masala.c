@@ -117,7 +117,7 @@ enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
 	char *p_idx = NULL;
 	size_t s_total = 0;
 
-	s_total = size + 1 + sizeof(char*) + sizeof(struct in6_addr) + 2 * sizeof(char* );
+	s_total = size + 1 + sizeof(char*) + sizeof(struct in6_addr) + 2 * sizeof(char*);
 	if( buflen < s_total ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
@@ -294,7 +294,7 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address ) {
 	}
 
 	n = recvfrom( sockfd, buffer, MAIN_BUF, 0, (struct sockaddr *)&sa, &salen );
-	if( n != 16 ) {
+	if( n % 18 != 0 ) {
 		return 0;
 	}
 
