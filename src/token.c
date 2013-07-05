@@ -87,16 +87,9 @@ void tkn_put( void ) {
 	hash_put( _main->token->hash, tkn->id, TOKEN_SIZE, item_tkn );
 }
 
-void tkn_del( UCHAR *id ) {
-	ITEM *item_tkn = NULL;
+void tkn_del( ITEM *item_tkn ) {
 	struct obj_tkn *tkn = list_value( item_tkn );
-
-	if( ( item_tkn = hash_get( _main->token->hash, id, TOKEN_SIZE)) == NULL ) {
-		return;
-	}
-	tkn = list_value( item_tkn );
-
-	hash_del( _main->token->hash, id, TOKEN_SIZE );
+	hash_del( _main->token->hash, tkn->id, TOKEN_SIZE );
 	list_del( _main->token->list, item_tkn );
 	myfree( tkn, "tkn_del" );
 }
@@ -114,7 +107,7 @@ void tkn_expire( void ) {
 
 		/* Bad token */
 		if( _main->p2p->time_now.tv_sec > tkn->time ) {
-			tkn_del( tkn->id );
+			tkn_del( item_tkn );
 		}
 		item_tkn = next_tkn;
 	}

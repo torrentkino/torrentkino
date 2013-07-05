@@ -34,7 +34,7 @@ struct obj_token *tkn_init( void );
 void tkn_free( void );
 
 void tkn_put( void );
-void tkn_del( UCHAR *id );
+void tkn_del( ITEM *item_tkn );
 
 void tkn_create( UCHAR *id );
 void tkn_expire( void );
