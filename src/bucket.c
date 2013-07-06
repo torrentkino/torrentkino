@@ -54,7 +54,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 LIST *bckt_init( void ) {
 	BUCK *b = (BUCK *) myalloc( sizeof(BUCK), "bckt_init" );
-	LIST *l = (LIST *) list_init();
+	LIST *l = list_init();
 	
 	/* First bucket */
 	memset( b->id, '\0', SHA_DIGEST_LENGTH );

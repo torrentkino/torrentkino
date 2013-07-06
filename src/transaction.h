@@ -18,7 +18,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define TID_SIZE 4
-#define TID_SIZE_MAX 16
+#define TID_SIZE_MAX 20
 
 struct obj_transaction {
 	LIST *list;
@@ -30,7 +30,7 @@ struct obj_tid {
 	time_t time;
 	int type;
 	int mode;
-	struct obj_lookup *lookup;
+	LOOKUP *lookup;
 };
 typedef struct obj_tid TID;
 

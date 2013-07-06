@@ -277,7 +277,7 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address ) {
 	}
 
 	/* Set receive timeout */
-	tv.tv_sec = 1;
+	tv.tv_sec = TIMEOUT;
 	tv.tv_usec = 0;
 	setsockopt( sockfd, SOL_SOCKET, SO_RCVTIMEO,( char *)&tv, sizeof(struct timeval) );
 

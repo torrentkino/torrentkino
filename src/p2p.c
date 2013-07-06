@@ -315,7 +315,7 @@ void p2p_cron_announce_start( void ) {
 	}
 }
 
-int p2p_cron_announce_now( ITEM *ti ) {
+void p2p_cron_announce_now( ITEM *ti ) {
 	ITEM *t_new = NULL;
 	int j = 0;
 	ITEM *item = NULL;
@@ -323,15 +323,14 @@ int p2p_cron_announce_now( ITEM *ti ) {
 	NODE *n = NULL;
 	TID *tid = list_value( ti );
 	LOOKUP *l = tid->lookup;
-	int result = FALSE;
 
-	/* Called by tdb_expire: One minute is over. Sort the nodes within the
+	/* Called by tdb_expire: One minute is over. Order the nodes within the
 	 * buckets. */
 	nbhd_split( l->nbhd, l->target );
 
-	/* Find matching bucket */
+	/* And find matching bucket */
 	if( ( item = bckt_find_any_match( l->nbhd->bucket, l->target)) == NULL ) {
-		return TRUE; /* Give up */
+		return;
 	} else {
 		b = list_value( item );
 	}
@@ -340,19 +339,21 @@ int p2p_cron_announce_now( ITEM *ti ) {
 	for( j = 0; j < b->nodes->counter && j < 8; j++ ) {
 		n = list_value( item );
 
-		if( n->token_size > 0 ) {
+		if( n->token_size > 0 && n->token_done == FALSE ) {
+			
 			t_new = tdb_put(P2P_ANNOUNCE, NULL, NULL);
 			send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
-			result = TRUE;
-		} else {
-			log_info( NULL, 0, "Get token: Retry" );
+		
+		} else if( n->token_size <= 0 ) {
+
+			/* I still have no token. Send one more GET_PEERS. */
+			log_info( NULL, 0, "The TOKEN is still missing. Send another GET_PEERS." );
 			send_get_peers_request( (IP *)&n->c_addr, l->target, tdb_tid( ti ) );
+		
 		}
 
 		item = list_next( item );
 	}
-
-	return result;
 }
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {

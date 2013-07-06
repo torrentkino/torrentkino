@@ -80,7 +80,6 @@ void ldb_free( LOOKUP *ldb ) {
 	}
 
 	nbhd_free( ldb->nbhd );
-	
 	myfree( ldb, "ldb_free" );
 }
 

@@ -127,17 +127,20 @@ void tdb_expire( void ) {
 
 	item = _main->transaction->list->start;
 	for( i=0; i<_main->transaction->list->counter; i++ ) {
-		tid = list_value( item );
 		next = list_next( item );
+		tid = list_value( item );
 
 		/* Too OLD or GAME OVER */
 		if( _main->p2p->time_now.tv_sec > tid->time || _main->status == GAMEOVER ) {
 
 			switch( tid->type ) {
 				case P2P_ANNOUNCE_GET_PEERS:
-					if( p2p_cron_announce_now( item ) ) {
-						tdb_del( item );
-					}
+					p2p_cron_announce_now( item );
+					tid->type = P2P_ANNOUNCE_WAIT;
+					break;
+				case P2P_ANNOUNCE_WAIT:
+					p2p_cron_announce_now( item );
+					tdb_del( item );
 					break;
 				default:
 					tdb_del( item );

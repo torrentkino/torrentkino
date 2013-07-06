@@ -25,7 +25,8 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #define P2P_FIND_NODE 3
 #define P2P_ANNOUNCE 4
 #define P2P_ANNOUNCE_GET_PEERS 5
-#define P2P_GET_PEERS 6
+#define P2P_ANNOUNCE_WAIT 6
+#define P2P_GET_PEERS 7
 
 struct obj_p2p {
 	struct timeval time_now;
@@ -52,7 +53,7 @@ void p2p_cron_find_myself( void );
 void p2p_cron_find_random( void );
 void p2p_cron_find( UCHAR *target );
 void p2p_cron_announce_start( void );
-int p2p_cron_announce_now( ITEM *ti );
+void p2p_cron_announce_now( ITEM *ti );
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );
 void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from );

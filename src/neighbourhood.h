@@ -27,8 +27,10 @@ struct obj_node {
 	IP c_addr;
 
 	UCHAR id[SHA_DIGEST_LENGTH];
+
 	UCHAR token[TOKEN_SIZE_MAX];
 	int token_size;
+	int token_done;
 
 	time_t time_ping;
 	time_t time_find;

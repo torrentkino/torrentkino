@@ -21,7 +21,8 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #define _hidden_ __attribute__( ( visibility( "hidden")))
 
 #define MAIN_BUF 1024
-#define BOOTSTRAP_PORT 8337
+#define BOOTSTRAP_PORT 6881
+#define TIMEOUT 5
 
 typedef unsigned char UCHAR;
 typedef struct sockaddr_in6 IP;

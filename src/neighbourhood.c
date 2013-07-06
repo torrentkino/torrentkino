@@ -64,6 +64,10 @@ NBHD *nbhd_init( void ) {
 }
 
 void nbhd_free( NBHD *nbhd ) {
+	if( nbhd == NULL ) {
+		return;
+	}
+
 	bckt_free( nbhd->bucket );
 	hash_free( nbhd->hash );
 	myfree( nbhd, "nbhd_free" );
@@ -97,6 +101,7 @@ void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa ) {
 		/* Token */
 		memset( n->token, '\0', TOKEN_SIZE_MAX );
 		n->token_size = 0;
+		n->token_done = FALSE;
 
 		/* Timings */
 		n->time_ping = 0;
