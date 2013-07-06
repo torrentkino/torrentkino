@@ -40,10 +40,11 @@ void tdb_free( void );
 ITEM *tdb_put( int type, UCHAR *target, IP *from );
 void tdb_del( ITEM *i );
 
-void tdb_create_random_id( UCHAR *id );
+void tdb_clean( void );
 void tdb_expire( void );
-ITEM *tdb_item( UCHAR *id );
 
+void tdb_create_random_id( UCHAR *id );
+ITEM *tdb_item( UCHAR *id );
 int tdb_type( ITEM *i );
 LOOKUP *tdb_ldb( ITEM *i );
 UCHAR *tdb_tid( ITEM *i );

@@ -66,11 +66,17 @@ struct obj_transaction *tdb_init( void ) {
 }
 
 void tdb_free( void ) {
-	tdb_expire(); /* Game Over Mode */
+	tdb_clean();
 	list_clear( _main->transaction->list );
 	list_free( _main->transaction->list );
 	hash_free( _main->transaction->hash );
 	myfree( _main->transaction, "tdb_free" );
+}
+
+void tdb_clean( void ) {
+	while( _main->transaction->list->start != NULL ) {
+		tdb_del( _main->transaction->list->start );
+	}
 }
 
 ITEM *tdb_put( int type, UCHAR *target, IP *from ) {

@@ -61,10 +61,25 @@ struct obj_database *db_init(void) {
 }
 
 void db_free(void) {
-	list_clear(_main->database->list);
-	list_free(_main->database->list);
+	db_clean();
+	list_clear( _main->database->list );
+	list_free( _main->database->list );
 	hash_free( _main->database->hash );
-	myfree(_main->database, "db_free");
+	myfree( _main->database, "db_free" );
+}
+
+void db_clean(void) {
+	DB_ID *db_id = NULL;
+
+	while( _main->database->list->start != NULL ) {
+		db_id = list_value( _main->database->list->start );
+
+		while( db_id->list->start != NULL ) {
+			db_del_node( db_id, db_id->list->start );
+		}
+
+		db_del_id( _main->database->list->start );
+	}
 }
 
 void db_put(UCHAR *target, int port, UCHAR *node_id, IP *sa) {

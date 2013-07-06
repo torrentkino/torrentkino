@@ -43,6 +43,7 @@ void db_put(UCHAR *target, int port, UCHAR *node_id, IP *sa);
 void db_del_id(ITEM *i_id);
 void db_del_node(DB_ID *db_id, ITEM *i_node);
 
+void db_clean(void);
 void db_expire(void);
 
 void db_update(DB_NODE *db, IP *sa, int port);
