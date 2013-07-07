@@ -91,32 +91,38 @@ void db_put(UCHAR *target, int port, UCHAR *node_id, IP *sa) {
 	/* ID list */
 	if ( (i = db_find_id( target )) == NULL ) {
 
-		db_id = (DB_ID *) myalloc(sizeof(DB_ID), "db_put");
-		memcpy(db_id->id, target, SHA_DIGEST_LENGTH);
+		db_id = (DB_ID *) myalloc( sizeof(DB_ID), "db_put" );
+
+		memcpy( db_id->target, target, SHA_DIGEST_LENGTH );
 		db_id->list = list_init();
 		db_id->hash = hash_init( 100 );
 
 		i = list_put(_main->database->list, db_id);
-		hash_put(_main->database->hash, db_id->id, SHA_DIGEST_LENGTH, i );
+		hash_put(_main->database->hash, db_id->target, SHA_DIGEST_LENGTH, i );
 
 		hex_hash_encode( hex, target );
 		log_info( NULL, 0, "INFO_HASH: %li (+) %s",
 			_main->database->list->counter, hex );
 
 	} else {
+
 		db_id = list_value( i );
+
 	}
 
 	/* Node list */
 	if ( (i = db_find_node( db_id->hash, node_id )) == NULL ) {
 
-		db_node = (DB_NODE *) myalloc(sizeof(DB_NODE), "db_put");
-		memcpy(db_node->id, node_id, SHA_DIGEST_LENGTH);
+		db_node = (DB_NODE *) myalloc( sizeof(DB_NODE), "db_put" );
+		memcpy( db_node->id, node_id, SHA_DIGEST_LENGTH );
 
-		i = list_put(db_id->list, db_node);
-		hash_put(db_id->hash, db_node->id, SHA_DIGEST_LENGTH, i );
+		i = list_put( db_id->list, db_node );
+		hash_put( db_id->hash, db_node->id, SHA_DIGEST_LENGTH, i );
+	
 	} else {
+	
 		db_node = list_value( i );
+	
 	}
 
 	db_update(db_node, sa, port);
@@ -134,9 +140,9 @@ void db_update(DB_NODE *db, IP *sa, int port) {
 
 void db_del_id(ITEM *i_id) {
 	DB_ID *db_id = list_value( i_id );
-	hash_del(_main->database->hash, db_id->id, SHA_DIGEST_LENGTH );
-	list_del(_main->database->list, i_id);
-	myfree(db_id, "db_del");
+	hash_del( _main->database->hash, db_id->target, SHA_DIGEST_LENGTH );
+	list_del( _main->database->list, i_id );
+	myfree( db_id, "db_del" );
 }
 
 void db_del_node(DB_ID *db_id, ITEM *i_node) {
@@ -175,11 +181,12 @@ void db_expire(void) {
 		}
 		
 		if( db_id->list->counter == 0 ) {
-			db_del_id(i_id);
-
-			hex_hash_encode( hex, db_id->id );
+			
+			hex_hash_encode( hex, db_id->target );
 			log_info( NULL, 0, "INFO_HASH: %li (-) %s",
 				_main->database->list->counter, hex );
+			
+			db_del_id(i_id);
 		}
 
 		i_id = n_id;

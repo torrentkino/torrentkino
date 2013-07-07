@@ -23,7 +23,7 @@ struct obj_database {
 };
 
 struct obj_database_id {
-	UCHAR id[SHA_DIGEST_LENGTH];
+	UCHAR target[SHA_DIGEST_LENGTH];
 	LIST *list;
 	HASH *hash;
 };
