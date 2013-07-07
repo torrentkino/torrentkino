@@ -290,7 +290,7 @@ void p2p_cron_announce_start( void ) {
 	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target );
 
 	/* Create tid and get the lookup table */
-	ti = tdb_put( P2P_ANNOUNCE_GET_PEERS, target, NULL );
+	ti = tdb_put( P2P_ANNOUNCE_START, target, NULL );
 	l = tdb_ldb( ti );
 
 	p = nodes_compact_list;
@@ -315,7 +315,7 @@ void p2p_cron_announce_start( void ) {
 	}
 }
 
-void p2p_cron_announce_now( ITEM *ti ) {
+void p2p_cron_announce_engage( ITEM *ti ) {
 	ITEM *t_new = NULL;
 	int j = 0;
 	ITEM *item = NULL;
@@ -324,8 +324,12 @@ void p2p_cron_announce_now( ITEM *ti ) {
 	TID *tid = list_value( ti );
 	LOOKUP *l = tid->lookup;
 
-	/* Called by tdb_expire: One minute is over. Order the nodes within the
-	 * buckets. */
+	/* Remove nodes, that did not reply with a token. We cannot announce to
+	 * them. So sort them out. */
+	nbhd_expire_nodes_with_emtpy_tokens( l->nbhd );
+
+	/* Order the nodes within the buckets. Later, we lookup the best matching
+	 * bucket. */
 	nbhd_split( l->nbhd, l->target );
 
 	/* And find matching bucket */
@@ -339,19 +343,9 @@ void p2p_cron_announce_now( ITEM *ti ) {
 	for( j = 0; j < b->nodes->counter && j < 8; j++ ) {
 		n = list_value( item );
 
-		if( n->token_size > 0 && n->token_done == FALSE ) {
-			
-			t_new = tdb_put(P2P_ANNOUNCE, NULL, NULL);
-			send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
+		t_new = tdb_put(P2P_ANNOUNCE_ENGAGE, NULL, NULL);
+		send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
 		
-		} else if( n->token_size <= 0 ) {
-
-			/* I still have no token. Send one more GET_PEERS. */
-			log_info( NULL, 0, "The TOKEN is still missing. Send another GET_PEERS." );
-			send_get_peers_request( (IP *)&n->c_addr, l->target, tdb_tid( ti ) );
-		
-		}
-
 		item = list_next( item );
 	}
 }
@@ -615,10 +609,10 @@ void p2p_reply( BEN *packet, IP *from ) {
 			p2p_find_node_get_reply( r, id->v.s->s, from );
 			break;
 		case P2P_GET_PEERS:
-		case P2P_ANNOUNCE_GET_PEERS:
+		case P2P_ANNOUNCE_START:
 			p2p_get_peers_get_reply( r, id->v.s->s, ti, from );
 			break;
-		case P2P_ANNOUNCE:
+		case P2P_ANNOUNCE_ENGAGE:
 			p2p_announce_get_reply( r, id->v.s->s, ti, from );
 			break;
 		default:
@@ -632,7 +626,7 @@ void p2p_reply( BEN *packet, IP *from ) {
 	switch( tdb_type( ti ) ) {
 		case P2P_PING:
 		case P2P_FIND_NODE:
-		case P2P_ANNOUNCE:
+		case P2P_ANNOUNCE_ENGAGE:
 			tdb_del( ti );
 			break;
 	}

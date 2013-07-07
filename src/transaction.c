@@ -97,7 +97,7 @@ ITEM *tdb_put( int type, UCHAR *target, IP *from ) {
 	/* More details */
 	switch( type ) {
 		case P2P_GET_PEERS:
-		case P2P_ANNOUNCE_GET_PEERS:
+		case P2P_ANNOUNCE_START:
 			tid->lookup = ldb_init( target, from );
 			break;
 		default:
@@ -140,17 +140,12 @@ void tdb_expire( void ) {
 		if( _main->p2p->time_now.tv_sec > tid->time || _main->status == GAMEOVER ) {
 
 			switch( tid->type ) {
-				case P2P_ANNOUNCE_GET_PEERS:
-					p2p_cron_announce_now( item );
-					tid->type = P2P_ANNOUNCE_WAIT;
+				case P2P_ANNOUNCE_START:
+					p2p_cron_announce_engage( item );
 					break;
-				case P2P_ANNOUNCE_WAIT:
-					p2p_cron_announce_now( item );
-					tdb_del( item );
-					break;
-				default:
-					tdb_del( item );
 			}
+			
+			tdb_del( item );
 		}
 
 		item = next;

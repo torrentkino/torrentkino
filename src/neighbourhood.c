@@ -73,14 +73,6 @@ void nbhd_free( NBHD *nbhd ) {
 	myfree( nbhd, "nbhd_free" );
 }
 
-int nbhd_is_empty( NBHD *nbhd ) {
-	return bckt_is_empty( nbhd->bucket );
-}
-
-void nbhd_split( NBHD *nbhd, UCHAR *target ) {
-	bckt_split_loop( nbhd->bucket, target );
-}
-
 void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa ) {
 	NODE *n = NULL;
 
@@ -101,7 +93,6 @@ void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa ) {
 		/* Token */
 		memset( n->token, '\0', TOKEN_SIZE_MAX );
 		n->token_size = 0;
-		n->token_done = FALSE;
 
 		/* Timings */
 		n->time_ping = 0;
@@ -192,6 +183,46 @@ void nbhd_expire( void ) {
 
 		 item_b = list_next( item_b );
 	}
+}
+
+void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd ) {
+	ITEM *item_b = NULL;
+	BUCK *b = NULL;
+	ITEM *item_n = NULL;
+	ITEM *item_n_next = NULL;
+	NODE *n = NULL;
+	long int j = 0, k = 0;
+
+	/* Cycle through all the buckets */
+	item_b = nbhd->bucket->start;
+	for( k=0; k<nbhd->bucket->counter; k++ ) {
+		 b = list_value( item_b );
+
+		 /* Cycle through all the nodes */
+		 item_n = b->nodes->start;
+		 for( j=0; j<b->nodes->counter; j++ ) {
+			  n = list_value( item_n );
+
+			  item_n_next = list_next( item_n );
+
+			  /* Bad node */
+			  if( n->token_size == 0 ) {
+				   nbhd_del( nbhd, n );
+			  }
+			  
+			  item_n = item_n_next;
+		 }
+
+		 item_b = list_next( item_b );
+	}
+}
+
+void nbhd_split( NBHD *nbhd, UCHAR *target ) {
+	bckt_split_loop( nbhd->bucket, target );
+}
+
+int nbhd_is_empty( NBHD *nbhd ) {
+	return bckt_is_empty( nbhd->bucket );
 }
 
 int nbhd_me( UCHAR *node_id ) {

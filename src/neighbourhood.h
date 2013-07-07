@@ -30,7 +30,6 @@ struct obj_node {
 
 	UCHAR token[TOKEN_SIZE_MAX];
 	int token_size;
-	int token_done;
 
 	time_t time_ping;
 	time_t time_find;
@@ -51,6 +50,7 @@ void nbhd_pinged( UCHAR *id );
 void nbhd_ponged( UCHAR *id, IP *sa );
 
 void nbhd_expire( void );
+void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd );
 void nbhd_split( NBHD *nbhd, UCHAR *target );
 
 int nbhd_is_empty( NBHD *nbhd );
