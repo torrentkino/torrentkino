@@ -117,9 +117,9 @@ struct obj_conf *conf_init( void ) {
 #endif
 
 #ifdef TUMBLEWEED
-	conf->quiet = CONF_VERBOSE;
+	conf->quiet = CONF_BEQUIET;
 #elif MASALA
-	conf->quiet = CONF_VERBOSE;
+	conf->quiet = CONF_BEQUIET;
 #endif
 
 #ifdef TUMBLEWEED
@@ -195,9 +195,9 @@ void conf_check( void ) {
 	}
 
 	if( _main->conf->quiet == CONF_BEQUIET ) {
-		log_info( NULL, 0, "Verbosity: Quiet (-q)" );
+		log_info( NULL, 0, "Verbosity: Quiet (-v)" );
 	} else {
-		log_info( NULL, 0, "Verbosity: Verbose (-q)" );
+		log_info( NULL, 0, "Verbosity: Verbose (-v)" );
 	}
 
 #ifdef TUMBLEWEED

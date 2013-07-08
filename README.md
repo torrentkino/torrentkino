@@ -3,25 +3,36 @@ masala(1) -- P2P name resolution daemon
 
 ## SYNOPSIS
 
-`masala`  [-d] [-q] [-h hostname] [-k password] [-r realm] [-p port] [-x server] [-y port] [-u username]
+`masala`  [-d] [-q] [-h hostname] [-k password] [-r realm] [-p port]
+[-x server] [-y port] [-u username]
 
 ## DESCRIPTION
 
-**masala** is a P2P name resolution daemon. It organizes IPv6 addresses in a
-distributed hash table. The basic design has been inspired by the Kademlia DHT.
-The communication between nodes is realized by using bencode encoded messages on
-top of UDP. There are 4 message types: PING, FIND, LOOKUP and ANNOUNCE. By
-default, masala sends the first packet to a multicast address. So there is no
-configuration necessary within your broadcast domain (LAN). With a bootstrap
-server, it is also possible to connect nodes around the globe. A NSS module
-makes any hostname with *.p2p* at the end transparently available to your Linux
-OS.
+**masala** is a P2P name resolution daemon. It resolves hostnames into IPv6
+addresses by using a distributed hash table. This DHT is compatible to the
+Kademlia DHT as used in Bittorrent Clients like Transmission.
+
+By default, masala sends the first packet to a multicast address. So, for
+intranet use cases, you do not need a bootstrap server. Just start masala on 2
+nodes without any parameters. It simply works.
+
+If you would like to connect nodes around the globe, you may use the Bittorrent
+network. Simply select a Bittorrent bootstrap server as seen in the example
+below. Your client becomes a full member of the swarm and resolves info hashes
+to IPv6/port tuples. The swarm on the other end does the same for you. But in
+your case, the info hash represents a hostname and not a torrent file.
+
+A NSS module makes any hostname with *.p2p* at the end transparently available
+to your Linux OS. The NSS modul tries to contact the masala daemon at ::1 and
+UDP/6881. The daemon then resolves the requested hostname recursively even if
+you use encryption. As long as the connection comes from ::1 the masala daemon
+will accept the recursive requests.
 
 ## FILES
 
   * **/etc/nsswitch.conf**:
-	masala gets attached to the *hosts* line. The masala daemon is used to lookup
-	an IPv6 address if the requested hostname ends on *.p2p*.
+	masala gets attached to the *hosts* line. The masala daemon then gets used
+	to lookup a hostname if the requested hostname ends on *.p2p*.
 
 ## OPTIONS
 
@@ -30,25 +41,26 @@ OS.
 
   * `-k` *password*:
 	Setting a password results in encrypting each packet with AES256. The
-	encrypted packet is encapsulated in bencode. With this action you
-	effectively isolate your nodes from the rest of the world.
+	encrypted message is encapsulated in bencode too. You effectively
+	isolate your nodes from the rest of the world this way. This method is not
+	compatible to the Bittorrent network and only works between masala
+	daemons.
 
   * `-r` *realm*:
-	Creating a realm affects the lookup process and the way how you announce
-	your hostname to the swarm. It helps you to isolate your nodes and be part
-	of a bigger swarm at the same time. This can be useful if you do not have
-	your own bootstrap server and do not want to get mixed up with the rest of
-	the swarm. You do not have problems with duplicate hostnames either as long
-	as you do not share your realm with others.
+	Creating a realm affects the method how to compute the info hash. It helps
+	you to isolate your nodes and be part of a bigger swarm at the same time.
+	This is useful to handle duplicate hostnames. So now, everybody may have his
+	own https://owncloud.p2p within his own realm for example.
 
   * `-p` *port*:
-	Listen to this port (Default: UDP/8337)
+	Listen to this port (Default: UDP/6881)
 
   * `-x` *server*:
-	Use server as a bootstrap server. The server can be an IPv6 address, a FQHN like www.example.net or even a IPv6 multicast address. (Default: ff0e::1)
+	Use server as a bootstrap server. The server can be an IPv6 address, a FQHN
+	like www.example.net or even a IPv6 multicast address. (Default: ff0e::1)
 
   * `-y` *port*:
-	The bootstrap server will be addressed at this port. (Default: UDP/8337)
+	The bootstrap server will be addressed at this port. (Default: UDP/6881)
 
   * `-u` *username*:
     When starting as root, use -u to change the UID.
@@ -56,14 +68,24 @@ OS.
   * `-d`:
 	Start as a daemon and run in background. The output will be send to syslog.
 
-  * `-q`:
-	Be quiet and do not log anything.
+  * `-v`:
+	Verbose.
+
+## INSTALLATION
+  * apt-get install build-essential
+  * apt-get install debhelper
+  * apt-get install git-buildpackage
+  * apt-get install libpolarssl-dev
+  * git-buildpackage
+  * dpkg -i ../masala_0.6_amd64.deb
 
 ## EXAMPLES
 
-Announce the hostname *fubar.p2p* with the encryption password *fubar*:
+Announce the hostname *owncloud.p2p* within the realm TooManySecrets to an IPv6
+Bittorrent bootstrap server. That bootstrap server is maintained by the creator
+of the Transmission DHT stack:
 
-	$ masala -h fubar.p2p -k fubar
+	$ masala -h owncloud.p2p -r TooManySecrets -x dht.wifi.pps.jussieu.fr
 
 ## BUGS
 

@@ -142,10 +142,13 @@ void opts_interpreter( char *var, char *val ) {
 		/* Change realm. Recompute the host_id. */
 		p2p_compute_realm_id( _main->conf->host_id, _main->conf->hostname );
 
-	} else if( strcmp( var, "-q") == 0 && val == NULL ) {
-		_main->conf->quiet = CONF_BEQUIET;
 	}
 #endif
+
+	/* Verbosity */
+	if( strcmp( var, "-v") == 0 && val == NULL ) {
+		_main->conf->quiet = CONF_VERBOSE;
+	}
 
 	/* Port number */
 	if( strcmp( var, "-p") == 0 && val != NULL ) {
