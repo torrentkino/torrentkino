@@ -6,13 +6,14 @@ CFLAGS += -Wall -Wwrite-strings -pedantic
 CFLAGS += -DMASALA
 #CFLAGS += $(shell dpkg-buildflags --get CFLAGS)
 #CFLAGS += $(HARDENING_CFLAGS)
-CFLAGS += -g
-export POST_LINKING = -lpthread -lpolarssl
+#CFLAGS += -g
+export POST_LINKING = -lpthread
+POST_LINKING += -lpolarssl
 #POST_LINKING += $(shell dpkg-buildflags --get LDFLAGS)
 #POST_LINKING += $(HARDENING_LDFLAGS)
 SUBDIRS =
 OBJS=aes.o ben.o bucket.o conf.o \
-	database.o file.o hash.o hex.o list.o \
+	file.o hash.o hex.o info_hash.o list.o \
 	log.o lookup.o main.o malloc.o \
 	neighbourhood.o opts.o p2p.o random.o send_p2p.o \
 	sha1.o str.o thrd.o time.o token.o transaction.o \

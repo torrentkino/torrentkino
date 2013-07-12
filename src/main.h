@@ -44,7 +44,7 @@ struct obj_main {
 	struct obj_nodes *nodes;
 #elif MASALA
 	struct obj_transaction *transaction;
-	struct obj_database *database;
+	struct obj_infohash *infohash;
 	struct obj_token *token;
 	struct obj_nbhd *nbhd;
 	struct obj_udp *udp;

@@ -61,7 +61,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "random.h"
 #include "sha1.h"
 #include "hex.h"
-#include "database.h"
+#include "info_hash.h"
 
 struct obj_p2p *p2p_init( void ) {
 	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
@@ -145,7 +145,7 @@ void p2p_cron( void ) {
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_expire ) {
 			tdb_expire();
 			nbhd_expire();
-			db_expire();
+			idb_expire();
 			tkn_expire();
 			time_add_1_min_approx( &_main->p2p->time_expire );
 		}
@@ -975,7 +975,7 @@ void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from ) {
 	}
 
 	/* Store info_hash */
-	db_put( info_hash->v.s->s, port->v.i, node_id, from );
+	idb_put( info_hash->v.s->s, port->v.i, node_id, from );
 
 	/* Send ack */
 	send_announce_reply( from, tid->v.s->s, tid->v.s->i );
@@ -1131,27 +1131,27 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 
 int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target ) {
 	UCHAR *p = nodes_compact_list;
-	DB_NODE *db_node = NULL;
-	DB_ID *db_id = NULL;
+	INODE *inode = NULL;
+	IHASH *ihash = NULL;
 	ITEM *item = NULL;
 	long int j = 0;
 	IP *sin = NULL;
 	int size = 0;
 
 	/* Look into the local database */
-	if( ( item = db_find_id( target ) ) == NULL ) {
+	if( ( item = idb_find_target( target ) ) == NULL ) {
 		return 0;
 	} else {
-		db_id = list_value( item );
+		ihash = list_value( item );
 	}
 
 	/* Walkthrough local database */
-	item = db_id->list->start;
-	for( j = 0; j < db_id->list->counter && j < 8; j++ ) {
-		db_node = list_value( item );
+	item = ihash->list->start;
+	for( j = 0; j < ihash->list->counter && j < 8; j++ ) {
+		inode = list_value( item );
 
 		/* Network data */
-		sin = (IP*)&db_node->c_addr;
+		sin = (IP*)&inode->c_addr;
 
 		/* IP */
 		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );

@@ -57,7 +57,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "lookup.h"
 #include "transaction.h"
 #include "p2p.h"
-#include "database.h"
+#include "info_hash.h"
 #endif
 #include "log.h"
 
@@ -78,7 +78,7 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->tcp  = NULL;
 #elif MASALA
 	_main->transaction = NULL;
-	_main->database = NULL;
+	_main->infohash = NULL;
 	_main->token = NULL;
 	_main->nbhd = NULL;
 	_main->p2p = NULL;
@@ -107,7 +107,7 @@ int main( int argc, char **argv ) {
 	_main->conf = conf_init();
 #ifdef MASALA
 	_main->nbhd = nbhd_init();
-	_main->database = db_init();
+	_main->infohash = idb_init();
 #endif
 	_main->transaction = tdb_init();
 	_main->token = tkn_init();
@@ -155,7 +155,7 @@ int main( int argc, char **argv ) {
 	nodes_free();
 	tcp_free();
 #elif MASALA
-	db_free();
+	idb_free();
 	nbhd_free(_main->nbhd);
 	tdb_free();
 	tkn_free();
