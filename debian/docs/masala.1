@@ -10,7 +10,7 @@
 \fBmasala\fR [\-d] [\-q] [\-h hostname] [\-k password] [\-r realm] [\-p port] [\-x server] [\-y port] [\-u username]
 .
 .SH "DESCRIPTION"
-\fBmasala\fR is a P2P name resolution daemon\. It resolves hostnames into IPv6 addresses by using a distributed hash table\. This DHT is compatible to the Kademlia DHT as used in Bittorrent Clients like Transmission\.
+\fBmasala\fR is a P2P name resolution daemon\. It resolves hostnames into IPv6 addresses by using a distributed hash table\. This DHT is compatible to the Kademlia DHT as used in Bittorrent clients like Transmission\.
 .
 .P
 By default, masala sends the first packet to a multicast address\. So, for intranet use cases, you do not need a bootstrap server\. Just start masala on 2 nodes without any parameters\. It simply works\.
@@ -25,7 +25,7 @@ A NSS module makes any hostname with \fI\.p2p\fR at the end transparently availa
 .
 .TP
 \fB/etc/nsswitch\.conf\fR
-masala gets attached to the \fIhosts\fR line\. The masala daemon then gets used to lookup a hostname if the requested hostname ends on \fI\.p2p\fR\.
+masala gets attached to the \fIhosts\fR line\. masala is only used for lookup requests with \fI\.p2p\fR as the TLD\.
 .
 .SH "OPTIONS"
 .

@@ -243,6 +243,7 @@ void udp_worker( struct epoll_event *events, int nfds, int thrd_id ) {
 void udp_rearm( int sockfd ) {
 	struct epoll_event ev;
 
+	memset(&ev, '\0', sizeof( struct epoll_event ) );
 	ev.events = EPOLLET | EPOLLIN | EPOLLONESHOT;
 	ev.data.fd = sockfd;
 

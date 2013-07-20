@@ -10,7 +10,7 @@ masala(1) -- P2P name resolution daemon
 
 **masala** is a P2P name resolution daemon. It resolves hostnames into IPv6
 addresses by using a distributed hash table. This DHT is compatible to the
-Kademlia DHT as used in Bittorrent Clients like Transmission.
+Kademlia DHT as used in Bittorrent clients like Transmission.
 
 By default, masala sends the first packet to a multicast address. So, for
 intranet use cases, you do not need a bootstrap server. Just start masala on 2
@@ -31,8 +31,8 @@ will accept the recursive requests.
 ## FILES
 
   * **/etc/nsswitch.conf**:
-	masala gets attached to the *hosts* line. The masala daemon then gets used
-	to lookup a hostname if the requested hostname ends on *.p2p*.
+	masala gets attached to the *hosts* line. masala is only used for lookup
+	requests with *.p2p* as the TLD.
 
 ## OPTIONS
 
