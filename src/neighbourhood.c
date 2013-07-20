@@ -67,7 +67,6 @@ void nbhd_free( NBHD *nbhd ) {
 	if( nbhd == NULL ) {
 		return;
 	}
-
 	bckt_free( nbhd->bucket );
 	hash_free( nbhd->hash );
 	myfree( nbhd, "nbhd_free" );
@@ -159,16 +158,15 @@ void nbhd_expire( void ) {
 	ITEM *item_n = NULL;
 	ITEM *item_n_next = NULL;
 	NODE *n = NULL;
-	long int j = 0, k = 0;
 
 	/* Cycle through all the buckets */
-	item_b = _main->nbhd->bucket->start;
-	for( k=0; k<_main->nbhd->bucket->counter; k++ ) {
+	item_b = list_start( _main->nbhd->bucket );
+	while( item_b != NULL ) {
 		 b = list_value( item_b );
 
 		 /* Cycle through all the nodes */
-		 item_n = b->nodes->start;
-		 for( j=0; j<b->nodes->counter; j++ ) {
+		 item_n = list_start( b->nodes );
+		 while( item_n != NULL ) {
 			  n = list_value( item_n );
 
 			  item_n_next = list_next( item_n );
@@ -191,16 +189,15 @@ void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd ) {
 	ITEM *item_n = NULL;
 	ITEM *item_n_next = NULL;
 	NODE *n = NULL;
-	long int j = 0, k = 0;
 
 	/* Cycle through all the buckets */
-	item_b = nbhd->bucket->start;
-	for( k=0; k<nbhd->bucket->counter; k++ ) {
+	item_b = list_start( nbhd->bucket );
+	while( item_b != NULL ) {
 		 b = list_value( item_b );
 
 		 /* Cycle through all the nodes */
-		 item_n = b->nodes->start;
-		 for( j=0; j<b->nodes->counter; j++ ) {
+		 item_n = list_start( b->nodes );
+		 while( item_n != NULL ) {
 			  n = list_value( item_n );
 
 			  item_n_next = list_next( item_n );

@@ -69,18 +69,17 @@ LIST *bckt_init( void ) {
 void bckt_free( LIST *thislist ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
-	long int j = 0;
 
-	i = thislist->start;
-	for( j=0; j<thislist->counter; j++ ) {
+	i = list_start( thislist );
+	while( i != NULL ) {
 		b = list_value( i );
 
 		list_clear( b->nodes );
 		list_free( b->nodes );
-		myfree( b, "bckt_free" );
 
 		i = list_next( i );
 	}
+	list_clear( thislist );
 	list_free( thislist );
 }
 
@@ -98,7 +97,7 @@ void bckt_put( LIST *l, NODE *n ) {
 	}
 	b = list_value( i );
 
-	if( bckt_find_node( l, n->id) != NULL ) {
+	if( bckt_find_node( l, n->id ) != NULL ) {
 		/* Node found */
 		return;
 	}
@@ -115,13 +114,13 @@ void bckt_del( LIST *l, NODE *n ) {
 		return;
 	}
 
-	if( ( item_b = bckt_find_best_match( l, n->id)) == NULL ) {
+	if( ( item_b = bckt_find_best_match( l, n->id ) ) == NULL ) {
 		log_fail( "Something is terribly broken: No appropriate bucket found for ID" );
 		return;
 	}
 	b = list_value( item_b );
 
-	if( ( item_n = bckt_find_node( l, n->id)) == NULL ) {
+	if( ( item_n = bckt_find_node( l, n->id ) ) == NULL ) {
 		/* Node node found */
 		return;
 	}
@@ -132,45 +131,41 @@ void bckt_del( LIST *l, NODE *n ) {
 
 ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id ) {
 	ITEM *item = NULL;
-	ITEM *next = NULL;
 	BUCK *b = NULL;
-	long int i = 0;
 
-	item = thislist->start;
-	for( i=0; i<thislist->counter-1; i++ ) {
-		next = list_next( item );
-		b = list_value( next );
+	item = list_start( thislist );
+	while( item->next != NULL ) {
+		b = list_value( list_next( item ) );
 
 		/* Does this bucket fits better than the next one? */
 		if( memcmp( id, b->id, SHA_DIGEST_LENGTH) < 0 ) {
 			return item;
 		}
 
-		item = next;
+		item = list_next( item );
 	}
 
 	/* No bucket found, so return the last one */
-	return thislist->stop;
+	return list_stop( thislist );
 }
 
 ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
-	long int j=0;
 
 	i = bckt_find_best_match( thislist, id );
 	b = list_value( i );
 
 	/* Success, */
-	if( b->nodes->counter > 0 ) {
+	if( b->nodes->item != NULL ) {
 		return i;
 	}
 
 	/* This bucket is empty: Find another one. */
-	for( j=0; j<thislist->counter; j++ ) {
+	while( i != NULL ) {
 
 		b = list_value( i );
-		if( b->nodes->counter > 0 ) {
+		if( b->nodes->item != NULL ) {
 			return i;
 		}
 		i = list_prev( i );
@@ -185,7 +180,6 @@ ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	BUCK *b = NULL;
 	LIST *list_n = NULL;
 	NODE *n = NULL;
-	long int i = 0;
 
 	if( ( item_b = bckt_find_best_match( thislist, id)) == NULL ) {
 		return NULL;
@@ -193,8 +187,8 @@ ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	b = list_value( item_b );
 
 	list_n = b->nodes;
-	item_n = list_n->start;
-	for( i=0; i<list_n->counter; i++ ) {
+	item_n = list_start( list_n );
+	while( item_n != NULL ) {
 		n = list_value( item_n );
 		if( nbhd_equal( n->id, id ) ) {
 			return item_n;
@@ -211,11 +205,8 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	LIST *list_n = NULL;
 	ITEM *item_n = NULL;
 	NODE *n = NULL;
-	ITEM *item_s = NULL;
-	BUCK *s = NULL;
 	BUCK *b_new = NULL;
 	UCHAR id_new[SHA_DIGEST_LENGTH];
-	long int i = 0;
 
 	/* Search bucket we want to evolve */
 	if( ( item_b = bckt_find_best_match( thislist, target)) == NULL ) {
@@ -224,7 +215,7 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	b = list_value( item_b );
 
 	/* Split whenever there are more than 8 nodes within a bucket */
-	if( b->nodes->counter <= 8 ) {
+	if( list_size( b->nodes ) <= 8 ) {
 		return FALSE;
 	}
 
@@ -248,13 +239,13 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	b->nodes = list_init();
 
 	/* Walk through the existing nodes and find an adequate bucket */
-	item_n = list_n->start;
-	for( i=0; i<list_n->counter; i++ ) {
+	item_n = list_start( list_n );
+	while( item_n != NULL ) {
 		n = list_value( item_n );
-		item_s = bckt_find_best_match( thislist, n->id );
+		item_b = bckt_find_best_match( thislist, n->id );
 
-		s = list_value( item_s );
-		list_put( s->nodes, n );
+		b = list_value( item_b );
+		list_put( b->nodes, n );
 
 		item_n = list_next( item_n );
 	}
@@ -287,22 +278,21 @@ void bckt_split_print( LIST *l ) {
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	NODE *n = NULL;
-	long int j = 0, k = 0;
 	char hex[HEX_LEN];
 
 	log_info( NULL, 0, "Bucket split:" );
 
 	/* Cycle through all the buckets */
-	item_b = l->start;
-	for( k = 0; k < l->counter; k++ ) {
+	item_b = list_start( l );
+	while( item_b != NULL ) {
 		b = list_value( item_b );
 
 		hex_hash_encode( hex, b->id );
 		log_info( NULL, 0, " Bucket: %s", hex );
 
 		/* Cycle through all the nodes */
-		item_n = b->nodes->start;
-		for( j=0; j<b->nodes->counter; j++ ) {
+		item_n = list_start( b->nodes );
+		while( item_n != NULL ) {
 			n = list_value( item_n );
 
 			hex_hash_encode( hex, n->id );
@@ -318,14 +308,13 @@ void bckt_split_print( LIST *l ) {
 int bckt_is_empty( LIST *l ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
-	long int j = 0;
 
 	/* Cycle through all the buckets */
-	i = l->start;
-	for( j = 0; j < l->counter; j++ ) {
+	i = list_start( l );
+	while( i != NULL ) {
 		b = list_value( i );
 
-		if( b->nodes->counter > 0 ) {
+		if( b->nodes->item != NULL ) {
 			return FALSE;
 		}
 
@@ -344,7 +333,7 @@ int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id ) {
 	int bit = 0;
 
 	/* Is there a container next to this one? */
-	if( item_b != thislist->stop ) {
+	if( item_b->next != NULL ) {
 		item_next = list_next( item_b );
 		b_next = list_value( item_next );
 	}

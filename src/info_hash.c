@@ -69,55 +69,55 @@ void idb_free( void ) {
 }
 
 void idb_clean( void ) {
-	IHASH *ihash = NULL;
+	IHASH *target = NULL;
 
-	while( _main->infohash->list->start != NULL ) {
-		ihash = list_value( _main->infohash->list->start );
+	while( _main->infohash->list->item != NULL ) {
+		target = list_value( _main->infohash->list->item );
 
-		while( ihash->list->start != NULL ) {
-			idb_del_node( ihash, ihash->list->start );
+		while( target->list->item != NULL ) {
+			idb_del_node( target, target->list->item );
 		}
 
-		idb_del_target( _main->infohash->list->start );
+		idb_del_target( _main->infohash->list->item );
 	}
 }
 
-void idb_put( UCHAR *target, int port, UCHAR *node_id, IP *sa ) {
+void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa ) {
 	INODE *inode = NULL;
-	IHASH *ihash = NULL;
+	IHASH *target = NULL;
 	ITEM *i = NULL;
 	char hex[HEX_LEN];
 
 	/* ID list */
-	if ( (i = idb_find_target( target )) == NULL ) {
+	if ( (i = idb_find_target( target_id )) == NULL ) {
 
-		ihash = (IHASH *) myalloc( sizeof(IHASH), "idb_put" );
+		target = (IHASH *) myalloc( sizeof(IHASH), "idb_put" );
 
-		memcpy( ihash->target, target, SHA_DIGEST_LENGTH );
-		ihash->list = list_init();
-		ihash->hash = hash_init( 1000 );
+		memcpy( target->target, target_id, SHA_DIGEST_LENGTH );
+		target->list = list_init();
+		target->hash = hash_init( 1000 );
 
-		i = list_put(_main->infohash->list, ihash);
-		hash_put(_main->infohash->hash, ihash->target, SHA_DIGEST_LENGTH, i );
+		i = list_put(_main->infohash->list, target);
+		hash_put(_main->infohash->hash, target->target, SHA_DIGEST_LENGTH, i );
 
-		hex_hash_encode( hex, target );
-		log_info( NULL, 0, "INFO_HASH: %li (+) %s",
-			_main->infohash->list->counter, hex );
+		hex_hash_encode( hex, target_id );
+		log_info( NULL, 0, "INFO_HASH: %s (%lu)",
+			hex, list_size( _main->infohash->list ) );
 
 	} else {
 
-		ihash = list_value( i );
+		target = list_value( i );
 
 	}
 
 	/* Node list */
-	if ( (i = idb_find_node( ihash->hash, node_id )) == NULL ) {
+	if ( (i = idb_find_node( target->hash, node_id )) == NULL ) {
 
 		inode = (INODE *) myalloc( sizeof(INODE), "idb_put" );
 		memcpy( inode->id, node_id, SHA_DIGEST_LENGTH );
 
-		i = list_put( ihash->list, inode );
-		hash_put( ihash->hash, inode->id, SHA_DIGEST_LENGTH, i );
+		i = list_put( target->list, inode );
+		hash_put( target->hash, inode->id, SHA_DIGEST_LENGTH, i );
 	
 	} else {
 	
@@ -139,43 +139,42 @@ void idb_update( INODE *db, IP *sa, int port ) {
 }
 
 void idb_expire( void ) {
-	ITEM *i_id = NULL;
-	ITEM *n_id = NULL;
-	IHASH *ihash = NULL;
+	ITEM *i_target = NULL;
+	ITEM *n_target = NULL;
+	IHASH *target = NULL;
 	ITEM *i_node = NULL;
 	ITEM *n_node = NULL;
 	INODE *inode = NULL;
-	long int j = 0, k = 0;
 	char hex[HEX_LEN];
 
-	i_id = _main->infohash->list->start;
-	for( j = 0; j < _main->infohash->list->counter; j++ ) {
-		n_id = list_next(i_id);
-		ihash = list_value( i_id );
+	i_target = list_start( _main->infohash->list );
+	while( i_target != NULL ) {
+		n_target = list_next(i_target);
+		target = list_value( i_target );
 
-		i_node = ihash->list->start;
-		for( k = 0; k < ihash->list->counter; k++ ) {
+		i_node = list_start( target->list );
+		while( i_node != NULL ) {
 			n_node = list_next(i_node);
 			inode = list_value( i_node );
 
 			/* Delete info_hash after 30 minutes without announcement. */
 			if( _main->p2p->time_now.tv_sec > inode->time_anno ) {
-				idb_del_node(ihash, i_node);
+				idb_del_node(target, i_node);
 			}
 
 			i_node = n_node;
 		}
 		
-		if( ihash->list->counter == 0 ) {
+		if( target->list->item == NULL ) {
 			
-			hex_hash_encode( hex, ihash->target );
-			log_info( NULL, 0, "INFO_HASH: %li (-) %s",
-				_main->infohash->list->counter, hex );
+			hex_hash_encode( hex, target->target );
+			log_info( NULL, 0, "INFO_HASH: %s (%lu)",
+				hex, list_size( _main->infohash->list ) );
 			
-			idb_del_target(i_id);
+			idb_del_target(i_target);
 		}
 
-		i_id = n_id;
+		i_target = n_target;
 	}
 }
 
@@ -183,20 +182,26 @@ ITEM *idb_find_target( UCHAR *target ) {
 	return hash_get( _main->infohash->hash, target, SHA_DIGEST_LENGTH );
 }
 
-void idb_del_target( ITEM *i_id ) {
-	IHASH *ihash = list_value( i_id );
-	hash_del( _main->infohash->hash, ihash->target, SHA_DIGEST_LENGTH );
-	list_del( _main->infohash->list, i_id );
-	myfree( ihash, "idb_del" );
+void idb_del_target( ITEM *i_target ) {
+	IHASH *target = list_value( i_target );
+
+	list_clear( target->list );
+	list_free( target->list );
+	hash_free( target->hash );
+
+	hash_del( _main->infohash->hash, target->target, SHA_DIGEST_LENGTH );
+	list_del( _main->infohash->list, i_target );
+
+	myfree( target, "idb_del" );
 }
 
 ITEM *idb_find_node( HASH *hash, UCHAR *node_id ) {
 	return hash_get( hash, node_id, SHA_DIGEST_LENGTH );
 }
 
-void idb_del_node( IHASH *ihash, ITEM *i_node ) {
+void idb_del_node( IHASH *target, ITEM *i_node ) {
 	INODE *inode = list_value( i_node );
-	hash_del(ihash->hash, inode->id, SHA_DIGEST_LENGTH );
-	list_del(ihash->list, i_node);
+	hash_del(target->hash, inode->id, SHA_DIGEST_LENGTH );
+	list_del(target->list, i_node);
 	myfree(inode, "idb_del");
 }

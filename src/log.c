@@ -77,7 +77,7 @@ void log_info( IP *c_addr, int code, const char *format, ... ) {
 		memset( ip_buf, '\0', INET6_ADDRSTRLEN+1 );
 #ifdef TUMBLEWEED
 		snprintf(log_buf, MAIN_BUF+1, "%.3li %.3u %s %s",
-			_main->nodes->list->counter, code,
+			list_size( _main->nodes->list ), code,
 			inet_ntop( AF_INET6, &c_addr->sin6_addr, ip_buf, INET6_ADDRSTRLEN), 
 			va_buf);
 #elif MASALA
@@ -87,7 +87,7 @@ void log_info( IP *c_addr, int code, const char *format, ... ) {
 	} else {
 #ifdef TUMBLEWEED
 		snprintf(log_buf, MAIN_BUF+1, "%.3li %.3u ::1 %s",
-			_main->nodes->list->counter, code, va_buf);
+			list_size( _main->nodes->list ), code, va_buf);
 #elif MASALA
 		strncpy(log_buf, va_buf, MAIN_BUF);
 #endif

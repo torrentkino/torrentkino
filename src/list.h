@@ -18,9 +18,8 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 struct obj_list {	
-	struct obj_item *start;
-	struct obj_item *stop;
-	long int counter;
+	struct obj_item *item;
+	ULONG size;
 };
 typedef struct obj_list LIST;
 
@@ -35,12 +34,16 @@ LIST *list_init( void );
 void list_free( LIST *list );
 void list_clear( LIST *list );
 
+ITEM *list_start( LIST *list );
+ITEM *list_stop( LIST *list );
+ULONG list_size( LIST *list );
+
 ITEM *list_put( LIST *list, void *payload );
 ITEM *list_join( LIST *list, ITEM *here, void *payload );
 ITEM *list_del( LIST *list, ITEM *item );
 
 ITEM *list_next( ITEM *item );
 ITEM *list_prev( ITEM *item );
-void list_swap( LIST *list, ITEM *item1, ITEM *item2 );
+//void list_swap( LIST *list, ITEM *item1, ITEM *item2 );
 
 void *list_value( ITEM *item );

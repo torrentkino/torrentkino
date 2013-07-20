@@ -26,6 +26,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <semaphore.h>
 #include <signal.h>
 #include <sys/epoll.h>
+#include <limits.h>
 
 #ifdef TUMBLEWEED
 #include "malloc.h"
@@ -45,88 +46,137 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 LIST *list_init( void ) {
 	LIST *list = (LIST *) myalloc( sizeof(LIST), "list_init" );
 
-	list->start = NULL;
-	list->stop = NULL;
-	list->counter = 0;
+	list->item = NULL;
+	list->size = 0;
 
 	return list;
 }
 
 void list_free( LIST *list ) {
-	if( list != NULL ) {
-		while( list->start != NULL ) {
-			list_del( list, list->start );
-		}
-		myfree( list, "list_free" );
+	if( list == NULL ) {
+		return;
 	}
+	
+	while( list->item != NULL ) {
+		list_del( list, list->item );
+	}
+
+	myfree( list, "list_free" );
 }
 
 void list_clear( LIST *list ) {
-	ITEM *i = NULL;
-	long int j = 0;
+	ITEM *item = NULL;
 
-	/* Free payload */
-	i = list->start;
-	for( j=0; j<list->counter; j++ ) {
-		myfree( i->val, "list_clear" );
-		i = list_next( i );
+	if( list == NULL ) {
+		return;
 	}
+
+	item = list_start( list );
+	while( item != NULL ) {
+		myfree( item->val, "list_clear" );
+		item = list_next( item );
+	}
+}
+
+ITEM *list_start( LIST *list ) {
+	ITEM *item = NULL;
+
+	if( list == NULL ) {
+		return NULL;
+	}
+	
+	if( list->item == NULL ) {
+		return NULL;
+	}
+
+	item = list->item;
+	while( item->prev != NULL ) {
+		item = list_prev( item );
+	}
+
+	if( item != list->item ) {
+		list->item = item;
+	}
+
+	return item;
+}
+
+ITEM *list_stop( LIST *list ) {
+	ITEM *item = NULL;
+
+	if( list == NULL ) {
+		return NULL;
+	}
+	
+	if( list->item == NULL ) {
+		return NULL;
+	}
+
+	item = list->item;
+	while( item->next != NULL ) {
+		item = list_next( item );
+	}
+
+	return item;
+}
+
+ULONG list_size( LIST *list ) {
+	return list->size;
 }
 
 ITEM *list_put( LIST *list, void *payload ) {
-	ITEM *newItem = NULL;
+	ITEM *item = NULL;
+	ITEM *stop = NULL;
 
-	/* Overflow */
-	if( list->counter+1 <= 0 ) {
+	if( list == NULL ) {
+		return NULL;
+	}
+	
+	if( list->size == ULONG_MAX ) {
 		return NULL;
 	}
 
-	/* Get memory */
-	newItem = (ITEM *) myalloc( sizeof(ITEM), "list_put" );
-
-	/* Data container */
-	newItem->val = payload;
+	item = (ITEM *) myalloc( sizeof(ITEM), "list_put" );
+	item->val = payload;
+	item->next = NULL;
+	item->prev = NULL;
 
 	/* First item? */
-	if( list->start == NULL )
-		list->start = newItem;
-	if( list->stop == NULL )
-		list->stop = newItem;
+	if( list->item == NULL ) {
+		list->item = item;
+		list->size = 1;
+		return item;
+	}
 
-	/* Setup pointer for newItem */
-	newItem->next = list->start;
-	newItem->prev = list->stop;
+	stop = list_stop( list );
 
-	/* Update pointer for global start/stop */
-	list->start->prev = newItem;
-	list->stop->next  = newItem;
+	item->prev = stop;
+	stop->next = item;
 
-	/* We have a new ending */
-	list->stop = newItem;
+	list->size += 1;
 
-	/* Increment counter */
-	list->counter++;
-
-	/* Return pointer to the new entry */
-	return newItem;
+	return item;
 }
 
-ITEM *list_join( LIST *list, ITEM *orig, void *payload ) {
+ITEM *list_join( LIST *list, ITEM *here, void *payload ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
 
-	/* Overflow */
-	if( list->counter+1 <= 0 ) {
+	if( list == NULL ) {
+		return NULL;
+	}
+	
+	if( list->size == ULONG_MAX ) {
 		return NULL;
 	}
 
 	/* This insert is like a normal list_put */
-	if( list->counter < 2 ) {
+	if( list->item == NULL ) {
 		return list_put( list, payload );
 	}
-
+	
 	/* This insert is like a normal list_put */
-	if( orig == list->stop ) {
+	if( here->next == NULL ) {
 		return list_put( list, payload );
 	}
 
@@ -135,176 +185,63 @@ ITEM *list_join( LIST *list, ITEM *orig, void *payload ) {
 	item->val = payload;
 
 	/* Pointer */
-	next = orig->next;
-	
+	next = here->next;
+
 	item->next = next;
-	item->prev = orig;
+	item->prev = here;
 	
-	orig->next = item;
+	here->next = item;
 	next->prev = item;
 
-	/* Counter */
-	list->counter++;
+	list->size += 1;
 
 	return item;
 }
 
 ITEM *list_del( LIST *list, ITEM *item ) {
-	/* Variables */
-	ITEM *next = NULL;
-
-	/* Check input */
-	if( list == NULL )
+	if( list == NULL ) {
 		return NULL;
-	if( item == NULL )
+	}
+	if( item == NULL ) {
 		return NULL;
-	if( list->counter <= 0 )
-		return NULL;
-
-	/* If TRUE, there is only one item left */
-	if( item == item->next && item == item->prev ) {
-		list->start = NULL;
-		list->stop = NULL;
-	} else {
-		/* Remember next->item */
-		next = item->next;
-
-		/* Set list pointer to make the item disappear */
-		item->prev->next = item->next;
-		item->next->prev = item->prev;
-
-		/* If item is the stop item, set new stop item */
-		if( list->stop == item ) {
-			list->stop = item->prev;
-		}
-
-		/* If item is the start item, set new start item */
-		if( list->start == item ) {
-			list->start = item->next;
-		}
 	}
 
-	/* Decrement list counter */
-	list->counter--;
+	if( item->next == NULL && item->prev == NULL ) {
+		list->item = NULL;
+	} else if( item->next == NULL ) {
+		item->prev->next = NULL;
+	} else if( item->prev == NULL ) {
+		list->item = item->next;
+		item->next->prev = NULL;
+	} else {
+		item->prev->next = item->next;
+		item->next->prev = item->prev;
+	}
 
-	/* item is not linked anymore. Free it */
 	myfree( item, "list_del" );
 
-	return next;
+	list->size -= 1;
+
+	return list_start( list );
 }
 
 ITEM *list_next( ITEM *item ) {
-	/* Variables */
-	ITEM *next = NULL;
-
-	/* Next item */
-	if( item != NULL ) {
-		next = (item->next != NULL ) ? item->next : NULL;
+	if( item == NULL ) {
+		return NULL;
 	}
-
-	/* Return pointer to the next item */
-	return next;
+	return item->next;
 }
 
 ITEM *list_prev( ITEM *item ) {
-	/* Variables */
-	ITEM *prev = NULL;
-
-	/* Next item */
-	if( item != NULL ) {
-		prev = (item->prev != NULL ) ? item->prev : NULL;
+	if( item == NULL ) {
+		return NULL;
 	}
-
-	/* Return pointer to the next item */
-	return prev;
-}
-
-void list_swap( LIST *list, ITEM *item1, ITEM *item2 ) {
-	ITEM *a = item1->prev;
-	ITEM *b = item1;
-	ITEM *c = item1->next;
-
-	ITEM *x = item2->prev;
-	ITEM *y = item2;
-	ITEM *z = item2->next;
-
-	/*
-	struct obj_ben *key1 = NULL;
-	struct obj_ben *key2 = NULL;
-	struct obj_ben *key3 = NULL;
-	*/
-
-	/*
-	key1 = b->key;
-	key2 = y->key;
-	printf( "#Vertausche: %s <> %s\n", key1->v.s->s, key2->v.s->s );
-	*/
-
-	/*
-	key1 = b->prev->key;
-	key2 = b->key;
-	key3 = b->next->key;
-	printf( "#Vorher: %s > %s > %s\n", key1->v.s->s, key2->v.s->s, key3->v.s->s );
-	*/
-
-	if( list->counter < 2 ) {
-		return;
-	} else if( list->counter == 2 ) {
-		list->start = item2;
-		list->stop  = item1;
-	} else {
-		/* item1 -> item2 */
-		if( c == y && x == b ) {
-			item2->prev = a;
-			item2->next = item1;
-			item1->prev = item2;
-			item1->next = z;
-			a->next = item2;
-			z->prev = item1;
-		}
-		/* item2 -> item1 */
-		else if( a == y && z == b ) {
-			item2->prev = item1;
-			item2->next = c;
-			item1->prev = x;
-			item1->next = item2;
-			z->next = item2;
-			c->prev = item1;
-		} else {
-			item1->prev = x;
-			item1->next = z;
-			item2->prev = a;
-			item2->next = c;
-
-			a->next = item2;
-			x->next = item1;
-			c->prev = item2;
-			z->prev = item1;
-		}
-
-		if( item1 == list->start ) {
-			list->start = item2;
-			list->stop = list->start->prev;
-		} else if( item1 == list->stop ) {
-			list->stop = item2;
-			list->start = list->stop->next;
-		} else if( item2 == list->start ) {
-			list->start = item1;
-			list->stop = list->start->prev;
-		} else if( item2 == list->stop ) {
-			list->stop = item1;
-			list->start = list->stop->next;
-		}
-
-		/* 
-		key1 = b->prev->key;
-		key2 = b->key;
-		key3 = b->next->key;
-		printf( "#Nachher: %s > %s > %s\n", key1->v.s->s, key2->v.s->s, key3->v.s->s );
-		*/
-	}
+	return item->prev;
 }
 
 void *list_value( ITEM *item ) {
+	if( item == NULL ) {
+		return NULL;
+	}
 	return item->val;
 }

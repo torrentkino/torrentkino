@@ -29,57 +29,70 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 
 #include "main.h"
-#include "list.h"
-#ifdef TUMBLEWEED
-#include "node_web.h"
+#include "malloc.h"
+
+#ifdef DEBUG
+unsigned long int myalloc_counter = 0;
+unsigned long int myfree_counter = 0;
+
+void mem_init( void ) {
+	myalloc_counter = 0;
+	myfree_counter = 0;
+}
+
+void mem_print( const char *caller ) {
+	printf( "%s: malloc: %lu, free: %lu\n", caller, myalloc_counter, myfree_counter );
+}
 #endif
-#include "log.h"
 
 void *myalloc( long int size, const char *caller ) {
 	void *memory = NULL;
 
 	if( size == 0 ) {
-		log_fail( "myalloc(): Zero size?!", caller );
+		fprintf( stderr, "myalloc(%s): Zero size?!", caller );
 	} else if( size < 0 ) {
-		log_fail( "myalloc(): Negative size?!", caller );
+		fprintf( stderr, "myalloc(%s): Negative size?!", caller );
 	}
 
 	memory = (void *) malloc( size );
 	
 	if( memory == NULL ) {
-		log_fail( "malloc() failed.", caller );
+		fprintf( stderr, "malloc(%s) failed.", caller );
 	}
 
 	memset( memory, '\0', size );
 
-	/*
-	printf( "malloc( %s)\n", caller );
-	*/
+#ifdef DEBUG
+	myalloc_counter++;
+#endif
 
 	return memory;
 }
 
 void *myrealloc( void *arg, long int size, const char *caller ) {
 	if( size == 0 ) {
-		log_fail( "myrealloc(): Zero size?!", caller );
+		fprintf( stderr, "myrealloc(%s): Zero size?!", caller );
 	} else if( size < 0 ) {
-		log_fail( "myrealloc(): Negative size?!", caller );
+		fprintf( stderr, "myrealloc(%s): Negative size?!", caller );
 	}
 
 	arg = (void *) realloc( arg, size );
 	
 	if( arg == NULL ) {
-		log_fail( "realloc() failed.", caller );
+		fprintf( stderr, "realloc(%s) failed.", caller );
 	}
 
 	return arg;
 }
 
 void myfree( void *arg, const char *caller ) {
-	if( arg != NULL ) {
-		free( arg );
-		/*
-		printf( "free( %s)\n", caller );
-		*/
+	if( arg == NULL ) {
+		return;
 	}
+	
+	free( arg );
+
+#ifdef DEBUG
+	myfree_counter++;
+#endif
 }

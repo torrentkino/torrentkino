@@ -39,8 +39,8 @@ typedef struct obj_inode INODE;
 struct obj_infohash *idb_init( void );
 void idb_free( void );
 
-void idb_put( UCHAR *target, int port, UCHAR *node_id, IP *sa );
-void idb_del_node( IHASH *ihash, ITEM *i_node );
+void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa );
+void idb_del_node( IHASH *target, ITEM *i_node );
 
 void idb_clean( void );
 void idb_expire( void );

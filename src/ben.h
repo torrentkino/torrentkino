@@ -55,25 +55,25 @@ struct obj_raw {
 	UCHAR *p;
 };
 
-struct obj_ben *ben_init( int type );
-void ben_free( struct obj_ben *node );
-void ben_free_r( struct obj_ben *node );
-ITEM *ben_free_item( struct obj_ben *node, ITEM *item );
+BEN *ben_init( int type );
+void ben_free( BEN *node );
+void ben_free_r( BEN *node );
+ITEM *ben_free_item( BEN *node, ITEM *item );
 
 struct obj_raw *raw_init( void );
 void raw_free( struct obj_raw *raw );
 
-void ben_dict( struct obj_ben *node, struct obj_ben *key, struct obj_ben *val );
-void ben_list( struct obj_ben *node, struct obj_ben *val );
-void ben_str( struct obj_ben *node, UCHAR *str, long int len );
-void ben_int( struct obj_ben *node, long int i );
+void ben_dict( BEN *node, BEN *key, BEN *val );
+void ben_list( BEN *node, BEN *val );
+void ben_str( BEN *node, UCHAR *str, long int len );
+void ben_int( BEN *node, long int i );
 
-struct obj_tuple *tuple_init( struct obj_ben *key, struct obj_ben *val );
+struct obj_tuple *tuple_init( BEN *key, BEN *val );
 void tuple_free( struct obj_tuple *tuple );
 
-struct obj_raw *ben_enc( struct obj_ben *node );
-UCHAR *ben_enc_rec( struct obj_ben *node, UCHAR *p );
-long int ben_enc_size( struct obj_ben *node );
+struct obj_raw *ben_enc( BEN *node );
+UCHAR *ben_enc_rec( BEN *node, UCHAR *p );
+long int ben_enc_size( BEN *node );
 
 int ben_validate( UCHAR *bencode, long int bensize );
 int ben_validate_r( struct obj_raw *raw );
@@ -82,24 +82,22 @@ int ben_validate_l( struct obj_raw *raw );
 int ben_validate_i( struct obj_raw *raw );
 int ben_validate_s( struct obj_raw *raw );
 
-struct obj_ben *ben_dec( UCHAR *bencode, long int bensize );
-struct obj_ben *ben_dec_r( struct obj_raw *raw );
-struct obj_ben *ben_dec_d( struct obj_raw *raw );
-struct obj_ben *ben_dec_l( struct obj_raw *raw );
-struct obj_ben *ben_dec_i( struct obj_raw *raw );
-struct obj_ben *ben_dec_s( struct obj_raw *raw );
+BEN *ben_dec( UCHAR *bencode, long int bensize );
+BEN *ben_dec_r( struct obj_raw *raw );
+BEN *ben_dec_d( struct obj_raw *raw );
+BEN *ben_dec_l( struct obj_raw *raw );
+BEN *ben_dec_i( struct obj_raw *raw );
+BEN *ben_dec_s( struct obj_raw *raw );
 
-int ben_is_dict(struct obj_ben *node);
-int ben_is_list(struct obj_ben *node);
-int ben_is_str(struct obj_ben *node);
-int ben_is_int(struct obj_ben *node);
+int ben_is_dict( BEN *node );
+int ben_is_list( BEN *node );
+int ben_is_str( BEN *node );
+int ben_is_int( BEN *node );
 
-struct obj_ben *ben_searchDictKey( struct obj_ben *node, struct obj_ben *key );
-struct obj_ben *ben_searchDictStr( struct obj_ben *node, const char *buffer );
+BEN *ben_searchDictKey( BEN *node, BEN *key );
+BEN *ben_searchDictStr( BEN *node, const char *buffer );
 
-int ben_compare( struct obj_ben *key1, struct obj_ben *key2 );
-long int ben_str_size( struct obj_ben *node );
+int ben_compare( BEN *key1, BEN *key2 );
+long int ben_str_size( BEN *node );
 
-void ben_sort( struct obj_ben *node );
-
-
+//void ben_sort( BEN *node );

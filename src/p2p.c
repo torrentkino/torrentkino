@@ -78,7 +78,6 @@ struct obj_p2p *p2p_init( void ) {
 
 	gettimeofday( &p2p->time_now, NULL );
 
-	/* Worker Concurrency */
 	p2p->mutex = mutex_init();
 
 	return p2p;
@@ -203,17 +202,18 @@ void p2p_cron_ping( void ) {
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	NODE *n = NULL;
-	long int j = 0, k = 0;
 	ITEM *ti = NULL;
+	unsigned long int j = 0;
 
 	/* Cycle through all the buckets */
-	item_b = _main->nbhd->bucket->start;
-	for( k=0; k<_main->nbhd->bucket->counter; k++ ) {
+	item_b = list_start( _main->nbhd->bucket );
+	while( item_b != NULL ) {
 		b = list_value( item_b );
 
 		/* Cycle through all the nodes */
-		item_n = b->nodes->start;
-		for( j=0; j<b->nodes->counter; j++ ) {
+		j = 0;
+		item_n = list_start( b->nodes );
+		while( item_n != NULL ) {
 			n = list_value( item_n );
 
 			/* It's time for pinging */
@@ -230,6 +230,7 @@ void p2p_cron_ping( void ) {
 			}
 
 			item_n = list_next( item_n );
+			j++;
 		}
 
 		item_b = list_next( item_b );
@@ -251,7 +252,7 @@ void p2p_cron_find( UCHAR *target ) {
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	NODE *n = NULL;
-	long int j = 0;
+	unsigned long int j = 0;
 	ITEM *ti = NULL;
 
 	if( ( item_b = bckt_find_any_match( _main->nbhd->bucket, target)) == NULL ) {
@@ -260,8 +261,9 @@ void p2p_cron_find( UCHAR *target ) {
 		b = list_value( item_b );
 	}
 
-	item_n = b->nodes->start;
-	for( j = 0; j < b->nodes->counter && j < 8; j++ ) {
+	j = 0;
+	item_n = list_start( b->nodes );
+	while( item_n != NULL && j < 8 ) {
 		n = list_value( item_n );
 
 		if( _main->p2p->time_now.tv_sec > n->time_find ) {
@@ -272,6 +274,7 @@ void p2p_cron_find( UCHAR *target ) {
 		}
 
 		item_n = list_next( item_n );
+		j++;
 	}
 }
 
@@ -317,7 +320,7 @@ void p2p_cron_announce_start( void ) {
 
 void p2p_cron_announce_engage( ITEM *ti ) {
 	ITEM *t_new = NULL;
-	int j = 0;
+	unsigned long int j = 0;
 	ITEM *item = NULL;
 	BUCK *b = NULL;
 	NODE *n = NULL;
@@ -339,14 +342,15 @@ void p2p_cron_announce_engage( ITEM *ti ) {
 		b = list_value( item );
 	}
 
-	item = b->nodes->start;
-	for( j = 0; j < b->nodes->counter && j < 8; j++ ) {
+	item = list_start( b->nodes );
+	while( item != NULL && j < 8 ) {
 		n = list_value( item );
 
 		t_new = tdb_put(P2P_ANNOUNCE_ENGAGE, NULL, NULL);
 		send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
 		
 		item = list_next( item );
+		j++;
 	}
 }
 
@@ -415,7 +419,7 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 	/* Decrypt message */
 	plain = aes_decrypt( aes->v.s->s, aes->v.s->i,
 		salt->v.s->s,
-		_main->conf->key, strlen( _main->conf->key) );
+		_main->conf->key, strlen( _main->conf->key ) );
 	if( plain == NULL ) {
 		log_info( NULL, 0, "Decoding AES message failed" );
 		ben_free( packet );
@@ -901,8 +905,8 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 	ldb_update_token( l, node_id, token, from );
 
 	/* Get values */
-	item = values->v.l->start;
-	for( j=0; j<values->v.l->counter && j < 8; j++ ) {
+	item = list_start( values->v.l );
+	while( item != NULL && j < 8 ) {
 		val = list_value( item );
 
 		if( !ben_is_str( val ) || ben_str_size( val ) != 18 ) {
@@ -915,6 +919,7 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 		p += 18;
 
 		item = list_next(item);
+		j++;
 	}
 
 	/* Send reply */
@@ -1082,7 +1087,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 	ITEM *item = NULL;
 	BUCK *b = NULL;
 	NODE *n = NULL;
-	long int i = 0;
+	unsigned long int j = 0;
 	IP *sin = NULL;
 	int size = 0;
 
@@ -1096,8 +1101,8 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 /* FIXME: Always send 8 nodes, even if there are bad ones in between */
 
 	/* Walkthrough bucket */
-	item = b->nodes->start;
-	for( i=0; i<b->nodes->counter && i<8; i++ ) {
+	item = list_start( b->nodes );
+	while( item != NULL && j < 8 ) {
 		n = list_value( item );
 		
 		/* Do not include nodes, that are questionable */
@@ -1124,6 +1129,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 		size += 38;
 
 		item = list_next( item );
+		j++;
 	}
 	
 	return size;
@@ -1134,7 +1140,7 @@ int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target ) {
 	INODE *inode = NULL;
 	IHASH *ihash = NULL;
 	ITEM *item = NULL;
-	long int j = 0;
+	unsigned long int j = 0;
 	IP *sin = NULL;
 	int size = 0;
 
@@ -1146,8 +1152,8 @@ int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target ) {
 	}
 
 	/* Walkthrough local database */
-	item = ihash->list->start;
-	for( j = 0; j < ihash->list->counter && j < 8; j++ ) {
+	item = list_start( ihash->list );
+	while( item != NULL && j < 8 ) {
 		inode = list_value( item );
 
 		/* Network data */
@@ -1164,6 +1170,7 @@ int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target ) {
 		size += 18;
 
 		item = list_next( item );
+		j++;
 	}
 	
 	return size;

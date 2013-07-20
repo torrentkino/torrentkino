@@ -142,11 +142,13 @@ void udp_stop( void ) {
 void udp_event( void ) {
 	struct epoll_event ev;
 
+
 	_main->udp->epollfd = epoll_create( 23 );
 	if( _main->udp->epollfd == -1 ) {
 		log_fail( "epoll_create() failed" );
 	}
 
+	memset(&ev, '\0', sizeof( struct epoll_event ) );
 	ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
 	ev.data.fd = _main->udp->sockfd;
 	
@@ -190,23 +192,25 @@ void *udp_thread( void *arg ) {
 	log_info( NULL, 0, "UDP Thread[%i] - Max events: %i", id, UDP_MAX_EVENTS );
 
 	while( _main->status == RUMBLE ) {
-		
+
 		nfds = epoll_wait( _main->udp->epollfd, events, UDP_MAX_EVENTS, CONF_EPOLL_WAIT );
 
-		if( _main->status == RUMBLE && nfds == -1 ) {
+		/* Shutdown server */
+		if( _main->status != RUMBLE ) {
+			break;
+		}
+
+		if( nfds == -1 ) {
 			if( errno != EINTR ) {
-				log_fail( "udp_thread: epoll_wait() failed / %s", strerror( errno) );
+				log_fail( "udp_thread: epoll_wait() failed / %s", strerror( errno ) );
 			}
-		} else if( _main->status == RUMBLE && nfds == 0 ) {
-			/* Timed wakeup */
+		} else if( nfds == 0 ) {
+			/* Timeout wakeup */
 			if( id == 0 ) {
 				udp_cron();
 			}
-		} else if( _main->status == RUMBLE && nfds > 0 ) {
+		} else if( nfds > 0 ) {
 			udp_worker( events, nfds, id );
-		} else {
-			/* Shutdown server */
-			break;
 		}
 	}
 
@@ -267,27 +271,26 @@ void udp_input( int sockfd ) {
 	socklen_t c_addrlen = sizeof(IP );
 
 	while( _main->status == RUMBLE ) {
-		/* Clean Source */
 		memset( &c_addr, '\0', c_addrlen );
 		memset( buffer, '\0', UDP_BUF+1 );
 
-		/* Get data */
-		bytes = recvfrom( sockfd, buffer, UDP_BUF, 0,( struct sockaddr*)&c_addr, &c_addrlen );
+		bytes = recvfrom( sockfd, buffer, UDP_BUF, 0, 
+			(struct sockaddr*)&c_addr, &c_addrlen );
 
 		if( bytes < 0 ) {
-			if( errno == EAGAIN || errno == EWOULDBLOCK ) {
-				return;
-			} else {
+			if( errno != EAGAIN && errno != EWOULDBLOCK ) {
 				log_info( NULL, 0, "UDP error while recvfrom" );
-				return;
 			}
-		} else if( bytes == 0 ) {
+			return;
+		}
+
+		if( bytes == 0 ) {
 			log_info( NULL, 0, "UDP error 0 bytes" );
 			return;
-		} else {
-			p2p_parse( buffer, bytes, &c_addr );
-			udp_cron();
 		}
+		
+		p2p_parse( buffer, bytes, &c_addr );
+		udp_cron();
 	}
 }
 

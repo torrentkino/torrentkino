@@ -96,6 +96,10 @@ void main_free( void ) {
 }
 
 int main( int argc, char **argv ) {
+#ifdef DEBUG
+	mem_init();
+#endif
+
 	/* Init */
 	_main = main_init( argc,argv );
 #ifdef TUMBLEWEED
@@ -164,6 +168,10 @@ int main( int argc, char **argv ) {
 #endif
 	conf_free();
 	main_free();
+
+#ifdef DEBUG
+	mem_print("main");
+#endif
 
 	return 0;
 }

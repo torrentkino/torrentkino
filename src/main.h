@@ -28,8 +28,9 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define GAMEOVER 0
 #define RUMBLE 1
 
-typedef unsigned char UCHAR;
 typedef unsigned long int ULONG;
+typedef unsigned char UCHAR;
+typedef long int LONG;
 typedef struct sockaddr_in6 IP;
 
 struct obj_main {

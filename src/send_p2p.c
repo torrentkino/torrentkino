@@ -475,8 +475,8 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 	for( j=0; j<nodes_compact_size; j+=18 ) {
 		val = ben_init( BEN_STR );
 		ben_str( val, p, 18 );
-		p += 18;
 		ben_list( list, val );
+		p += 18;
 	}
 
 	/* Node ID */
@@ -495,7 +495,6 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 
 	/* Values */
 	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"values", 6 );
 	ben_dict( arg, key, list );
 

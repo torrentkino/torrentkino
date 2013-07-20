@@ -74,8 +74,8 @@ void tdb_free( void ) {
 }
 
 void tdb_clean( void ) {
-	while( _main->transaction->list->start != NULL ) {
-		tdb_del( _main->transaction->list->start );
+	while( _main->transaction->list->item != NULL ) {
+		tdb_del( _main->transaction->list->item );
 	}
 }
 
@@ -129,10 +129,9 @@ void tdb_expire( void ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
 	TID *tid = NULL;
-	long int i = 0;
 
-	item = _main->transaction->list->start;
-	for( i=0; i<_main->transaction->list->counter; i++ ) {
+	item = list_start( _main->transaction->list );
+	while( item != NULL ) {
 		next = list_next( item );
 		tid = list_value( item );
 

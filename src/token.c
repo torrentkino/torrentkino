@@ -98,10 +98,9 @@ void tkn_expire( void ) {
 	ITEM *item_tkn = NULL;
 	ITEM *next_tkn = NULL;
 	struct obj_tkn *tkn = NULL;
-	long int i = 0;
 
-	item_tkn = _main->token->list->start;
-	for( i=0; i<_main->token->list->counter; i++ ) {
+	item_tkn = list_start( _main->token->list );
+	while( item_tkn != NULL ) {
 		tkn = list_value( item_tkn );
 		next_tkn = list_next( item_tkn );
 
@@ -140,7 +139,7 @@ void tkn_create( UCHAR *id ) {
 }
 
 UCHAR *tkn_read( void ) {
-	ITEM *item_tkn = _main->token->list->stop;
+	ITEM *item_tkn = list_stop( _main->token->list );
 	struct obj_tkn *tkn = list_value( item_tkn );
 
 	/* Return newest token */
