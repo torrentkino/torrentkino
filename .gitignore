@@ -1,4 +1,5 @@
 masala/masala
+masala-cli/masala-cli
 masala-nss/libnss_masala.so.2
 debian/masala/
 debian/masala.debhelper.log
