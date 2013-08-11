@@ -17,6 +17,13 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef BEN_H
+#define BEN_H
+
+#include "main.h"
+#include "list.h"
+#include "log.h"
+
 #define BEN_STR  0
 #define BEN_INT  1
 #define BEN_LIST 2
@@ -53,6 +60,11 @@ struct obj_raw {
 	UCHAR *code;
 	long int size;
 	UCHAR *p;
+};
+
+struct obj_str {
+	UCHAR *s;
+	long int i;
 };
 
 BEN *ben_init( int type );
@@ -100,4 +112,9 @@ BEN *ben_searchDictStr( BEN *node, const char *buffer );
 int ben_compare( BEN *key1, BEN *key2 );
 long int ben_str_size( BEN *node );
 
+struct obj_str *str_init( UCHAR *buf, long int len );
+void str_free( struct obj_str *str );
+
 //void ben_sort( BEN *node );
+
+#endif

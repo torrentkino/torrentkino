@@ -37,7 +37,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "malloc.h"
 #include "thrd.h"
-#include "main.h"
+#include "masala-srv.h"
 #include "str.h"
 #include "list.h"
 #include "hash.h"
@@ -76,52 +76,27 @@ void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa ) {
 	NODE *n = NULL;
 
 	/* It's me */
-	if( nbhd_me( id ) ) {
+	if( node_me( id ) ) {
 		return;
 	}
 
 	/* Find the node or create a new one */
 	if( ( n = hash_get( nbhd->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
-		nbhd_update_address( n, sa );
+		node_update( n, sa );
 	} else {
-		n = (NODE *) myalloc( sizeof(NODE), "nbhd_put" );
-		
-		/* ID */
-		memcpy( n->id, id, SHA_DIGEST_LENGTH );
-
-		/* Token */
-		memset( n->token, '\0', TOKEN_SIZE_MAX );
-		n->token_size = 0;
-
-		/* Timings */
-		n->time_ping = 0;
-		n->time_find = 0;
-		n->pinged = 0;
-
-		/* Update IP address */
-		nbhd_update_address( n, sa );
-
-		/* Store node */
+		n = node_init( id, sa );
 		bckt_put( nbhd->bucket, n );
 		hash_put( nbhd->hash, n->id, SHA_DIGEST_LENGTH, n );
+
+		/* Check if split is neccesary */
+		nbhd_split( _main->nbhd, _main->conf->node_id, TRUE );
 	}
 }
 
 void nbhd_del( NBHD *nbhd, NODE *n ) {
 	bckt_del( nbhd->bucket, n );
 	hash_del( nbhd->hash, n->id, SHA_DIGEST_LENGTH );
-	myfree( n, "nbhd_del" );
-}
-
-void nbhd_update_address( NODE *node, IP *sa ) {
-	if( node == NULL ) {
-		return;
-	}
-
-	/* Update address */
-	if( memcmp( &node->c_addr, sa, sizeof(IP)) != 0 ) {
-		memcpy( &node->c_addr, sa, sizeof(IP) );
-	}
+	node_free( n );
 }
 
 void nbhd_pinged( UCHAR *id ) {
@@ -152,7 +127,7 @@ void nbhd_ponged( UCHAR *id, IP *sa ) {
 	memcpy( &n->c_addr, sa, sizeof(IP) );
 }
 
-void nbhd_expire( void ) {
+void nbhd_expire( time_t now ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
@@ -214,26 +189,12 @@ void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd ) {
 	}
 }
 
-void nbhd_split( NBHD *nbhd, UCHAR *target ) {
-	bckt_split_loop( nbhd->bucket, target );
+void nbhd_split( NBHD *nbhd, UCHAR *target, int verbose ) {
+	bckt_split_loop( nbhd->bucket, target, verbose );
 }
 
 int nbhd_is_empty( NBHD *nbhd ) {
 	return bckt_is_empty( nbhd->bucket );
-}
-
-int nbhd_me( UCHAR *node_id ) {
-	if( nbhd_equal( node_id, _main->conf->node_id ) ) {
-		 return 1;
-	}
-	return 0;
-}
-
-int nbhd_equal( const UCHAR *node_a, const UCHAR *node_b ) {
-	if( memcmp( node_a, node_b, SHA_DIGEST_LENGTH) == 0 ) {
-		 return 1;
-	}
-	return 0;
 }
 
 int nbhd_conn_from_localhost( IP *from ) {

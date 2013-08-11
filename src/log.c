@@ -35,6 +35,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 
 #ifdef TUMBLEWEED
+#include "tumbleweed.h"
 #include "malloc.h"
 #include "main.h"
 #include "conf.h"
@@ -45,7 +46,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "log.h"
 #else
 #include "malloc.h"
-#include "main.h"
+#include "masala-srv.h"
 #include "conf.h"
 #include "str.h"
 #include "thrd.h"

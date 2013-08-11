@@ -35,37 +35,18 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/epoll.h>
 
-#include "malloc.h"
-#include "thrd.h"
-#include "main.h"
-#include "str.h"
-#include "list.h"
-#include "hash.h"
-#include "log.h"
-#include "conf.h"
-#include "file.h"
-#include "unix.h"
-#include "udp.h"
-#include "ben.h"
-#include "token.h"
-#include "neighbourhood.h"
 #include "lookup.h"
-#include "transaction.h"
-#include "p2p.h"
-#include "bucket.h"
-#include "time.h"
-#include "send_p2p.h"
-#include "random.h"
-#include "hex.h"
 
 LOOKUP *ldb_init( UCHAR *target, IP *from ) {
 	LOOKUP *ldb = (LOOKUP *) myalloc( sizeof(LOOKUP), "ldb_init" );
 
-	memcpy(ldb->target, target, SHA_DIGEST_LENGTH);
+	memcpy( ldb->target, target, SHA_DIGEST_LENGTH );
 	
 	if( from == NULL ) {
+		ldb->send_reply = FALSE;
 		memset( &ldb->c_addr, '\0', sizeof( IP ) );
 	} else {
+		ldb->send_reply = TRUE;
 		memcpy( &ldb->c_addr, from, sizeof( IP ) );
 	}
 

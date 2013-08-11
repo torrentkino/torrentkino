@@ -17,5 +17,10 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef LOG_H
+#define LOG_H
+
 void log_info( IP *c_addr, int code, const char *format, ... );
 void log_fail( const char *format, ... );
+
+#endif

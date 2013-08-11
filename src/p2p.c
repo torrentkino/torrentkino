@@ -37,7 +37,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "malloc.h"
 #include "thrd.h"
-#include "main.h"
+#include "masala-srv.h"
 #include "str.h"
 #include "list.h"
 #include "hash.h"
@@ -62,6 +62,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "sha1.h"
 #include "hex.h"
 #include "info_hash.h"
+#include "cache.h"
 
 struct obj_p2p *p2p_init( void ) {
 	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
@@ -71,6 +72,7 @@ struct obj_p2p *p2p_init( void ) {
 	p2p->time_announce = 0;
 	p2p->time_restart = 0;
 	p2p->time_expire = 0;
+	p2p->time_cache = 0;
 	p2p->time_split = 0;
 	p2p->time_token = 0;
 	p2p->time_find = 0;
@@ -142,16 +144,17 @@ void p2p_cron( void ) {
 
 		/* Expire objects. Run once a minute. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_expire ) {
-			tdb_expire();
-			nbhd_expire();
-			idb_expire();
-			tkn_expire();
+			tdb_expire( _main->p2p->time_now.tv_sec );
+			nbhd_expire( _main->p2p->time_now.tv_sec );
+			idb_expire( _main->p2p->time_now.tv_sec );
+			tkn_expire( _main->p2p->time_now.tv_sec );
+			cache_expire( _main->p2p->time_now.tv_sec );
 			time_add_1_min_approx( &_main->p2p->time_expire );
 		}
 
 		/* Split buckets. Evolve neighbourhood. Run once a minute. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_split ) {
-			nbhd_split( _main->nbhd, _main->conf->node_id );
+			nbhd_split( _main->nbhd, _main->conf->node_id, TRUE );
 			time_add_1_min_approx( &_main->p2p->time_split );
 		}
 	
@@ -179,6 +182,12 @@ void p2p_cron( void ) {
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce ) {
 			p2p_cron_announce_start();
 			time_add_5_min_approx( &_main->p2p->time_announce );
+		}
+
+		/* Renew cached requests */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_cache ) {
+			cache_renew( _main->p2p->time_now.tv_sec );
+			time_add_1_min_approx( &_main->p2p->time_cache );
 		}
 
 		/* Create a new token every ~5 minutes */
@@ -333,7 +342,7 @@ void p2p_cron_announce_engage( ITEM *ti ) {
 
 	/* Order the nodes within the buckets. Later, we lookup the best matching
 	 * bucket. */
-	nbhd_split( l->nbhd, l->target );
+	nbhd_split( l->nbhd, l->target, FALSE );
 
 	/* And find matching bucket */
 	if( ( item = bckt_find_any_match( l->nbhd->bucket, l->target)) == NULL ) {
@@ -637,7 +646,7 @@ void p2p_reply( BEN *packet, IP *from ) {
 }
 
 int p2p_packet_from_myself( UCHAR *node_id ) {
-	if( nbhd_me( node_id ) ) {
+	if( node_me( node_id ) ) {
 		
 		/* Received packet from myself 
 		 * If the neighbourhood is empty, 
@@ -722,7 +731,7 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 		p += 2;
 
 		/* Store node */
-		if( !nbhd_me( id ) ) {
+		if( !node_me( id ) ) {
 			nbhd_put( _main->nbhd, id, ( IP *)&sin );
 		}
 	}
@@ -858,12 +867,12 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 		p += 2;
 
 		/* Store node */
-		if( !nbhd_me( id ) ) {
+		if( !node_me( id ) ) {
 			nbhd_put( _main->nbhd, id, (IP *)&sin );
 		}
 
 		/* Start new lookup */
-		if( !nbhd_me( id ) ) {
+		if( !node_me( id ) ) {
 			if( !ldb_contacted_node( l, id ) ) {
 
 				/* Query node */
@@ -922,10 +931,17 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 		j++;
 	}
 
-	/* Send reply */
+	/* Lookup request? */
 	if( type == P2P_GET_PEERS && nodes_compact_size > 0 ) {
-		sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
-			(const struct sockaddr *)&l->c_addr, sizeof( IP ) );
+
+		/* Cache result */
+		cache_put( l->target, nodes_compact_list, nodes_compact_size );
+
+		/* Send reply */
+		if( l->send_reply == TRUE ) {
+			sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
+				(const struct sockaddr *)&l->c_addr, sizeof( IP ) );
+		}
 	}
 }
 
@@ -1003,14 +1019,7 @@ void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
 
 void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 	UCHAR target[SHA_DIGEST_LENGTH];
-	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) or 8*(16+2) */
-	int nodes_compact_size = 0;
-	IP sin;
-	UCHAR *p = NULL;
-	UCHAR *id = NULL;
-	int j = 0;
-	ITEM *ti = NULL;
-	LOOKUP *l = NULL;
+	int result = FALSE;
 
 	/* Validate hostname */
 	if ( !str_isValidHostname( (char *)hostname, size ) ) {
@@ -1021,24 +1030,56 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 	/* Compute lookup key */
 	p2p_compute_realm_id( target, (char *)hostname );
 
-	/* Check my own DB for that target. */
+
+	/* Check local cache */
 	mutex_block( _main->p2p->mutex );
-	nodes_compact_size = p2p_value_compact_list( nodes_compact_list, target );
+	result = p2p_localhost_lookup_cache( target, from );
 	mutex_unblock( _main->p2p->mutex );
 
-	/* Direct reply if possible */
-	if( nodes_compact_size > 0 ) {
-		log_info( NULL, 0, "LOOKUP %s (Local)", hostname );
-		sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
-			(const struct sockaddr *)from, sizeof( IP ) );
+	if( result == TRUE ) {
+		log_info( NULL, 0, "LOOKUP %s (cached)", hostname );
 		return;
 	}
 
-	/* Start the incremental remote search program */
-	log_info( NULL, 0, "LOOKUP %s (Remote)", hostname );
+	/* Start remote search */
 	mutex_block( _main->p2p->mutex );
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target );
+	result = p2p_localhost_lookup_remote( target, from );
 	mutex_unblock( _main->p2p->mutex );
+
+	if( result == TRUE ) {
+		log_info( NULL, 0, "LOOKUP %s (remote)", hostname );
+		return;
+	}
+}
+
+int p2p_localhost_lookup_cache( UCHAR *target, IP *from ) {
+	UCHAR nodes_compact_list[144]; /* 8 * ( 16 + 2 ) */
+	int nodes_compact_size = 0;
+
+	/* Check cache for hostname */
+	nodes_compact_size = cache_find( target, nodes_compact_list );
+	if( nodes_compact_size <= 0 ) {
+		return FALSE;
+	}
+
+	sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
+		(const struct sockaddr *)from, sizeof( IP ) );
+
+	return TRUE;
+}
+
+int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
+	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) */
+	int nodes_compact_size = 0;
+	IP sin;
+	UCHAR *p = NULL;
+	UCHAR *id = NULL;
+	int j = 0;
+	ITEM *ti = NULL;
+	LOOKUP *l = NULL;
+
+	/* Start the incremental remote search program */
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target );
 
 	/* Create tid and get the lookup table */
 	ti = tdb_put(P2P_GET_PEERS, target, from );
@@ -1067,18 +1108,24 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 		/* Remember queried node */
 		nbhd_put( l->nbhd, id, (IP *)&sin );
 	}
+
+	return TRUE;
 }
 
-/* FIXME: XOR */
 void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
-	char buffer[MAIN_BUF+1];
+	UCHAR sha1_buf1[SHA_DIGEST_LENGTH];
+	UCHAR sha1_buf2[SHA_DIGEST_LENGTH];
+	int j = 0;
 
 	/* The realm influences the way, the lookup hash gets computed */
 	if( _main->conf->bool_realm == TRUE ) {
-		snprintf(buffer, MAIN_BUF+1, "%s.%s", hostname, _main->conf->realm);
-		sha1_hash( host_id, buffer, strlen(buffer) );
+		sha1_hash( sha1_buf1, hostname, strlen( hostname ) );
+		sha1_hash( sha1_buf2, _main->conf->realm, strlen( _main->conf->realm ) );
+		for( j = 0; j < SHA_DIGEST_LENGTH; j++ ) {
+			host_id[j] = sha1_buf1[j] ^ sha1_buf2[j];
+		}
 	} else {
-		sha1_hash( host_id, hostname, strlen(hostname) );
+		sha1_hash( host_id, hostname, strlen( hostname ) );
 	}
 }
 
@@ -1097,8 +1144,6 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 	} else {
 		b = list_value( item );
 	}
-
-/* FIXME: Always send 8 nodes, even if there are bad ones in between */
 
 	/* Walkthrough bucket */
 	item = list_start( b->nodes );

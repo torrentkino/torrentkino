@@ -17,6 +17,13 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef P2P_H
+#define P2P_H
+
+#include "ben.h"
+#include "transaction.h"
+#include "token.h"
+
 #define P2P_MAX_BOOTSTRAP_NODES 20
 
 #define P2P_TYPE_UNKNOWN 0
@@ -34,6 +41,7 @@ struct obj_p2p {
 	time_t time_announce;
 	time_t time_restart;
 	time_t time_expire;
+	time_t time_cache;
 	time_t time_split;
 	time_t time_token;
 	time_t time_ping;
@@ -76,6 +84,8 @@ void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from );
 void p2p_announce_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from );
 
 void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from );
+int p2p_localhost_lookup_cache( UCHAR *target, IP *from );
+int p2p_localhost_lookup_remote( UCHAR *target, IP *from );
 
 void p2p_compute_realm_id( UCHAR *host_id, char *hostname );
 int p2p_packet_from_myself( UCHAR *node_id );
@@ -85,3 +95,5 @@ int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target );
 int p2p_is_hash( BEN *node );
 int p2p_is_ip( BEN *node );
 int p2p_is_port( BEN *node );
+
+#endif

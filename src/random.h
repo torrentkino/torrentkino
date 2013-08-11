@@ -17,4 +17,13 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef RAND_H
+#define RAND_H
+
+#include "main.h"
+#include "file.h"
+#include "log.h"
+
 void rand_urandom( void *buffer, size_t size );
+
+#endif

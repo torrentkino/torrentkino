@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef HASH_H
+#define HASH_H
+
 struct obj_pair {
 	UCHAR *key;
 	long int keysize;
@@ -46,3 +49,5 @@ void *hash_get( const HASH *map, UCHAR *key, long int keysize );
 int hash_put( HASH *map, UCHAR *key, long int keysize, void *value );
 void hash_del( HASH *map, UCHAR *key, long int keysize );
 int hash_exists( const HASH *map, UCHAR *key, long int keysize );
+
+#endif

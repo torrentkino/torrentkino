@@ -26,10 +26,6 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <dirent.h>
 #include <signal.h>
 
-#include "main.h"
-#include "malloc.h"
-#include "str.h"
-#include "list.h"
 #include "file.h"
 
 int file_isdir( const char *dirname ) {

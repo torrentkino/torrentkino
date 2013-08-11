@@ -29,18 +29,12 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <limits.h>
 
 #ifdef TUMBLEWEED
-#include "malloc.h"
 #include "main.h"
 #include "conf.h"
 #include "str.h"
 #include "list.h"
 #else
-#include "malloc.h"
-#include "main.h"
-#include "conf.h"
-#include "str.h"
 #include "list.h"
-#include "ben.h"
 #endif
 
 LIST *list_init( void ) {

@@ -17,6 +17,13 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef SHA1_H
+#define SHA1_H
+
+#include "main.h"
+
 #define SHA_DIGEST_LENGTH 20
 
 void sha1_hash( UCHAR *hash, const char *buffer, long int bytes );
+
+#endif

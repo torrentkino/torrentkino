@@ -17,25 +17,14 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAKRO_H
-#define MAKRO_H
+#ifndef MAIN_H
+#define MAIN_H
 
-#define MAIN_BUF 1023
-#define MAIN_PROTVER 1
-#define MAIN_IPBUF 39
-#define SHA_DIGEST_LENGTH 20
+#include "main.h"
+#include "str.h"
+#include "conf.h"
 
-#define TRUE 1
-#define FALSE 0
-
-#define GAMEOVER 0
-#define RUMBLE 1
-
-#define TIMEOUT 10
-
-typedef unsigned long int ULONG;
-typedef unsigned char UCHAR;
-typedef long int LONG;
-typedef struct sockaddr_in6 IP;
+int str_isValidHostname( const char *hostname, int size );
+int masala_lookup( const char *hostname, int size );
 
 #endif

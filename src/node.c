@@ -1,5 +1,5 @@
 /*
-Copyright 2012 Aiko Barz
+Copyright 2013 Aiko Barz
 
 This file is part of masala.
 
@@ -16,8 +16,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
@@ -29,6 +33,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
+#include <sys/epoll.h>
 
 #include "malloc.h"
 #include "thrd.h"
@@ -40,26 +45,63 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "conf.h"
 #include "file.h"
 #include "unix.h"
+#include "udp.h"
 #include "ben.h"
 #include "token.h"
 #include "neighbourhood.h"
+#include "bucket.h"
+#include "send_p2p.h"
+#include "time.h"
 #include "lookup.h"
 #include "transaction.h"
 #include "p2p.h"
-#include "time.h"
 
-void time_add_1_min( time_t *time ) {
-	*time = _main->p2p->time_now.tv_sec + 60;
+NODE *node_init( UCHAR *node_id, IP *sa ) {
+	NODE *n = (NODE *) myalloc( sizeof(NODE), "nbhd_put" );
+		
+	/* ID */
+	memcpy( n->id, node_id, SHA_DIGEST_LENGTH );
+
+	/* Token */
+	memset( n->token, '\0', TOKEN_SIZE_MAX );
+	n->token_size = 0;
+
+	/* Timings */
+	n->time_ping = 0;
+	n->time_find = 0;
+	n->pinged = 0;
+
+	/* Update IP address */
+	node_update( n, sa );
+
+	return n;
 }
 
-void time_add_30_min( time_t *time ) {
-	*time = _main->p2p->time_now.tv_sec + 1800;
+void node_free( NODE *n ) {
+	myfree( n, "node_del" );
 }
 
-void time_add_1_min_approx( time_t *time ) {
-	*time = _main->p2p->time_now.tv_sec + 50 + random() % 20;
+void node_update( NODE *node, IP *sa ) {
+	if( node == NULL ) {
+		return;
+	}
+
+	/* Update address */
+	if( memcmp( &node->c_addr, sa, sizeof(IP)) != 0 ) {
+		memcpy( &node->c_addr, sa, sizeof(IP) );
+	}
 }
 
-void time_add_5_min_approx( time_t *time ) {
-	*time = _main->p2p->time_now.tv_sec + 240 + random() % 120;
+int node_me( UCHAR *node_id ) {
+	if( node_equal( node_id, _main->conf->node_id ) ) {
+		 return 1;
+	}
+	return 0;
+}
+
+int node_equal( const UCHAR *node_a, const UCHAR *node_b ) {
+	if( memcmp( node_a, node_b, SHA_DIGEST_LENGTH) == 0 ) {
+		 return 1;
+	}
+	return 0;
 }

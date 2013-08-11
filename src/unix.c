@@ -31,6 +31,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <pwd.h>
 
 #ifdef TUMBLEWEED
+#include "tumbleweed.h"
 #include "main.h"
 #include "str.h"
 #include "malloc.h"
@@ -43,7 +44,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "tcp.h"
 #include "hash.h"
 #else
-#include "main.h"
+#include "masala-srv.h"
 #include "str.h"
 #include "malloc.h"
 #include "list.h"

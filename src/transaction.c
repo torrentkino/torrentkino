@@ -35,27 +35,8 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/epoll.h>
 
-#include "malloc.h"
-#include "thrd.h"
-#include "main.h"
-#include "str.h"
-#include "list.h"
-#include "hash.h"
-#include "log.h"
-#include "conf.h"
-#include "file.h"
-#include "unix.h"
-#include "udp.h"
-#include "ben.h"
-#include "token.h"
-#include "neighbourhood.h"
-#include "lookup.h"
 #include "transaction.h"
-#include "p2p.h"
-#include "bucket.h"
-#include "time.h"
-#include "send_p2p.h"
-#include "random.h"
+#include "masala-srv.h"
 
 struct obj_transaction *tdb_init( void ) {
 	struct obj_transaction *transaction = (struct obj_transaction *)
@@ -125,7 +106,7 @@ void tdb_del( ITEM *i ) {
 	myfree( tid, "tdb_del" );
 }
 
-void tdb_expire( void ) {
+void tdb_expire( time_t now ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
 	TID *tid = NULL;
@@ -136,7 +117,7 @@ void tdb_expire( void ) {
 		tid = list_value( item );
 
 		/* Too OLD or GAME OVER */
-		if( _main->p2p->time_now.tv_sec > tid->time || _main->status == GAMEOVER ) {
+		if( now > tid->time || _main->status == GAMEOVER ) {
 
 			switch( tid->type ) {
 				case P2P_ANNOUNCE_START:

@@ -27,11 +27,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <semaphore.h>
 
-#include "malloc.h"
-#include "main.h"
-#include "list.h"
-#include "str.h"
-#include "log.h"
 #include "ben.h"
 
 BEN *ben_init( int type ) {
@@ -941,3 +936,22 @@ long int ben_str_size( BEN *node ) {
 //		}
 //	}
 //}
+
+struct obj_str *str_init( UCHAR *buf, long int len ) {
+	struct obj_str *str = (struct obj_str *) myalloc( sizeof(struct obj_str), "str_init" );
+	
+	str->s = (UCHAR *) myalloc( (len+1) * sizeof(UCHAR), "str_init" );
+	if( len > 0 ) {
+		memcpy( str->s, buf, len );
+	}
+	str->i = len;
+	
+	return str;
+}
+
+void str_free( struct obj_str *str ) {
+	if( str->s != NULL ) {
+		myfree( str->s, "str_free" );
+	}
+	myfree( str, "str_free" );
+}

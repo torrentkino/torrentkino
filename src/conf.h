@@ -17,6 +17,18 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef CONF_H
+#define CONF_H
+
+#include "main.h"
+#include "malloc.h"
+#include "file.h"
+#include "sha1.h"
+#include "random.h"
+#include "unix.h"
+#include "hex.h"
+#include "str.h"
+
 #define CONF_CORES 2
 #define CONF_PORTMIN 1
 #define CONF_PORTMAX 65535
@@ -43,15 +55,14 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_PORT 6881
 #define CONF_BOOTSTRAP_NODE "ff0e::1"
 #define CONF_BOOTSTRAP_PORT "6881"
-#define CONF_BOOTSTRAP_PORT_BUF 5
+#define CONF_PORT_SIZE 5
 #define CONF_KEY "open.p2p"
 #define CONF_REALM "open.p2p"
-#else
-#define CONF_SRVNAME "nss-masala"
 #endif
 
 struct obj_conf {
 	char username[MAIN_BUF+1];
+	char home[MAIN_BUF+1];
 
 #ifdef MASALA
 	char hostname[MAIN_BUF+1];
@@ -59,17 +70,19 @@ struct obj_conf {
 	UCHAR host_id[SHA_DIGEST_LENGTH];
 	UCHAR null_id[SHA_DIGEST_LENGTH];
 	char bootstrap_node[MAIN_BUF+1];
-	char bootstrap_port[CONF_BOOTSTRAP_PORT_BUF+1];
+	char bootstrap_port[CONF_PORT_SIZE+1];
+	int announce_port;
 
 	char key[MAIN_BUF+1];
 	int bool_encryption;
 
 	char realm[MAIN_BUF+1];
 	int bool_realm;
+	
+	char file[MAIN_BUF+1];
 #endif
 
 #ifdef TUMBLEWEED
-	char home[MAIN_BUF+1];
 	char index_name[MAIN_BUF+1];
 	int ipv6_only;
 #endif
@@ -91,3 +104,6 @@ struct obj_conf *conf_init( void );
 void conf_free( void );
 
 void conf_check( void );
+void conf_write( void );
+
+#endif

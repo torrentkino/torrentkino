@@ -26,7 +26,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "nss-masala.h"
+#include "masala-nss.h"
 
 enum nss_status _nss_masala_gethostbyname_r( const char *hostname, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,

@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "MASALA" "1" "July 2013" "" ""
+.TH "MASALA" "1" "August 2013" "" ""
 .
 .SH "NAME"
 \fBmasala\fR \- P2P name resolution daemon
@@ -21,6 +21,9 @@ If you would like to connect nodes around the globe, you may use the Bittorrent 
 .P
 A NSS module makes any hostname with \fI\.p2p\fR at the end transparently available to your Linux OS\. The NSS modul tries to contact the masala daemon at ::1 and UDP/6881\. The daemon then resolves the requested hostname recursively even if you use encryption\. As long as the connection comes from ::1 the masala daemon will accept the recursive requests\.
 .
+.P
+Masala uses a hostname cache for fast lookups within big swarms\. A queried hostname will be cached for 30 minutes\. Masala also lookups that queried hostname every 5 minutes on its own\. So, the cache stays up\-to\-date\. It stops 30 minutes after your last query for that hostname\.
+.
 .SH "FILES"
 .
 .TP
@@ -31,7 +34,11 @@ masala gets attached to the \fIhosts\fR line\. masala is only used for lookup re
 .
 .TP
 \fB\-h\fR \fIhostname\fR
-By default /etc/hostname is used to determine the hostname\.
+By default /etc/hostname is used to determine the hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
+.
+.TP
+\fB\-n\fR \fInode id string\fR
+By default a random node id gets computed on every startup\. For testing purposes it may be useful to keep the same node id all the time\. The above string is not used directly\. Instead its SHA1 hash is used\.
 .
 .TP
 \fB\-k\fR \fIpassword\fR
@@ -44,6 +51,10 @@ Creating a realm affects the method how to compute the info hash\. It helps you 
 .TP
 \fB\-p\fR \fIport\fR
 Listen to this port (Default: UDP/6881)
+.
+.TP
+\fB\-a\fR \fIport\fR
+Kademlia also stores a port\. You can use masala\-cli to ask for that port and \-a to specify that port\. (Default: "6881")
 .
 .TP
 \fB\-x\fR \fIserver\fR
@@ -95,6 +106,8 @@ Announce the hostname \fIowncloud\.p2p\fR within the realm TooManySecrets to an 
 .nf
 
 $ masala \-h owncloud\.p2p \-r TooManySecrets \-x dht\.wifi\.pps\.jussieu\.fr
+$ getent hosts owncloud\.p2p
+$ masala\-cli owncloud\.p2p
 .
 .fi
 .

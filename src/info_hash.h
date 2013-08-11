@@ -17,6 +17,18 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef INFO_HASH_H
+#define INFO_HASH_H
+
+#include "list.h"
+#include "hash.h"
+#include "hex.h"
+#include "log.h"
+#include "time.h"
+#include "ben.h"
+#include "p2p.h"
+#include "masala-srv.h"
+
 struct obj_infohash {
 	LIST *list;
 	HASH *hash;
@@ -43,7 +55,7 @@ void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa );
 void idb_del_node( IHASH *target, ITEM *i_node );
 
 void idb_clean( void );
-void idb_expire( void );
+void idb_expire( time_t now );
 
 void idb_update( INODE *db, IP *sa, int port );
 
@@ -52,3 +64,5 @@ void idb_del_target( ITEM *i_id );
 
 ITEM *idb_find_node( HASH *hash, UCHAR *node_id );
 IP *idb_address( UCHAR *target );
+
+#endif

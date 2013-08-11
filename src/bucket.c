@@ -35,22 +35,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/epoll.h>
 
-#include "malloc.h"
-#include "thrd.h"
-#include "main.h"
-#include "str.h"
-#include "list.h"
-#include "hash.h"
-#include "log.h"
-#include "conf.h"
-#include "file.h"
-#include "unix.h"
-#include "udp.h"
-#include "ben.h"
-#include "token.h"
-#include "neighbourhood.h"
 #include "bucket.h"
-#include "hex.h"
 
 LIST *bckt_init( void ) {
 	BUCK *b = (BUCK *) myalloc( sizeof(BUCK), "bckt_init" );
@@ -190,7 +175,7 @@ ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	item_n = list_start( list_n );
 	while( item_n != NULL ) {
 		n = list_value( item_n );
-		if( nbhd_equal( n->id, id ) ) {
+		if( node_equal( n->id, id ) ) {
 			return item_n;
 		}
 		item_n = list_next( item_n );
@@ -257,20 +242,21 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	return TRUE;
 }
 
-void bckt_split_loop( LIST *l, UCHAR *target ) {
-/*	int change = FALSE; */
+void bckt_split_loop( LIST *l, UCHAR *target, int verbose ) {
+	int change = FALSE;
 
 	/* Do as many splits as neccessary */
 	for( ;; ) {
-		if( !bckt_split( l, target) ) {
+		if( bckt_split( l, target) ) {
+			change = TRUE;
+		} else {
 			break;
-/*			change = TRUE; */
 		}
 	}
 
-/*	if( change == TRUE ) {
+	if( change == TRUE && verbose == TRUE ) {
 		bckt_split_print( l );
-	} */
+	}
 }
 
 void bckt_split_print( LIST *l ) {

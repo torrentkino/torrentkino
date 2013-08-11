@@ -17,26 +17,18 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef NEIGHBOURHOOD_H
+#define NEIGHBOURHOOD_H
+
+#include "list.h"
+#include "hash.h"
+#include "node.h"
+
 struct obj_nbhd {
 	LIST *bucket;
 	HASH *hash;
 };
 typedef struct obj_nbhd NBHD;
-
-struct obj_node {
-	IP c_addr;
-
-	UCHAR id[SHA_DIGEST_LENGTH];
-
-	UCHAR token[TOKEN_SIZE_MAX];
-	int token_size;
-
-	time_t time_ping;
-	time_t time_find;
-
-	int pinged;
-};
-typedef struct obj_node NODE;
 
 NBHD *nbhd_init( void );
 void nbhd_free( NBHD *nbhd );
@@ -44,17 +36,15 @@ void nbhd_free( NBHD *nbhd );
 void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa );
 void nbhd_del( NBHD *nbhd, NODE *n );
 
-void nbhd_update_address( NODE *node, IP *sa );
-
 void nbhd_pinged( UCHAR *id );
 void nbhd_ponged( UCHAR *id, IP *sa );
 
-void nbhd_expire( void );
+void nbhd_expire( time_t now );
 void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd );
-void nbhd_split( NBHD *nbhd, UCHAR *target );
+void nbhd_split( NBHD *nbhd, UCHAR *target, int verbose );
 
 int nbhd_is_empty( NBHD *nbhd );
-int nbhd_me( UCHAR *node_id );
-int nbhd_equal( const UCHAR *node_a, const UCHAR *node_b );
 
 int nbhd_conn_from_localhost( IP *from );
+
+#endif

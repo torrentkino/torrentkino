@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef CACHE_H
+#define CACHE_H
+
+#define CACHE_SIZE 100
 
 #include "random.h"
 #include "log.h"
@@ -26,28 +28,30 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "hash.h"
 #include "ben.h"
 
-#define TOKEN_SIZE 8
-#define TOKEN_SIZE_MAX 20
-
-struct obj_token {
+struct obj_cache {
 	LIST *list;
 	HASH *hash;
 };
 
-struct obj_tkn {
-	UCHAR id[TOKEN_SIZE];
-	time_t time;
+struct obj_cache_entry {
+	UCHAR target[SHA_DIGEST_LENGTH];
+	UCHAR nodes_compact_list[144]; /* 8*(16+2) */
+	int nodes_compact_size;
+	
+	time_t lifetime;
+	time_t renew;
 };
+typedef struct obj_cache_entry CACHE;
 
-struct obj_token *tkn_init( void );
-void tkn_free( void );
+struct obj_cache *cache_init( void );
+void cache_free( void );
 
-void tkn_put( void );
-void tkn_del( ITEM *item_tkn );
+void cache_put( UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size );
+void cache_del( ITEM *item );
 
-void tkn_create( UCHAR *id );
-void tkn_expire( time_t now );
-int tkn_validate( UCHAR *id );
-UCHAR *tkn_read( void );
+void cache_expire( time_t now );
+void cache_renew( time_t now );
+
+int cache_find( UCHAR *target, UCHAR *nodes_compact_list );
 
 #endif

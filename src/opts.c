@@ -27,34 +27,12 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 
 #ifdef TUMBLEWEED
-#include "malloc.h"
-#include "main.h"
-#include "conf.h"
-#include "str.h"
-#include "hash.h"
-#include "list.h"
-#include "node_web.h"
-#include "log.h"
-#include "file.h"
+#include "tumbleweed.h"
 #include "opts.h"
 #else
-#include "malloc.h"
-#include "main.h"
-#include "conf.h"
-#include "str.h"
-#include "hash.h"
-#include "list.h"
-#include "log.h"
-#include "file.h"
-#include "opts.h"
-#include "sha1.h"
-#include "ben.h"
-#include "token.h"
-#include "neighbourhood.h"
-#include "lookup.h"
-#include "search.h"
-#include "transaction.h"
+#include "masala-srv.h"
 #include "p2p.h"
+#include "opts.h"
 #endif
 
 void opts_load( int argc, char **argv ) {
@@ -125,7 +103,7 @@ void opts_interpreter( char *var, char *val ) {
 	if( strcmp( var, "-x") == 0 && val != NULL && strlen( val ) > 1 ) {
 		strncpy( _main->conf->bootstrap_node, val, MAIN_BUF );
 	} else if( strcmp( var, "-y") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", val );
+		snprintf( _main->conf->bootstrap_port, CONF_PORT_SIZE+1, "%s", val );
 	} else if( strcmp( var, "-k") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->key, MAIN_BUF+1, "%s", val );
 		_main->conf->bool_encryption = TRUE;
@@ -142,6 +120,10 @@ void opts_interpreter( char *var, char *val ) {
 		/* Change realm. Recompute the host_id. */
 		p2p_compute_realm_id( _main->conf->host_id, _main->conf->hostname );
 
+	} else if( strcmp( var, "-n") == 0 && val != NULL && strlen( val ) > 1 ) {
+		sha1_hash( _main->conf->node_id, val, strlen( val ) );
+	} else if( strcmp( var, "-a") == 0 && val != NULL && strlen( val ) >= 1 ) {
+		_main->conf->announce_port = atoi( val );
 	}
 #endif
 
@@ -151,7 +133,7 @@ void opts_interpreter( char *var, char *val ) {
 	}
 
 	/* Port number */
-	if( strcmp( var, "-p") == 0 && val != NULL ) {
+	if( strcmp( var, "-p") == 0 && val != NULL && strlen( val ) >= 1 ) {
 		_main->conf->port = atoi( val );
 	} else if( strcmp( var, "-u") == 0 && val != NULL ) {
 		snprintf( _main->conf->username, MAIN_BUF+1, "%s", val );

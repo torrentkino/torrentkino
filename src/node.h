@@ -17,37 +17,32 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef NODE_H
+#define NODE_H
 
-#include "random.h"
-#include "log.h"
-#include "time.h"
-#include "hash.h"
-#include "ben.h"
+#include "token.h"
 
-#define TOKEN_SIZE 8
-#define TOKEN_SIZE_MAX 20
+struct obj_node {
+	IP c_addr;
 
-struct obj_token {
-	LIST *list;
-	HASH *hash;
+	UCHAR id[SHA_DIGEST_LENGTH];
+
+	UCHAR token[TOKEN_SIZE_MAX];
+	int token_size;
+
+	time_t time_ping;
+	time_t time_find;
+
+	int pinged;
 };
+typedef struct obj_node NODE;
 
-struct obj_tkn {
-	UCHAR id[TOKEN_SIZE];
-	time_t time;
-};
+NODE *node_init( UCHAR *node_id, IP *sa );
+void node_free( NODE *n );
 
-struct obj_token *tkn_init( void );
-void tkn_free( void );
+void node_update( NODE *node, IP *sa );
 
-void tkn_put( void );
-void tkn_del( ITEM *item_tkn );
-
-void tkn_create( UCHAR *id );
-void tkn_expire( time_t now );
-int tkn_validate( UCHAR *id );
-UCHAR *tkn_read( void );
+int node_me( UCHAR *node_id );
+int node_equal( const UCHAR *node_a, const UCHAR *node_b );
 
 #endif

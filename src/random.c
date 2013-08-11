@@ -27,14 +27,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <netinet/in.h>
 
-#include "main.h"
-#include "str.h"
-#include "list.h"
-#include "file.h"
 #include "random.h"
-#include "conf.h"
-#include "malloc.h"
-#include "log.h"
 
 void rand_urandom( void *buffer, size_t size ) {
 	UCHAR *random = NULL;

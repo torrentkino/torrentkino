@@ -17,12 +17,15 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef MAIN_H
+#define MAIN_H
+
 #define _public_ __attribute__( ( visibility( "default")))
 #define _hidden_ __attribute__( ( visibility( "hidden")))
 
 #define MAIN_BUF 1024
 #define BOOTSTRAP_PORT 6881
-#define TIMEOUT 5
+#define TIMEOUT 10
 
 typedef unsigned char UCHAR;
 typedef struct sockaddr_in6 IP;
@@ -55,3 +58,5 @@ int _nss_masala_valid_tld( const char *hostname, int size );
 int _nss_masala_valid_hostname( const char *hostname, int size );
 
 int _nss_masala_lookup( const char *hostname, int size, UCHAR *address );
+
+#endif

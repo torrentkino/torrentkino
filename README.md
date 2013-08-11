@@ -28,6 +28,11 @@ UDP/6881. The daemon then resolves the requested hostname recursively even if
 you use encryption. As long as the connection comes from ::1 the masala daemon
 will accept the recursive requests.
 
+Masala uses a hostname cache for fast lookups within big swarms. A queried
+hostname will be cached for 30 minutes. Masala also lookups that queried
+hostname every 5 minutes on its own. So, the cache stays up-to-date. It stops
+30 minutes after your last query for that hostname.
+
 ## FILES
 
   * **/etc/nsswitch.conf**:
@@ -37,7 +42,13 @@ will accept the recursive requests.
 ## OPTIONS
 
   * `-h` *hostname*:
-    By default /etc/hostname is used to determine the hostname.
+    By default /etc/hostname is used to determine the hostname. The SHA1 hash of
+	the hostname becomes the announced info_hash.
+
+  * `-n` *node id string*:
+    By default a random node id gets computed on every startup. For testing
+	purposes it may be useful to keep the same node id all the time. The above
+	string is not used directly. Instead its SHA1 hash is used.
 
   * `-k` *password*:
 	Setting a password results in encrypting each packet with AES256. The
@@ -54,6 +65,10 @@ will accept the recursive requests.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)
+
+  * `-a` *port*:
+	Kademlia also stores a port. You can use masala-cli to ask for that port and
+	-a to specify that port. (Default: "6881")
 
   * `-x` *server*:
 	Use server as a bootstrap server. The server can be an IPv6 address, a FQHN
@@ -86,6 +101,8 @@ Bittorrent bootstrap server. That bootstrap server is maintained by the creator
 of the Transmission DHT stack:
 
 	$ masala -h owncloud.p2p -r TooManySecrets -x dht.wifi.pps.jussieu.fr
+	$ getent hosts owncloud.p2p
+	$ masala-cli owncloud.p2p
 
 ## BUGS
 

@@ -26,7 +26,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 
 #ifdef TUMBLEWEED
-#include "main.h"
+#include "tumbleweed.h"
 #include "str.h"
 #include "malloc.h"
 #include "list.h"
@@ -36,29 +36,13 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "conf.h"
 #include "unix.h"
 #else
-#include "main.h"
-#include "str.h"
-#include "malloc.h"
-#include "list.h"
-#include "log.h"
-#include "file.h"
 #include "conf.h"
-#include "sha1.h"
-#include "unix.h"
-#include "hex.h"
-#include "random.h"
-#include "ben.h"
-#include "hash.h"
-#include "token.h"
-#include "neighbourhood.h"
-#include "lookup.h"
-#include "transaction.h"
-#include "p2p.h"
+#include "masala-srv.h"
 #endif
 
 struct obj_conf *conf_init( void ) {
 	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf), "conf_init" );
-#ifndef TUMBLEWEED
+#ifdef MASALA
 	char *fbuf = NULL;
 	char *p = NULL;
 #endif
@@ -66,14 +50,23 @@ struct obj_conf *conf_init( void ) {
 	conf->mode = CONF_FOREGROUND;
 
 	conf->port = CONF_PORT;
+	conf->announce_port = CONF_PORT;
 
-#ifdef TUMBLEWEED
 	if( ( getenv( "HOME")) == NULL ) {
-		strncpy( conf->home, "/var/www", MAIN_BUF );
-	} else {
-		snprintf( conf->home, MAIN_BUF+1, "%s/%s", getenv( "HOME"), "Public" );
-	}
+#ifdef MASALA
+		strncpy( conf->home, "/notexistant", MAIN_BUF );
 #endif
+#ifdef TUMBLEWEED
+		strncpy( conf->home, "/var/www", MAIN_BUF );
+#endif
+	} else {
+#ifdef MASALA
+		snprintf( conf->home, MAIN_BUF+1, "%s", getenv( "HOME") );
+#endif
+#ifdef TUMBLEWEED
+		snprintf( conf->home, MAIN_BUF+1, "%s/%s", getenv( "HOME"), "Public" );
+#endif
+	}
 
 #ifdef MASALA
 	/* /etc/hostname */
@@ -130,7 +123,7 @@ struct obj_conf *conf_init( void ) {
 
 #ifdef MASALA
 	snprintf( conf->bootstrap_node, MAIN_BUF+1, "%s", CONF_BOOTSTRAP_NODE );
-	snprintf( conf->bootstrap_port, CONF_BOOTSTRAP_PORT_BUF+1, "%s", CONF_BOOTSTRAP_PORT );
+	snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%s", CONF_BOOTSTRAP_PORT );
 #endif
 
 #ifdef TUMBLEWEED
@@ -174,6 +167,21 @@ void conf_check( void ) {
 #endif
 
 #ifdef TUMBLEWEED
+	log_info( NULL, 0, "Listen to TCP/%i (-p)", _main->conf->port );
+#elif MASALA
+	log_info( NULL, 0, "Listen to UDP/%i (-p)", _main->conf->port );
+#endif
+
+#ifdef MASALA
+	if( _main->conf->announce_port < CONF_PORTMIN || _main->conf->announce_port > CONF_PORTMAX ) {
+		log_fail( "Invalid announce port number. (-a)" );
+	} else {
+		log_info( NULL, 0, "Announce Port: %i (-a)",
+			_main->conf->announce_port );
+	}
+#endif
+
+#ifdef TUMBLEWEED
 	log_info( NULL, 0, "Shared: %s (-s)", _main->conf->home );
 	
 	if( !file_isdir( _main->conf->home) ) {
@@ -200,17 +208,11 @@ void conf_check( void ) {
 		log_info( NULL, 0, "Verbosity: Verbose (-v)" );
 	}
 
-#ifdef TUMBLEWEED
-	log_info( NULL, 0, "Listen to TCP/%i (-p)", _main->conf->port );
-#elif MASALA
-	log_info( NULL, 0, "Listen to UDP/%i (-p)", _main->conf->port );
-#endif
-
 	/* Port == 0 => Random source port */
 	if( _main->conf->port < CONF_PORTMIN || _main->conf->port > CONF_PORTMAX ) {
-		log_fail( "Invalid www port number. (-p)" );
+		log_fail( "Invalid port number. (-p)" );
 	}
-
+	
 	/* Check bootstrap server port */
 #ifndef TUMBLEWEED
 	if( str_isSafePort( _main->conf->bootstrap_port) < 0 ) {
@@ -236,10 +238,11 @@ void conf_check( void ) {
 	}
 #endif
 
-
-
 	log_info( NULL, 0, "Worker threads: %i", _main->conf->cores );
 	if( _main->conf->cores < 1 || _main->conf->cores > 128 ) {
 		log_fail( "Invalid core number." );
 	}
+}
+
+void conf_write( void ) {
 }

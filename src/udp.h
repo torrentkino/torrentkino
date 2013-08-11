@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef UDP_H
+#define UDP_H
+
 #define UDP_MAX_EVENTS 32
 #define UDP_BUF 1460
 
@@ -59,3 +62,5 @@ void udp_input( int sockfd );
 void udp_cron( void );
 
 void udp_multicast( void );
+
+#endif

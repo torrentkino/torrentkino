@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef LIST_H
+#define LIST_H
+
+#include "main.h"
+#include "malloc.h"
+
 struct obj_list {	
 	struct obj_item *item;
 	ULONG size;
@@ -47,3 +53,5 @@ ITEM *list_prev( ITEM *item );
 //void list_swap( LIST *list, ITEM *item1, ITEM *item2 );
 
 void *list_value( ITEM *item );
+
+#endif

@@ -35,27 +35,8 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/epoll.h>
 
-#include "malloc.h"
-#include "thrd.h"
-#include "main.h"
-#include "str.h"
-#include "list.h"
-#include "hash.h"
-#include "log.h"
-#include "conf.h"
-#include "file.h"
-#include "unix.h"
-#include "udp.h"
-#include "ben.h"
 #include "token.h"
-#include "neighbourhood.h"
-#include "lookup.h"
-#include "transaction.h"
-#include "p2p.h"
-#include "bucket.h"
-#include "time.h"
-#include "send_p2p.h"
-#include "random.h"
+#include "masala-srv.h"
 
 struct obj_token *tkn_init( void ) {
 	struct obj_token *token = (struct obj_token *) myalloc( sizeof(struct obj_token), "tkn_init" );
@@ -94,7 +75,7 @@ void tkn_del( ITEM *item_tkn ) {
 	myfree( tkn, "tkn_del" );
 }
 
-void tkn_expire( void ) {
+void tkn_expire( time_t now ) {
 	ITEM *item_tkn = NULL;
 	ITEM *next_tkn = NULL;
 	struct obj_tkn *tkn = NULL;
@@ -105,7 +86,7 @@ void tkn_expire( void ) {
 		next_tkn = list_next( item_tkn );
 
 		/* Bad token */
-		if( _main->p2p->time_now.tv_sec > tkn->time ) {
+		if( now > tkn->time ) {
 			tkn_del( item_tkn );
 		}
 		item_tkn = next_tkn;

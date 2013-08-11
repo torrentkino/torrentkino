@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef FILE_H
+#define FILE_H
+
+#include "main.h"
+#include "malloc.h"
+
 int file_isdir( const char *dirname );
 int file_isreg( const char *filename );
 int file_islink( const char *filename );
@@ -32,3 +38,5 @@ time_t file_mod( const char *filename );
 char *file_load( const char *filename, long int offset, size_t size );
 int file_write( const char *filename, char *buffer, size_t size );
 size_t file_append( const char *filename, char *buffer, size_t size );
+
+#endif

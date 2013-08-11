@@ -27,11 +27,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <polarssl/sha2.h>
 #include <polarssl/aes.h>
 
-#include "main.h"
-#include "malloc.h"
-#include "log.h"
 #include "aes.h"
-#include "str.h"
 
 struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, char *key, int keylen ) {
 	UCHAR ciphertext[AES_MSG_SIZE];

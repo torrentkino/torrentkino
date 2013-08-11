@@ -17,6 +17,11 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef HEX_H
+#define HEX_H
+
 #define HEX_LEN 2*SHA_DIGEST_LENGTH+1
 
 void hex_hash_encode( char *out, const UCHAR *in );
+
+#endif

@@ -37,7 +37,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "malloc.h"
 #include "thrd.h"
-#include "main.h"
+#include "masala-srv.h"
 #include "str.h"
 #include "list.h"
 #include "log.h"

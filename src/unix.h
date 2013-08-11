@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef UNIX_H
+#define UNIX_H
+
 void unix_signal( void );
 void unix_sig_stop( int signo );
 void unix_sig_time( int signo );
@@ -28,3 +31,5 @@ int unix_cpus( void );
 /*
 void unix_environment( void );
 */
+
+#endif

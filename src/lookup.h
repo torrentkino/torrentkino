@@ -17,6 +17,13 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef LOOKUP_H
+#define LOOKUP_H
+
+#include "main.h"
+#include "malloc.h"
+#include "neighbourhood.h"
+
 struct obj_lookup {
 
 	/* What are we looking for */
@@ -27,6 +34,7 @@ struct obj_lookup {
 
 	/* Caller */
 	IP c_addr;
+	int send_reply;
 };
 typedef struct obj_lookup LOOKUP;
 
@@ -35,3 +43,5 @@ void ldb_free( LOOKUP *ldb );
 
 int ldb_contacted_node(LOOKUP *ldb, UCHAR *node_id);
 void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, struct obj_ben *token, IP *from );
+
+#endif

@@ -17,25 +17,33 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAKRO_H
-#define MAKRO_H
+#ifndef MAIN_H
+#define MAIN_H
 
-#define MAIN_BUF 1023
-#define MAIN_PROTVER 1
-#define MAIN_IPBUF 39
-#define SHA_DIGEST_LENGTH 20
+#include "main.h"
 
-#define TRUE 1
-#define FALSE 0
+struct obj_main {
+	char **argv;
+	int argc;
 
-#define GAMEOVER 0
-#define RUMBLE 1
+	struct obj_transaction *transaction;
+	struct obj_infohash *infohash;
+	struct obj_cache *cache;
+	struct obj_token *token;
+	struct obj_nbhd *nbhd;
+	struct obj_conf	*conf;
+	struct obj_udp *udp;
+	struct obj_p2p *p2p;
 
-#define TIMEOUT 10
+	int status;
 
-typedef unsigned long int ULONG;
-typedef unsigned char UCHAR;
-typedef long int LONG;
-typedef struct sockaddr_in6 IP;
+	struct sigaction sig_stop;
+	struct sigaction sig_time;
+};
+
+extern struct obj_main *_main;
+
+struct obj_main *main_init( int argc, char **argv );
+void main_free( void );
 
 #endif

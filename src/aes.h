@@ -17,6 +17,13 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef AES_H
+#define AES_H
+
+#include "main.h"
+#include "log.h"
+#include "ben.h"
+
 #define AES_IV_SIZE 16
 #define AES_KEY_SIZE 32
 #define AES_MSG_SIZE 1456
@@ -26,3 +33,5 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 struct obj_str *aes_encrypt( UCHAR *plain, int plainlen, UCHAR *iv, char *key, int keylen );
 struct obj_str *aes_decrypt( UCHAR *cipher, int cipherlen, UCHAR *iv, char *key, int keylen );
 void aes_key_setup( UCHAR *digest, UCHAR *iv, char *key, int keylen );
+
+#endif /* AES_H */

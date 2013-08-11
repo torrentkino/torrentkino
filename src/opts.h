@@ -17,5 +17,12 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef OPTS_H
+#define OPTS_H
+
+#include "conf.h"
+
 void opts_load( int argc, char **argv );
 void opts_interpreter( char *var, char *val );
+
+#endif

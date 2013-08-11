@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef MALLOC_H
+#define MALLOC_H
+
 #ifdef DEBUG
 extern unsigned long int myalloc_counter;
 extern unsigned long int myfree_counter;
@@ -28,3 +31,5 @@ void mem_print( const char *caller );
 void *myalloc( long int size, const char *caller );
 void *myrealloc( void *arg, long int size, const char *caller );
 void myfree( void *arg, const char *caller );
+
+#endif /* MALLOC_H */

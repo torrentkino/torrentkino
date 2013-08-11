@@ -37,32 +37,8 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "str.h"
 #include "conf.h"
 #else
-#include "malloc.h"
-#include "main.h"
-#include "list.h"
-#include "log.h"
 #include "str.h"
-#include "conf.h"
 #endif
-
-struct obj_str *str_init( UCHAR *buf, long int len ) {
-	struct obj_str *str = (struct obj_str *) myalloc( sizeof(struct obj_str), "str_init" );
-	
-	str->s = (UCHAR *) myalloc( (len+1) * sizeof(UCHAR), "str_init" );
-	if( len > 0 ) {
-		memcpy( str->s, buf, len );
-	}
-	str->i = len;
-	
-	return str;
-}
-
-void str_free( struct obj_str *str ) {
-	if( str->s != NULL ) {
-		myfree( str->s, "str_free" );
-	}
-	myfree( str, "str_free" );
-}
 
 int str_isValidUTF8( char *string ) {
 	unsigned int i = 0, j = 0, n = 0;
@@ -274,6 +250,7 @@ void str_prettySize( char *buffer, int size, unsigned long filesize ) {
 	}
 }
 
+/*
 char *str_append( char *buf1, long int size1, char *buf2, long int size2 ) {
 	if( buf1 == NULL ) {
 		log_fail( "str_append(): buf1 broken" );
@@ -301,3 +278,4 @@ char *str_append( char *buf1, long int size1, char *buf2, long int size2 ) {
 
 	return buf1;
 }
+*/

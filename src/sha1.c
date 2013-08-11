@@ -28,13 +28,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <polarssl/sha1.h>
 
-#include "main.h"
-#include "str.h"
-#include "list.h"
-#include "file.h"
-#include "conf.h"
-#include "malloc.h"
-#include "log.h"
+#include "sha1.h"
 
 void sha1_hash( UCHAR *hash, const char *buffer, long int bytes ) {
 	memset( hash, '\0', SHA_DIGEST_LENGTH );

@@ -17,6 +17,16 @@ You should have received a copy of the GNU General Public License
 along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef SEND_H
+#define SEND_H
+
+#include "masala-srv.h"
+#include "udp.h"
+#include "conf.h"
+#include "aes.h"
+#include "hex.h"
+#include "p2p.h"
+
 void send_ping( IP *sa, UCHAR *tid );
 void send_pong( IP *sa, UCHAR *tid, int tid_size );
 
@@ -32,3 +42,5 @@ void send_announce_reply( IP *sa, UCHAR *tid, int tid_size );
 
 void send_aes( IP *sa, struct obj_raw *raw );
 void send_exec( IP *sa, struct obj_raw *raw );
+
+#endif

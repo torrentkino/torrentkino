@@ -17,13 +17,12 @@ You should have received a copy of the GNU General Public License
 along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-struct obj_str {
-	UCHAR *s;
-	long int i;
-};
+#ifndef STR_H
+#define STR_H
 
-struct obj_str *str_init( UCHAR *buf, long int len );
-void str_free( struct obj_str *str );
+#include "main.h"
+#include "conf.h"
+#include "log.h"
 
 int str_isValidUTF8( char *string );
 int str_isNumber( char *string );
@@ -40,4 +39,6 @@ void str_GMTtime( char *buffer, int size );
 void str_gmttime( char *buffer, int size, time_t timestamp );
 void str_prettySize( char *buffer, int size, unsigned long filesize );
 
-char *str_append( char *buf1, long int size1, char *buf2, long int size2 );
+/* char *str_append( char *buf1, long int size1, char *buf2, long int size2 ); */
+
+#endif

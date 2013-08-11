@@ -31,27 +31,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <sys/epoll.h>
 
-#include "malloc.h"
-#include "main.h"
-#include "log.h"
-#include "conf.h"
-#include "udp.h"
-#include "str.h"
-#include "list.h"
-#include "ben.h"
-#include "unix.h"
-#include "hash.h"
-#include "token.h"
-#include "neighbourhood.h"
-#include "lookup.h"
-#include "transaction.h"
-#include "p2p.h"
-#include "bucket.h"
-#include "send_p2p.h"
 #include "info_hash.h"
-#include "search.h"
-#include "time.h"
-#include "hex.h"
 
 struct obj_infohash *idb_init( void ) {
 	struct obj_infohash *infohash = (struct obj_infohash *) myalloc(sizeof(struct obj_infohash), "idb_init");
@@ -138,7 +118,7 @@ void idb_update( INODE *db, IP *sa, int port ) {
 	db->c_addr.sin6_port = htons(port);
 }
 
-void idb_expire( void ) {
+void idb_expire( time_t now ) {
 	ITEM *i_target = NULL;
 	ITEM *n_target = NULL;
 	IHASH *target = NULL;
@@ -158,7 +138,7 @@ void idb_expire( void ) {
 			inode = list_value( i_node );
 
 			/* Delete info_hash after 30 minutes without announcement. */
-			if( _main->p2p->time_now.tv_sec > inode->time_anno ) {
+			if( now > inode->time_anno ) {
 				idb_del_node(target, i_node);
 			}
 

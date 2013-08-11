@@ -31,25 +31,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <sys/epoll.h>
 
-#include "malloc.h"
-#include "main.h"
-#include "log.h"
-#include "conf.h"
-#include "random.h"
-#include "aes.h"
-#include "udp.h"
-#include "str.h"
-#include "list.h"
-#include "ben.h"
-#include "hash.h"
-#include "token.h"
-#include "neighbourhood.h"
-#include "bucket.h"
 #include "send_p2p.h"
-#include "lookup.h"
-#include "transaction.h"
-#include "p2p.h"
-#include "hex.h"
 
 /*
 	{
@@ -568,7 +550,7 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_INT );
 	ben_str( key,( UCHAR *)"port", 4 );
-	ben_int( val, _main->conf->port );
+	ben_int( val, _main->conf->announce_port );
 	ben_dict( arg, key, val );
 
 	/* Token */
