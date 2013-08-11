@@ -1,8 +1,0 @@
-# Preparation
-apt-get install build-essential
-apt-get install debhelper
-apt-get install git-buildpackage
-apt-get install libpolarssl-dev
-
-# Build package
-git-buildpackage
