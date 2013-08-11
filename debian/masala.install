@@ -1,2 +1,3 @@
 ./masala/masala /usr/bin
+./masala-cli/masala-cli /usr/bin
 ./masala-nss/libnss_masala.so.2 /lib/
