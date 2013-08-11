@@ -23,10 +23,12 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "malloc.h"
 #include "file.h"
+#ifdef MASALA
 #include "sha1.h"
 #include "random.h"
-#include "unix.h"
 #include "hex.h"
+#endif
+#include "unix.h"
 #include "str.h"
 
 #define CONF_CORES 2

@@ -50,7 +50,9 @@ struct obj_conf *conf_init( void ) {
 	conf->mode = CONF_FOREGROUND;
 
 	conf->port = CONF_PORT;
+#ifdef MASALA
 	conf->announce_port = CONF_PORT;
+#endif
 
 	if( ( getenv( "HOME")) == NULL ) {
 #ifdef MASALA

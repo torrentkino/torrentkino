@@ -92,7 +92,6 @@ hostname every 5 minutes on its own. So, the cache stays up-to-date. It stops
   * apt-get install git-buildpackage
   * apt-get install libpolarssl-dev
   * git-buildpackage
-  * dpkg -i ../masala_0.6_amd64.deb
 
 ## EXAMPLES
 
