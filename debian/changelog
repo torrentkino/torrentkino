@@ -1,6 +1,7 @@
 masala (0.7) unstable; urgency=low
 
   * Query cache
+  * Write hint file, that contains the server port. Needed by CLI+NSS
 
  -- Aiko Barz <aiko@chroot.de>  Sun, 11 Aug 2013 14:22:00 +0100
 masala (0.6) unstable; urgency=low

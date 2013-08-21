@@ -93,7 +93,7 @@ void send_ping( IP *sa, UCHAR *tid ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	log_info( sa, 0, "PING" );
+	info( sa, 0, "PING" );
 }
 
 /*
@@ -148,7 +148,7 @@ void send_pong( IP *sa, UCHAR *tid, int tid_size ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	log_info( sa, 0, "PONG" );
+	info( sa, 0, "PONG" );
 }
 
 /*
@@ -221,7 +221,7 @@ void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	ben_free( dict );
 
 	hex_hash_encode( hexbuf, node_id );
-	log_info( sa, 0, "FIND %s at", hexbuf );
+	info( sa, 0, "FIND %s at", hexbuf );
 }
 
 /*
@@ -284,7 +284,7 @@ void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	raw_free( raw );
 	ben_free( dict );
 
-	log_info( sa, 0, "NODES via FIND_NODE to");
+	info( sa, 0, "NODES via FIND_NODE to");
 }
 
 /*
@@ -357,7 +357,7 @@ void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	ben_free( dict );
 
 	hex_hash_encode( hexbuf, node_id );
-	log_info( sa, 0, "GET_PEERS %s at", hexbuf );
+	info( sa, 0, "GET_PEERS %s at", hexbuf );
 }
 
 /*
@@ -428,7 +428,7 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	raw_free( raw );
 	ben_free( dict );
 
-	log_info( sa, 0, "NODES via GET_PEERS to");
+	info( sa, 0, "NODES via GET_PEERS to");
 }
 
 /*
@@ -508,7 +508,7 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 	raw_free( raw );
 	ben_free( dict );
 
-	log_info( sa, 0, "VALUES via GET_PEERS to" );
+	info( sa, 0, "VALUES via GET_PEERS to" );
 }
 
 /*
@@ -595,7 +595,7 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	log_info( sa, 0, "ANNOUNCE_PEER to" );
+	info( sa, 0, "ANNOUNCE_PEER to" );
 }
 
 /*
@@ -650,7 +650,7 @@ void send_announce_reply( IP *sa, UCHAR *tid, int tid_size ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	log_info( sa, 0, "ANNOUNCE_PEER SUCCESS to" );
+	info( sa, 0, "ANNOUNCE_PEER SUCCESS to" );
 }
 
 void send_aes( IP *sa, struct obj_raw *raw ) {
@@ -673,7 +673,7 @@ void send_aes( IP *sa, struct obj_raw *raw ) {
 	aes = aes_encrypt( raw->code, raw->size, salt, 
 			_main->conf->key, strlen( _main->conf->key) );
 	if( aes == NULL ) {
-		log_info( NULL, 0, "Encoding AES message failed" );
+		info( NULL, 0, "Encoding AES message failed" );
 		ben_free( dict );
 		return;
 	}

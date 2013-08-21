@@ -33,12 +33,16 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "node_web.h"
 #include "log.h"
 #include "file.h"
-#include "conf.h"
 #include "unix.h"
-#else
-#include "conf.h"
-#include "masala-srv.h"
 #endif
+
+#ifdef MASALA
+#include "ben.h"
+#include "masala-srv.h"
+#include "log.h"
+#endif
+
+#include "conf.h"
 
 struct obj_conf *conf_init( void ) {
 	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf), "conf_init" );
@@ -48,15 +52,15 @@ struct obj_conf *conf_init( void ) {
 #endif
 
 	conf->mode = CONF_FOREGROUND;
-
 	conf->port = CONF_PORT;
+
 #ifdef MASALA
 	conf->announce_port = CONF_PORT;
 #endif
 
-	if( ( getenv( "HOME")) == NULL ) {
+	if( ( getenv( "HOME" ) ) == NULL ) {
 #ifdef MASALA
-		strncpy( conf->home, "/notexistant", MAIN_BUF );
+		strncpy( conf->home, "/tmp", MAIN_BUF );
 #endif
 #ifdef TUMBLEWEED
 		strncpy( conf->home, "/var/www", MAIN_BUF );
@@ -71,10 +75,14 @@ struct obj_conf *conf_init( void ) {
 	}
 
 #ifdef MASALA
+	snprintf( conf->file, MAIN_BUF+1, "%s/.masala.conf", conf->home );
+#endif
+
+#ifdef MASALA
 	/* /etc/hostname */
 	strncpy( conf->hostname, "bulk.p2p", MAIN_BUF );
-	if( file_isreg( CONF_HOSTFILE) ) {
-		if( ( fbuf = (char *) file_load( CONF_HOSTFILE, 0, file_size( CONF_HOSTFILE))) != NULL ) {
+	if( file_isreg( CONF_HOSTFILE ) ) {
+		if( ( fbuf = (char *) file_load( CONF_HOSTFILE, 0, file_size( CONF_HOSTFILE ) ) ) != NULL ) {
 			if( ( p = strchr( fbuf, '\n')) != NULL ) {
 				*p = '\0';
 			}
@@ -125,7 +133,7 @@ struct obj_conf *conf_init( void ) {
 
 #ifdef MASALA
 	snprintf( conf->bootstrap_node, MAIN_BUF+1, "%s", CONF_BOOTSTRAP_NODE );
-	snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%s", CONF_BOOTSTRAP_PORT );
+	snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%i", CONF_PORT );
 #endif
 
 #ifdef TUMBLEWEED
@@ -151,100 +159,120 @@ void conf_check( void ) {
 #endif
 
 #ifdef MASALA
-	log_info( NULL, 0, "Hostname: %s (-h)", _main->conf->hostname );
+	info( NULL, 0, "Hostname: %s (-h)", _main->conf->hostname );
 #endif
 
 #ifdef MASALA
 	hex_hash_encode( hex, _main->conf->node_id );
-	log_info( NULL, 0, "Node ID: %s", hex );
+	info( NULL, 0, "Node ID: %s", hex );
 
 	hex_hash_encode( hex, _main->conf->host_id );
-	log_info( NULL, 0, "Host ID: %s", hex );
+	info( NULL, 0, "Host ID: %s", hex );
 #endif
 
 #ifdef MASALA
-	log_info( NULL, 0, "Bootstrap Node: %s (-x)", _main->conf->bootstrap_node );
-	log_info( NULL, 0, "Bootstrap Port: UDP/%s (-y)",
-		_main->conf->bootstrap_port );
+	info( NULL, 0, "Bootstrap Node: %s (-x)", _main->conf->bootstrap_node );
+	info( NULL, 0, "Bootstrap Port: UDP/%s (-y)", _main->conf->bootstrap_port );
 #endif
 
 #ifdef TUMBLEWEED
-	log_info( NULL, 0, "Listen to TCP/%i (-p)", _main->conf->port );
+	info( NULL, 0, "Listen to TCP/%i (-p)", _main->conf->port );
 #elif MASALA
-	log_info( NULL, 0, "Listen to UDP/%i (-p)", _main->conf->port );
+	info( NULL, 0, "Listen to UDP/%i (-p)", _main->conf->port );
 #endif
 
 #ifdef MASALA
 	if( _main->conf->announce_port < CONF_PORTMIN || _main->conf->announce_port > CONF_PORTMAX ) {
-		log_fail( "Invalid announce port number. (-a)" );
+		fail( "Invalid announce port number. (-a)" );
 	} else {
-		log_info( NULL, 0, "Announce Port: %i (-a)",
-			_main->conf->announce_port );
+		info( NULL, 0, "Announce Port: %i (-a)", _main->conf->announce_port );
 	}
 #endif
 
 #ifdef TUMBLEWEED
-	log_info( NULL, 0, "Shared: %s (-s)", _main->conf->home );
+	info( NULL, 0, "Shared: %s (-s)", _main->conf->home );
 	
 	if( !file_isdir( _main->conf->home) ) {
-		log_fail( "The shared directory does not exist" );
+		fail( "The shared directory does not exist" );
 	}
 #endif
 
 #ifdef TUMBLEWEED
-	log_info( NULL, 0, "Index file: %s (-i)", _main->conf->index_name );
+	info( NULL, 0, "Index file: %s (-i)", _main->conf->index_name );
 	if( !str_isValidFilename( _main->conf->index_name ) ) {
-		log_fail( "%s looks suspicious", _main->conf->index_name );
+		fail( "%s looks suspicious", _main->conf->index_name );
 	}
 #endif
 
 	if( _main->conf->mode == CONF_FOREGROUND ) {
-		log_info( NULL, 0, "Mode: Foreground (-d)" );
+		info( NULL, 0, "Mode: Foreground (-d)" );
 	} else {
-		log_info( NULL, 0, "Mode: Daemon (-d)" );
+		info( NULL, 0, "Mode: Daemon (-d)" );
 	}
 
 	if( _main->conf->quiet == CONF_BEQUIET ) {
-		log_info( NULL, 0, "Verbosity: Quiet (-v)" );
+		info( NULL, 0, "Verbosity: Quiet (-v)" );
 	} else {
-		log_info( NULL, 0, "Verbosity: Verbose (-v)" );
+		info( NULL, 0, "Verbosity: Verbose (-v)" );
 	}
 
 	/* Port == 0 => Random source port */
 	if( _main->conf->port < CONF_PORTMIN || _main->conf->port > CONF_PORTMAX ) {
-		log_fail( "Invalid port number. (-p)" );
+		fail( "Invalid port number. (-p)" );
 	}
 	
 	/* Check bootstrap server port */
 #ifndef TUMBLEWEED
 	if( str_isSafePort( _main->conf->bootstrap_port) < 0 ) {
-		log_fail( "Invalid bootstrap port number. (-y)" );
+		fail( "Invalid bootstrap port number. (-y)" );
 	}
 #endif
 
 	/* Encryption */
 #ifdef MASALA
 	if( _main->conf->bool_encryption == 1 ) {
-		log_info( NULL, 0, "Encryption key: %s (-k)", _main->conf->key );
+		info( NULL, 0, "Encryption key: %s (-k)", _main->conf->key );
 	} else {
-		log_info( NULL, 0, "Encryption key: None (-k)" );
+		info( NULL, 0, "Encryption key: None (-k)" );
 	}
 #endif
 
 	/* Realm */
 #ifdef MASALA
 	if( _main->conf->bool_realm == 1 ) {
-		log_info( NULL, 0, "Realm: %s (-r)", _main->conf->realm );
+		info( NULL, 0, "Realm: %s (-r)", _main->conf->realm );
 	} else {
-		log_info( NULL, 0, "Realm: None (-r)" );
+		info( NULL, 0, "Realm: None (-r)" );
 	}
 #endif
 
-	log_info( NULL, 0, "Worker threads: %i", _main->conf->cores );
+	info( NULL, 0, "Worker threads: %i", _main->conf->cores );
 	if( _main->conf->cores < 1 || _main->conf->cores > 128 ) {
-		log_fail( "Invalid core number." );
+		fail( "Invalid core number." );
 	}
 }
 
+#ifdef MASALA
 void conf_write( void ) {
+	struct obj_ben *dict = ben_init( BEN_DICT );
+	struct obj_ben *key = NULL;
+	struct obj_ben *val = NULL;
+	struct obj_raw *raw = NULL;
+
+	/* Port */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_INT );
+	ben_str( key, (UCHAR *)"port", 4 );
+	ben_int( val, _main->conf->port );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+
+	if( !file_write( _main->conf->file, (char *)raw->code, raw->size ) ) {
+		fail( "Writing %s failed", _main->conf->file );
+	}
+
+	raw_free( raw );
+	ben_free( dict );
 }
+#endif

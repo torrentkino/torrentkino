@@ -23,13 +23,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #define _public_ __attribute__( ( visibility( "default")))
 #define _hidden_ __attribute__( ( visibility( "hidden")))
 
-#define MAIN_BUF 1024
-#define BOOTSTRAP_PORT 6881
-#define TIMEOUT 10
-
-typedef unsigned char UCHAR;
-typedef struct sockaddr_in6 IP;
-
 enum nss_status _nss_masala_gethostbyname_r( const char *hostname, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop) _public_;
@@ -57,6 +50,7 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
 int _nss_masala_valid_tld( const char *hostname, int size );
 int _nss_masala_valid_hostname( const char *hostname, int size );
 
-int _nss_masala_lookup( const char *hostname, int size, UCHAR *address );
+int _nss_masala_lookup( const char *hostname, int size, UCHAR *address, int port );
+int _nss_masala_port( void );
 
 #endif

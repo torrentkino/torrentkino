@@ -61,14 +61,14 @@ void unix_signal( void ) {
 	_main->sig_stop.sa_handler = unix_sig_stop;
 	_main->sig_stop.sa_flags = 0;
 	if( ( sigemptyset( &_main->sig_stop.sa_mask) == -1) ||( sigaction( SIGINT, &_main->sig_stop, NULL) != 0) ) {
-		log_fail( "Failed to set SIGINT to handle Ctrl-C" );
+		fail( "Failed to set SIGINT to handle Ctrl-C" );
 	}
 
 	/* ALARM */
 	_main->sig_time.sa_handler = unix_sig_time;
 	_main->sig_time.sa_flags = 0;
 	if( ( sigemptyset( &_main->sig_time.sa_mask) == -1) ||( sigaction( SIGALRM, &_main->sig_time, NULL) != 0) ) {
-		log_fail( "Failed to set SIGINT to handle Ctrl-C" );
+		fail( "Failed to set SIGINT to handle Ctrl-C" );
 	}
 
 	/* Ignore broken PIPE. Otherwise, the server dies too whenever a browser crashes. */
@@ -96,7 +96,7 @@ void unix_fork( void ) {
 
 	pid = fork();
 	if( pid < 0 ) {
-		log_fail( "fork() failed" );
+		fail( "fork() failed" );
 	} else if( pid != 0 ) {
 	   exit( 0 );
 	}
@@ -125,10 +125,10 @@ void unix_limits( void ) {
 	rl.rlim_max = limit;
 
 	if( setrlimit( RLIMIT_NOFILE, &rl) == -1 ) {
-		log_fail( strerror( errno) );
+		fail( strerror( errno) );
 	}
 
-	log_info( NULL, 0, "Max open files: %i", limit );
+	info( NULL, 0, "Max open files: %i", limit );
 }
 
 void unix_dropuid0( void ) {
@@ -140,27 +140,27 @@ void unix_dropuid0( void ) {
 
 	/* Process is running as root, drop privileges */
 	if( ( pw = getpwnam( _main->conf->username)) == NULL ) {
-		log_fail( "Dropping uid 0 failed. Use \"-u\" to set a valid username." );
+		fail( "Dropping uid 0 failed. Use \"-u\" to set a valid username." );
 	}
 	if( setenv( "HOME", pw->pw_dir, 1) != 0 ) {
-		log_fail( "setenv: Setting new $HOME failed." );
+		fail( "setenv: Setting new $HOME failed." );
 	}
 	if( setgid( pw->pw_gid) != 0 ) {
-		log_fail( "setgid: Unable to drop group privileges" );
+		fail( "setgid: Unable to drop group privileges" );
 	}
 	if( setuid( pw->pw_uid) != 0 ) {
-		log_fail( "setuid: Unable to drop user privileges" );
+		fail( "setuid: Unable to drop user privileges" );
 	}
 
 	/* Test permissions */
 	if( setuid( 0) != -1 ) {
-		log_fail( "ERROR: Managed to regain root privileges?" );
+		fail( "ERROR: Managed to regain root privileges?" );
 	}
 	if( setgid( 0) != -1 ) {
-		log_fail( "ERROR: Managed to regain root privileges?" );
+		fail( "ERROR: Managed to regain root privileges?" );
 	}
 
-	log_info( NULL, 0, "uid: %i, gid: %i( -u)", pw->pw_uid, pw->pw_gid );
+	info( NULL, 0, "uid: %i, gid: %i( -u)", pw->pw_uid, pw->pw_gid );
 }
 
 /*

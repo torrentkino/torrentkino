@@ -13,7 +13,7 @@ export POST_LINKING =
 #POST_LINKING += $(shell dpkg-buildflags --get LDFLAGS)
 #POST_LINKING += $(HARDENING_LDFLAGS)
 SUBDIRS =
-OBJS=masala-cli.o str.o
+OBJS=masala-cli.o str.o malloc.o file.o ben.o list.o fail.o
 
 .PHONY: all clean install $(SUBDIRS)
 

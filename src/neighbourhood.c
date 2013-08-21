@@ -72,7 +72,7 @@ void nbhd_free( NBHD *nbhd ) {
 	myfree( nbhd, "nbhd_free" );
 }
 
-void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa ) {
+void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa, ULONG size_limit ) {
 	NODE *n = NULL;
 
 	/* It's me */
@@ -83,14 +83,20 @@ void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa ) {
 	/* Find the node or create a new one */
 	if( ( n = hash_get( nbhd->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
 		node_update( n, sa );
-	} else {
-		n = node_init( id, sa );
-		bckt_put( nbhd->bucket, n );
-		hash_put( nbhd->hash, n->id, SHA_DIGEST_LENGTH, n );
-
-		/* Check if split is neccesary */
-		nbhd_split( _main->nbhd, _main->conf->node_id, TRUE );
+		return;
 	}
+	
+	/* New node */
+	n = node_init( id, sa );
+
+	/* Remember node */
+	if( !bckt_put( nbhd->bucket, n, size_limit ) ) {
+		node_free( n );
+		return;
+	}
+
+	/* Fast access */
+	hash_put( nbhd->hash, n->id, SHA_DIGEST_LENGTH, n );
 }
 
 void nbhd_del( NBHD *nbhd, NODE *n ) {
@@ -195,15 +201,4 @@ void nbhd_split( NBHD *nbhd, UCHAR *target, int verbose ) {
 
 int nbhd_is_empty( NBHD *nbhd ) {
 	return bckt_is_empty( nbhd->bucket );
-}
-
-int nbhd_conn_from_localhost( IP *from ) {
-	const UCHAR localhost[] = 
-		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-
-	if( memcmp(from->sin6_addr.s6_addr, localhost, 16) == 0 ) {
-		 return TRUE;
-	}
-
-	return FALSE;
 }

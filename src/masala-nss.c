@@ -26,6 +26,9 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "main.h"
+#include "ben.h"
+#include "file.h"
 #include "masala-nss.h"
 
 enum nss_status _nss_masala_gethostbyname_r( const char *hostname, struct hostent *host,
@@ -116,6 +119,7 @@ enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
 	char *p_addr_list = NULL;
 	char *p_idx = NULL;
 	size_t s_total = 0;
+	int port = 0;
 
 	s_total = size + 1 + sizeof(char*) + sizeof(struct in6_addr) + 2 * sizeof(char*);
 	if( buflen < s_total ) {
@@ -124,7 +128,14 @@ enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	if( !_nss_masala_lookup( hostname, size, address) ) {
+	port = _nss_masala_port();
+	if( port < 1 || port > 65535 ) {
+		*errnop = ENOENT;
+		*h_errnop = HOST_NOT_FOUND;
+		return NSS_STATUS_NOTFOUND;
+	}
+
+	if( !_nss_masala_lookup( hostname, size, address, port ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
@@ -174,6 +185,7 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
 	char *p_idx = NULL;
 	struct gaih_addrtuple *p_tuple;
 	size_t s_total = 0;
+	int port = 0;
 
 	s_total = size + 1 + sizeof(struct gaih_addrtuple );
 	if( buflen < s_total ) {
@@ -182,7 +194,14 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	if( !_nss_masala_lookup( hostname, size, address) ) {
+	port = _nss_masala_port();
+	if( port < 1 || port > 65535 ) {
+		*errnop = ENOENT;
+		*h_errnop = HOST_NOT_FOUND;
+		return NSS_STATUS_NOTFOUND;
+	}
+
+	if( !_nss_masala_lookup( hostname, size, address, port ) ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
@@ -258,7 +277,7 @@ int _nss_masala_valid_tld( const char *hostname, int size ) {
 	return 1;
 }
 
-int _nss_masala_lookup( const char *hostname, int size, UCHAR *address ) {
+int _nss_masala_lookup( const char *hostname, int size, UCHAR *address, int port ) {
 
 	IP sa;
 	socklen_t salen = sizeof(IP );
@@ -283,7 +302,7 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address ) {
 
 	/* Setup IPv6 */
 	sa.sin6_family = AF_INET6;
-	sa.sin6_port = htons( BOOTSTRAP_PORT );
+	sa.sin6_port = htons( port );
 	if( !inet_pton( AF_INET6, "::1", &(sa.sin6_addr)) ) {
 		return 0;
 	}
@@ -302,4 +321,69 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address ) {
 	memcpy( address, buffer, 16 );
 
 	return 1;
+}
+
+int _nss_masala_port( void ) {
+	char filename[MAIN_BUF+1];
+	int filesize = 0;
+	UCHAR *fbuf = NULL;
+	BEN *ben = NULL;
+	BEN *port = NULL;
+	int port_number = 0;
+
+	if( ( getenv( "HOME")) == NULL ) {
+		return -1;
+	}
+
+	snprintf( filename, MAIN_BUF+1, "%s/%s", getenv( "HOME" ), ".masala.conf" );
+
+	if( !file_isreg( filename ) ) {
+		return -1;
+	}
+
+	filesize = file_size( filename );
+	if( filesize <= 0 ) {
+		return -1;
+	}
+
+	if( ( fbuf = (UCHAR *) file_load( filename, 0, filesize ) ) == NULL ) {
+		return -1;
+	}
+
+	if( !ben_validate( fbuf, filesize ) ) {
+		myfree( fbuf, "masala_port" );
+		return -1;
+	}
+
+	/* Parse request */
+	ben = ben_dec( fbuf, filesize );
+	if( ben == NULL ) {
+		myfree( fbuf, "masala_port" );
+		return -1;
+	}
+	if( ben->t != BEN_DICT ) {
+		ben_free( ben );
+		myfree( fbuf, "masala_port" );
+		return -1;
+	}
+
+	port = ben_searchDictStr( ben, "port" );
+	if( !ben_is_int( port ) ) {
+		ben_free( ben );
+		myfree( fbuf, "masala_port" );
+		return -1;
+	}
+
+	if( port->v.i < 1 || port->v.i > 65535 ) {
+		ben_free( ben );
+		myfree( fbuf, "masala_port" );
+		return -1;
+	}
+
+	port_number = port->v.i;
+
+	ben_free( ben );
+	myfree( fbuf, "masala_port" );
+
+	return port_number;
 }

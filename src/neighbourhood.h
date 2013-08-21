@@ -33,7 +33,7 @@ typedef struct obj_nbhd NBHD;
 NBHD *nbhd_init( void );
 void nbhd_free( NBHD *nbhd );
 
-void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa );
+void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa, ULONG size_limit );
 void nbhd_del( NBHD *nbhd, NODE *n );
 
 void nbhd_pinged( UCHAR *id );
@@ -44,7 +44,5 @@ void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd );
 void nbhd_split( NBHD *nbhd, UCHAR *target, int verbose );
 
 int nbhd_is_empty( NBHD *nbhd );
-
-int nbhd_conn_from_localhost( IP *from );
 
 #endif

@@ -20,13 +20,10 @@ If you would like to connect nodes around the globe, you may use the Bittorrent
 network. Simply select a Bittorrent bootstrap server as seen in the example
 below. Your client becomes a full member of the swarm and resolves info hashes
 to IPv6/port tuples. The swarm on the other end does the same for you. But in
-your case, the info hash represents a hostname and not a torrent file.
+your case, the info hash represents a hostname instead of a torrent file.
 
 A NSS module makes any hostname with *.p2p* at the end transparently available
-to your Linux OS. The NSS modul tries to contact the masala daemon at ::1 and
-UDP/6881. The daemon then resolves the requested hostname recursively even if
-you use encryption. As long as the connection comes from ::1 the masala daemon
-will accept the recursive requests.
+to your Linux OS.
 
 Masala uses a hostname cache for fast lookups within big swarms. A queried
 hostname will be cached for 30 minutes. Masala also lookups that queried
@@ -36,14 +33,19 @@ hostname every 5 minutes on its own. So, the cache stays up-to-date. It stops
 ## FILES
 
   * **/etc/nsswitch.conf**:
-	masala gets attached to the *hosts* line. masala is only used for lookup
-	requests with *.p2p* as the TLD.
+	Masala gets attached to the *hosts* line. The masala daemon is only used
+	for hostnames with *.p2p* at the end.
+
+  * **$HOME/.masala.conf**:
+    This file gets written by the Masala daemon and contains the server port
+	number. The NSS and CLI program read this file to get knowledge about the
+	current daemon port.
 
 ## OPTIONS
 
   * `-h` *hostname*:
-    By default /etc/hostname is used to determine the hostname. The SHA1 hash of
-	the hostname becomes the announced info_hash.
+    By default /etc/hostname is used to determine your hostname. The SHA1 hash
+	of the hostname becomes the announced info_hash.
 
   * `-n` *node id string*:
     By default a random node id gets computed on every startup. For testing

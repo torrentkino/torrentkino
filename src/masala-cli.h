@@ -21,10 +21,9 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_H
 
 #include "main.h"
-#include "str.h"
-#include "conf.h"
 
 int str_isValidHostname( const char *hostname, int size );
 int masala_lookup( const char *hostname, int size );
+int masala_port( void );
 
 #endif

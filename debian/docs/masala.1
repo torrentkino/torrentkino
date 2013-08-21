@@ -16,10 +16,10 @@
 By default, masala sends the first packet to a multicast address\. So, for intranet use cases, you do not need a bootstrap server\. Just start masala on 2 nodes without any parameters\. It simply works\.
 .
 .P
-If you would like to connect nodes around the globe, you may use the Bittorrent network\. Simply select a Bittorrent bootstrap server as seen in the example below\. Your client becomes a full member of the swarm and resolves info hashes to IPv6/port tuples\. The swarm on the other end does the same for you\. But in your case, the info hash represents a hostname and not a torrent file\.
+If you would like to connect nodes around the globe, you may use the Bittorrent network\. Simply select a Bittorrent bootstrap server as seen in the example below\. Your client becomes a full member of the swarm and resolves info hashes to IPv6/port tuples\. The swarm on the other end does the same for you\. But in your case, the info hash represents a hostname instead of a torrent file\.
 .
 .P
-A NSS module makes any hostname with \fI\.p2p\fR at the end transparently available to your Linux OS\. The NSS modul tries to contact the masala daemon at ::1 and UDP/6881\. The daemon then resolves the requested hostname recursively even if you use encryption\. As long as the connection comes from ::1 the masala daemon will accept the recursive requests\.
+A NSS module makes any hostname with \fI\.p2p\fR at the end transparently available to your Linux OS\.
 .
 .P
 Masala uses a hostname cache for fast lookups within big swarms\. A queried hostname will be cached for 30 minutes\. Masala also lookups that queried hostname every 5 minutes on its own\. So, the cache stays up\-to\-date\. It stops 30 minutes after your last query for that hostname\.
@@ -28,13 +28,17 @@ Masala uses a hostname cache for fast lookups within big swarms\. A queried host
 .
 .TP
 \fB/etc/nsswitch\.conf\fR
-masala gets attached to the \fIhosts\fR line\. masala is only used for lookup requests with \fI\.p2p\fR as the TLD\.
+Masala gets attached to the \fIhosts\fR line\. The masala daemon is only used for hostnames with \fI\.p2p\fR at the end\.
+.
+.TP
+\fB$HOME/\.masala\.conf\fR
+This file gets written by the Masala daemon and contains the server port number\. The NSS and CLI program read this file to get knowledge about the current daemon port\.
 .
 .SH "OPTIONS"
 .
 .TP
 \fB\-h\fR \fIhostname\fR
-By default /etc/hostname is used to determine the hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
+By default /etc/hostname is used to determine your hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
 .
 .TP
 \fB\-n\fR \fInode id string\fR
@@ -92,9 +96,6 @@ apt\-get install libpolarssl\-dev
 .
 .IP "\(bu" 4
 git\-buildpackage
-.
-.IP "\(bu" 4
-dpkg \-i \.\./masala_0\.6_amd64\.deb
 .
 .IP "" 0
 .

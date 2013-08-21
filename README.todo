@@ -1,0 +1,7 @@
+- Random nodes on VALUE return
+- Limit no of nodes in info_hash db
+- Limit no of info_hashes
+- cli and nss program shall use bencode
+- Daemon cookie protection
+- Mask password in process list
+- 

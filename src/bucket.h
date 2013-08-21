@@ -33,7 +33,7 @@ typedef struct obj_neighboorhood_bucket BUCK;
 
 LIST *bckt_init( void );
 void bckt_free( LIST *thislist );
-void bckt_put( LIST *l, NODE *n );
+int bckt_put( LIST *l, NODE *n, ULONG size_limit );
 void bckt_del( LIST *l, NODE *n );
 
 ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id );

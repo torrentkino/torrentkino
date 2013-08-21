@@ -81,7 +81,7 @@ void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa ) {
 		hash_put(_main->infohash->hash, target->target, SHA_DIGEST_LENGTH, i );
 
 		hex_hash_encode( hex, target_id );
-		log_info( NULL, 0, "INFO_HASH: %s (%lu)",
+		info( NULL, 0, "INFO_HASH: %s (%lu)",
 			hex, list_size( _main->infohash->list ) );
 
 	} else {
@@ -148,7 +148,7 @@ void idb_expire( time_t now ) {
 		if( target->list->item == NULL ) {
 			
 			hex_hash_encode( hex, target->target );
-			log_info( NULL, 0, "INFO_HASH: %s (%lu)",
+			info( NULL, 0, "INFO_HASH: %s (%lu)",
 				hex, list_size( _main->infohash->list ) );
 			
 			idb_del_target(i_target);

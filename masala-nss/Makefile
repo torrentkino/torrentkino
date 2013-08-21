@@ -11,7 +11,7 @@ CFLAGS += -DNSS
 export POST_LINKING = -lpthread
 #POST_LINKING += $(shell dpkg-buildflags --get LDFLAGS)
 #POST_LINKING += $(HARDENING_LDFLAGS)
-OBJS=masala-nss.o
+OBJS=masala-nss.o str.o malloc.o file.o ben.o list.o fail.o
 
 .PHONY: all clean install $(SUBDIRS)
 

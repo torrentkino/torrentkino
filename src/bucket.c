@@ -35,6 +35,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/epoll.h>
 
+#include "main.h"
 #include "bucket.h"
 
 LIST *bckt_init( void ) {
@@ -68,26 +69,40 @@ void bckt_free( LIST *thislist ) {
 	list_free( thislist );
 }
 
-void bckt_put( LIST *l, NODE *n ) {
+int bckt_put( LIST *l, NODE *n, ULONG size_limit ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
 
 	if( n == NULL ) {
-		return;
+		return FALSE;
 	}
 
+	/* Find best bucket */
 	if( ( i = bckt_find_best_match( l, n->id)) == NULL ) {
-		log_fail( "Something is terribly broken: No appropriate bucket found for ID" );
-		return;
+		fail( "Something is terribly broken: No appropriate bucket found for ID" );
+		return FALSE;
 	}
 	b = list_value( i );
 
+	/* Search the bucket */
 	if( bckt_find_node( l, n->id ) != NULL ) {
-		/* Node found */
-		return;
+		return FALSE;
 	}
 
-	list_put( b->nodes, n );
+	/* Do not store more than 20 nodes per bucket. The first 8 nodes are the
+	 * most relevant. The get_peers search gets dumped into one big bucket
+	 * first. So, disable this limit in that case. */
+	if( size_limit != 0 && list_size( b->nodes ) >= size_limit ) {
+		return FALSE;
+	}
+
+	/* Add node to the bucket */
+	if( list_put( b->nodes, n ) == NULL ) {
+		return FALSE;
+	}
+
+	/* Success */
+	return TRUE;
 }
 
 void bckt_del( LIST *l, NODE *n ) {
@@ -100,7 +115,7 @@ void bckt_del( LIST *l, NODE *n ) {
 	}
 
 	if( ( item_b = bckt_find_best_match( l, n->id ) ) == NULL ) {
-		log_fail( "Something is terribly broken: No appropriate bucket found for ID" );
+		fail( "Something is terribly broken: No appropriate bucket found for ID" );
 		return;
 	}
 	b = list_value( item_b );
@@ -266,7 +281,7 @@ void bckt_split_print( LIST *l ) {
 	NODE *n = NULL;
 	char hex[HEX_LEN];
 
-	log_info( NULL, 0, "Bucket split:" );
+	info( NULL, 0, "Bucket split:" );
 
 	/* Cycle through all the buckets */
 	item_b = list_start( l );
@@ -274,7 +289,7 @@ void bckt_split_print( LIST *l ) {
 		b = list_value( item_b );
 
 		hex_hash_encode( hex, b->id );
-		log_info( NULL, 0, " Bucket: %s", hex );
+		info( NULL, 0, " Bucket: %s", hex );
 
 		/* Cycle through all the nodes */
 		item_n = list_start( b->nodes );
@@ -282,7 +297,7 @@ void bckt_split_print( LIST *l ) {
 			n = list_value( item_n );
 
 			hex_hash_encode( hex, n->id );
-			log_info( NULL, 0, "  Node: %s", hex );
+			info( NULL, 0, "  Node: %s", hex );
 
 			item_n = list_next( item_n );
 		}

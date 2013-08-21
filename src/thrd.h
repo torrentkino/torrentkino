@@ -20,6 +20,8 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef THRD_H
 #define THRD_H
 
+#include "fail.h"
+
 sem_t *thrd_init( const char *semname );
 void thrd_destroy( sem_t *mutex );
 void thrd_block( sem_t *mutex );

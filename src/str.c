@@ -198,7 +198,7 @@ int str_count( char *buffer, const char *search ) {
 	
 	/* Something is broken here */
 	if( counter < 0 ) {
-		log_fail( "str_count(): Integer overflow?" );
+		fail( "str_count(): Integer overflow?" );
 	}
 
 	return counter;
@@ -253,22 +253,22 @@ void str_prettySize( char *buffer, int size, unsigned long filesize ) {
 /*
 char *str_append( char *buf1, long int size1, char *buf2, long int size2 ) {
 	if( buf1 == NULL ) {
-		log_fail( "str_append(): buf1 broken" );
+		fail( "str_append(): buf1 broken" );
 	}
 	if( buf2 == NULL ) {
-		log_fail( "str_append(): buf2 broken" );
+		fail( "str_append(): buf2 broken" );
 	}
 	if( size1 < 0 ) {
-		log_fail( "str_append(): size1 broken" );
+		fail( "str_append(): size1 broken" );
 	}
 	if( size2 < 0 ) {
-		log_fail( "str_append(): size2 broken" );
+		fail( "str_append(): size2 broken" );
 	}
 	if( size2 == 0 ) {
 		return buf1;
 	}
 	if( size1+size2 <= 0 ) {
-		log_fail( "str_append(): Overflow" );
+		fail( "str_append(): Overflow" );
 	}
 
 	size1 += size2;

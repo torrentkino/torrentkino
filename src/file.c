@@ -164,29 +164,31 @@ int file_rmrf( char *fileordir ) {
 	struct dirent *entry = NULL;
 	char filename[MAIN_BUF+1];
 
-	if( file_isreg( fileordir) ) {
-		if( !file_rm( fileordir) ) {
+	if( file_isreg( fileordir ) ) {
+		if( !file_rm( fileordir ) ) {
 			return 0;
 		}
-	} else if( file_isdir( fileordir) ) {
-		if( ( dh = opendir( fileordir)) == NULL ) {
+	} else if( file_isdir( fileordir ) ) {
+		if( ( dh = opendir( fileordir ) ) == NULL ) {
 			return 0;
 		}
 	  
-		while( ( entry = readdir( dh)) != NULL ) {
-			if( strcmp( entry->d_name,".") != 0 && strcmp( entry->d_name,"..") != 0 ) {
+		while( ( entry = readdir( dh ) ) != NULL ) {
+			if( strcmp( entry->d_name,"." ) != 0 && strcmp( entry->d_name,".." ) != 0 ) {
 				snprintf( filename, MAIN_BUF+1, "%s/%s", fileordir, entry->d_name );
-				if( !file_rmrf( filename) ) {
+				if( !file_rmrf( filename ) ) {
 					return 0;
 				}
 			}
 		}
 		
-		if( closedir( dh) != 0 )
+		if( closedir( dh ) != 0 ) {
 			return 0;
+		}
 
-		if( !file_rmdir( fileordir) )
+		if( !file_rmdir( fileordir ) ) {
 			return 0;
+		}
 	} else {
 		return 0;
 	}

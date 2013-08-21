@@ -57,7 +57,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 
 NODE *node_init( UCHAR *node_id, IP *sa ) {
-	NODE *n = (NODE *) myalloc( sizeof(NODE), "nbhd_put" );
+	NODE *n = (NODE *) myalloc( sizeof(NODE), "node_init" );
 		
 	/* ID */
 	memcpy( n->id, node_id, SHA_DIGEST_LENGTH );
@@ -78,7 +78,7 @@ NODE *node_init( UCHAR *node_id, IP *sa ) {
 }
 
 void node_free( NODE *n ) {
-	myfree( n, "node_del" );
+	myfree( n, "node_free" );
 }
 
 void node_update( NODE *node, IP *sa ) {
@@ -105,3 +105,28 @@ int node_equal( const UCHAR *node_a, const UCHAR *node_b ) {
 	}
 	return 0;
 }
+
+int node_localhost( IP *from ) {
+	const UCHAR localhost[] = 
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+
+	if( memcmp(from->sin6_addr.s6_addr, localhost, 16) == 0 ) {
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+/*
+int node_teredo( IP *from ) {
+	const UCHAR teredo[] = 
+		{ 0x20, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	if( memcmp(from->sin6_addr.s6_addr, teredo, 4) == 0 ) {
+		log_info( from, 0, "Teredo access denied (2001:0::/32) from" );
+		return TRUE;
+	}
+
+	return FALSE;
+}
+*/

@@ -26,6 +26,8 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #define P2P_MAX_BOOTSTRAP_NODES 20
 
+#define P2P_NBHD_BCKT_SIZE 20
+
 #define P2P_TYPE_UNKNOWN 0
 #define P2P_PING 1
 #define P2P_PING_MULTICAST 2

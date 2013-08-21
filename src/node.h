@@ -44,5 +44,7 @@ void node_update( NODE *node, IP *sa );
 
 int node_me( UCHAR *node_id );
 int node_equal( const UCHAR *node_a, const UCHAR *node_b );
+int node_localhost( IP *from );
+/* int node_teredo( IP *from ); */
 
 #endif

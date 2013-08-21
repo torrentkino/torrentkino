@@ -43,30 +43,26 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "thrd.h"
 #include "list.h"
 #include "node_web.h"
-#include "log.h"
-#else
+#endif
+
+#ifdef MASALA
 #include "malloc.h"
 #include "masala-srv.h"
 #include "conf.h"
 #include "str.h"
 #include "thrd.h"
 #include "list.h"
-#include "log.h"
-#include "hex.h"
 #endif
 
-void log_info( IP *c_addr, int code, const char *format, ... ) {
-#ifdef TUMBLEWEED
-	int verbosity = (_main->conf->quiet == CONF_BEQUIET && code == 200) ? CONF_BEQUIET : CONF_VERBOSE;
-#elif MASALA
-	int verbosity = (_main->conf->quiet == CONF_BEQUIET) ? CONF_BEQUIET : CONF_VERBOSE;
-#endif
+#include "log.h"
+
+void info( IP *c_addr, int code, const char *format, ... ) {
 	char ip_buf[INET6_ADDRSTRLEN+1];
 	char log_buf[MAIN_BUF+1];
 	char va_buf[MAIN_BUF+1];
 	va_list vlist;
 
-	if( verbosity != CONF_VERBOSE ) {
+	if( _main->conf->quiet == CONF_BEQUIET ) {
 		return;
 	}
 
@@ -101,22 +97,4 @@ void log_info( IP *c_addr, int code, const char *format, ... ) {
 		syslog( LOG_INFO, "%s", log_buf );
 		closelog();
 	}
-}
-
-void log_fail( const char *format, ... ) {
-	char va_buf[MAIN_BUF+1];
-	va_list vlist;
-
-	va_start(vlist, format);
-	vsnprintf(va_buf, MAIN_BUF+1, format, vlist);
-	va_end(vlist);
-
-	if( _main->conf->mode == CONF_FOREGROUND ) {
-		fprintf( stderr, "%s\n", va_buf );
-	} else {
-		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER|LOG_PERROR );
-		syslog( LOG_INFO, "%s", va_buf );
-		closelog();
-	}
-	exit( 1 );
 }

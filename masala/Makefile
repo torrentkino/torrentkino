@@ -7,13 +7,13 @@ CFLAGS += -Wall -Wwrite-strings -pedantic
 CFLAGS += -DMASALA
 #CFLAGS += $(shell dpkg-buildflags --get CFLAGS)
 #CFLAGS += $(HARDENING_CFLAGS)
-CFLAGS += -g -DDEBUG
+#CFLAGS += -g -DDEBUG
 export POST_LINKING = -lpthread
 POST_LINKING += -lpolarssl
 #POST_LINKING += $(shell dpkg-buildflags --get LDFLAGS)
 #POST_LINKING += $(HARDENING_LDFLAGS)
 SUBDIRS =
-OBJS=aes.o ben.o bucket.o cache.o conf.o \
+OBJS=aes.o ben.o bucket.o cache.o conf.o fail.o \
 	file.o hash.o hex.o info_hash.o list.o \
 	log.o lookup.o malloc.o masala-srv.o \
 	neighbourhood.o node.o opts.o p2p.o random.o send_p2p.o \

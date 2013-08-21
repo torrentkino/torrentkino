@@ -22,6 +22,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 #include "malloc.h"
+#include "fail.h"
 #include "file.h"
 #ifdef MASALA
 #include "sha1.h"
@@ -56,7 +57,6 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_SRVNAME "masala"
 #define CONF_PORT 6881
 #define CONF_BOOTSTRAP_NODE "ff0e::1"
-#define CONF_BOOTSTRAP_PORT "6881"
 #define CONF_PORT_SIZE 5
 #define CONF_KEY "open.p2p"
 #define CONF_REALM "open.p2p"

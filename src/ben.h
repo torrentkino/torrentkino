@@ -22,7 +22,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 #include "list.h"
-#include "log.h"
+#include "fail.h"
 
 #define BEN_STR  0
 #define BEN_INT  1

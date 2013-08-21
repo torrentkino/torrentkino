@@ -20,7 +20,8 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef LOG_H
 #define LOG_H
 
-void log_info( IP *c_addr, int code, const char *format, ... );
-void log_fail( const char *format, ... );
+#include "fail.h"
+
+void info( IP *c_addr, int code, const char *format, ... );
 
 #endif

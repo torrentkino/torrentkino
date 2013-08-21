@@ -18,10 +18,14 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
 
 #include "masala-cli.h"
+#include "malloc.h"
+#include "file.h"
+#include "ben.h"
 
 int masala_lookup( const char *hostname, int size ) {
 	IP sa;
@@ -34,6 +38,10 @@ int masala_lookup( const char *hostname, int size ) {
 	int j = 0;
 	IP sin;
 	char ip_buf[INET6_ADDRSTRLEN+1];
+	int port = 0;
+
+	/* Load port from config file */
+	port = masala_port();
 
 	memset( &sa, '\0', salen );
 	memset( buffer, '\0', MAIN_BUF+1 );
@@ -51,7 +59,7 @@ int masala_lookup( const char *hostname, int size ) {
 
 	/* Setup IPv6 */
 	sa.sin6_family = AF_INET6;
-	sa.sin6_port = htons( CONF_PORT );
+	sa.sin6_port = htons( port );
 	if( !inet_pton( AF_INET6, "::1", &(sa.sin6_addr)) ) {
 		return 0;
 	}
@@ -86,8 +94,64 @@ int masala_lookup( const char *hostname, int size ) {
 	return 1;
 }
 
-int main( int argc, char **argv ) {
+int masala_port( void ) {
+	char filename[MAIN_BUF+1];
+	int filesize = 0;
+	UCHAR *fbuf = NULL;
+	BEN *ben = NULL;
+	BEN *port = NULL;
+	int port_number = 0;
 
+	if( ( getenv( "HOME")) == NULL ) {
+		fail("Looking up $HOME failed");
+	}
+
+	snprintf( filename, MAIN_BUF+1, "%s/%s", getenv( "HOME" ), ".masala.conf" );
+
+	if( !file_isreg( filename ) ) {
+		fail("%s not found", filename );
+	}
+
+	filesize = file_size( filename );
+	if( filesize <= 0 ) {
+		fail("Config file %s is empty", filename );
+	}
+
+	if( ( fbuf = (UCHAR *) file_load( filename, 0, filesize ) ) == NULL ) {
+		fail("Reading %s failed", filename );
+	}
+
+	if( !ben_validate( fbuf, filesize ) ) {
+		fail( "Broken config in %s", filename );
+	}
+
+	/* Parse request */
+	ben = ben_dec( fbuf, filesize );
+	if( ben == NULL ) {
+		fail( "Decoding %s failed", filename );
+	}
+	if( ben->t != BEN_DICT ) {
+		fail( "%s does not contain a dictionary", filename );
+	}
+
+	port = ben_searchDictStr( ben, "port" );
+	if( !ben_is_int( port ) ) {
+		fail( "%s does not contain a port number" );
+	}
+
+	if( port->v.i < 1 || port->v.i > 65535 ) {
+		fail( "%s contains an invalid port number" );
+	}
+
+	port_number = port->v.i;
+
+	ben_free( ben );
+	myfree( fbuf, "masala_port" );
+
+	return port_number;
+}
+
+int main( int argc, char **argv ) {
 	if( argc < 2 ) {
 		return 1;
 	}
@@ -96,11 +160,11 @@ int main( int argc, char **argv ) {
 	}
 
 	if( !str_isValidHostname( argv[1], strlen( argv[1] ) ) ) {
-		fprintf( stderr, "%s is not a valid hostname\n", argv[1]);
+		fail( "%s is not a valid hostname", argv[1]);
 	}
 
 	if( ! masala_lookup( argv[1], strlen( argv[1] ) ) ) {
-		fprintf( stderr, "Looking up %s failed\n", argv[1]);
+		fail( "Looking up %s failed", argv[1]);
 	}
 	
 	return 0;
