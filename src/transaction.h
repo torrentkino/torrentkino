@@ -35,7 +35,6 @@ struct obj_tid {
 	UCHAR id[TID_SIZE];
 	time_t time;
 	int type;
-	int mode;
 	LOOKUP *lookup;
 };
 typedef struct obj_tid TID;

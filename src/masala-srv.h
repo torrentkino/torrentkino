@@ -27,7 +27,7 @@ struct obj_main {
 	int argc;
 
 	struct obj_transaction *transaction;
-	struct obj_infohash *infohash;
+	struct obj_idb *idb;
 	struct obj_cache *cache;
 	struct obj_token *token;
 	struct obj_nbhd *nbhd;

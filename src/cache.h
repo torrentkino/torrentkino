@@ -52,6 +52,8 @@ void cache_del( ITEM *item );
 void cache_expire( time_t now );
 void cache_renew( time_t now );
 
-int cache_find( UCHAR *target, UCHAR *nodes_compact_list );
+void cache_update( CACHE *cache, UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size );
+CACHE *cache_find( UCHAR *target );
+int cache_lookup( UCHAR *target, UCHAR *nodes_compact_list );
 
 #endif

@@ -239,3 +239,27 @@ void *list_value( ITEM *item ) {
 	}
 	return item->val;
 }
+
+
+void list_rotate( LIST *list ) {
+	ITEM *start = NULL;
+	ITEM *stop = NULL;
+
+	if( list == NULL ) {
+		return;
+	}
+	
+	if( list_size( list ) <= 1 ) {
+		return;
+	}
+
+	start = list_start( list );
+	stop = list_stop( list );
+
+	list->item = start->next;
+
+	start->next->prev = NULL;
+	start->next = NULL;
+	start->prev = stop;
+	stop->next = start;
+}

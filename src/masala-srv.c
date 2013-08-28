@@ -48,11 +48,11 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->argc = argc;
 
 	_main->transaction = NULL;
-	_main->infohash = NULL;
 	_main->cache = NULL;
 	_main->token = NULL;
 	_main->conf = NULL;
 	_main->nbhd = NULL;
+	_main->idb = NULL;
 	_main->p2p = NULL;
 	_main->udp = NULL;
 
@@ -69,7 +69,7 @@ int main( int argc, char **argv ) {
 	_main = main_init( argc, argv );
 	_main->conf = conf_init();
 	_main->nbhd = nbhd_init();
-	_main->infohash = idb_init();
+	_main->idb = idb_init();
 	_main->transaction = tdb_init();
 	_main->token = tkn_init();
 	_main->p2p = p2p_init();

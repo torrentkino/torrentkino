@@ -37,11 +37,13 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "token.h"
 #include "masala-srv.h"
+#include "info_hash.h"
 
 struct obj_token *tkn_init( void ) {
 	struct obj_token *token = (struct obj_token *) myalloc( sizeof(struct obj_token), "tkn_init" );
 	token->list = list_init();
 	token->hash = hash_init( 10 );
+	memset( token->null, '\0', TOKEN_SIZE );
 	return token;
 }
 
@@ -122,6 +124,11 @@ void tkn_create( UCHAR *id ) {
 UCHAR *tkn_read( void ) {
 	ITEM *item_tkn = list_stop( _main->token->list );
 	struct obj_tkn *tkn = list_value( item_tkn );
+
+	/* Storage is full. Return null token. */
+	if( tgt_limit_reached() ) {
+		return _main->token->null;
+	}
 
 	/* Return newest token */
 	return tkn->id;

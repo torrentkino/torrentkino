@@ -56,13 +56,17 @@ void cache_free( void ) {
 
 void cache_put( UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size ) {
 	ITEM *item = NULL;
-	CACHE *cache = NULL;
+	CACHE *cache = cache_find( target );
+
+	/* Found in cache, update cache, done */
+	if( cache != NULL ) {
+		cache_update( cache, target, nodes_compact_list, nodes_compact_size );
+		return;
+	}
 
 	cache = (CACHE *) myalloc( sizeof(CACHE), "cache_put" );
-
-	memcpy(cache->target, target, SHA_DIGEST_LENGTH );
-	memcpy(cache->nodes_compact_list, nodes_compact_list, nodes_compact_size );
-	cache->nodes_compact_size = nodes_compact_size;
+	cache_update( cache, target, nodes_compact_list, nodes_compact_size );
+	
 	time_add_30_min( &cache->lifetime );
 	time_add_5_min_approx( &cache->renew );
 
@@ -114,15 +118,31 @@ void cache_renew( time_t now ) {
 	}
 }
 
-int cache_find( UCHAR *target, UCHAR *nodes_compact_list ) {
+void cache_update( CACHE *cache, UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size ) {
+	memcpy(cache->target, target, SHA_DIGEST_LENGTH );
+	memcpy(cache->nodes_compact_list, nodes_compact_list, nodes_compact_size );
+	cache->nodes_compact_size = nodes_compact_size;
+}
+
+CACHE *cache_find( UCHAR *target ) {
 	ITEM *item = NULL;
-	CACHE *cache = NULL;
 
 	if( ( item = hash_get( _main->cache->hash, target, SHA_DIGEST_LENGTH ) ) == NULL ) {
+		return NULL;
+	}
+
+	return list_value( item );
+}
+
+int cache_lookup( UCHAR *target, UCHAR *nodes_compact_list ) {
+	CACHE *cache = cache_find( target );
+
+	/* Not found */
+	if( cache == NULL ) {
 		return 0;
 	}
 
-	cache = list_value( item );
+	/* Success */
 	memcpy( nodes_compact_list, cache->nodes_compact_list,
 		cache->nodes_compact_size );
 	

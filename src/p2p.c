@@ -337,8 +337,8 @@ void p2p_cron_announce_engage( ITEM *ti ) {
 	TID *tid = list_value( ti );
 	LOOKUP *l = tid->lookup;
 
-	/* Remove nodes, that did not reply with a token. We cannot announce to
-	 * them. So sort them out. */
+	/* Remove nodes, that did send an invalid token. We cannot announce to
+	 * them anyway. So sort them out. */
 	nbhd_expire_nodes_with_emtpy_tokens( l->nbhd );
 
 	/* Order the nodes within the buckets. Later, we lookup the best matching
@@ -761,8 +761,9 @@ void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
 	}
 
 	/* Look at the database */
-	nodes_compact_size = p2p_value_compact_list( nodes_compact_list, info_hash->v.s->s );
+	nodes_compact_size = idb_compact_list( nodes_compact_list, info_hash->v.s->s );
 
+	/* Send values */
 	if( nodes_compact_size > 0 ) {
 		send_get_peers_values( from, nodes_compact_list, nodes_compact_size,
 			tid->v.s->s, tid->v.s->i );
@@ -772,7 +773,7 @@ void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
 	/* Look at the routing table */
 	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, info_hash->v.s->s );
 
-	/* Send reply */
+	/* Send nodes */
 	if( nodes_compact_size > 0 ) {
 		send_get_peers_nodes( from, nodes_compact_list, nodes_compact_size,
 			tid->v.s->s, tid->v.s->i );
@@ -1054,7 +1055,7 @@ int p2p_localhost_lookup_cache( UCHAR *target, IP *from ) {
 	int nodes_compact_size = 0;
 
 	/* Check cache for hostname */
-	nodes_compact_size = cache_find( target, nodes_compact_list );
+	nodes_compact_size = cache_lookup( target, nodes_compact_list );
 	if( nodes_compact_size <= 0 ) {
 		return FALSE;
 	}
@@ -1124,98 +1125,6 @@ void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
 	} else {
 		sha1_hash( host_id, hostname, strlen( hostname ) );
 	}
-}
-
-int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
-	UCHAR *p = nodes_compact_list;
-	ITEM *item = NULL;
-	BUCK *b = NULL;
-	NODE *n = NULL;
-	unsigned long int j = 0;
-	IP *sin = NULL;
-	int size = 0;
-
-	/* Find matching bucket */
-	if( ( item = bckt_find_any_match( l, target)) == NULL ) {
-		return 0;
-	} else {
-		b = list_value( item );
-	}
-
-	/* Walkthrough bucket */
-	item = list_start( b->nodes );
-	while( item != NULL && j < 8 ) {
-		n = list_value( item );
-		
-		/* Do not include nodes, that are questionable */
-		if( n->pinged > 0 ) {
-			item = list_next( item );
-			continue;
-		}
-
-		/* Network data */
-		sin = (IP*)&n->c_addr;
-
-		/* Node ID */
-		memcpy( p, n->id, SHA_DIGEST_LENGTH );
-		p += SHA_DIGEST_LENGTH;
-
-		/* IP */
-		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );
-		p += 16;
-
-		/* Port */
-		memcpy( p, (UCHAR *)&sin->sin6_port, 2 );
-		p += 2;
-
-		size += 38;
-
-		item = list_next( item );
-		j++;
-	}
-	
-	return size;
-}
-
-int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target ) {
-	UCHAR *p = nodes_compact_list;
-	INODE *inode = NULL;
-	IHASH *ihash = NULL;
-	ITEM *item = NULL;
-	unsigned long int j = 0;
-	IP *sin = NULL;
-	int size = 0;
-
-	/* Look into the local database */
-	if( ( item = idb_find_target( target ) ) == NULL ) {
-		return 0;
-	} else {
-		ihash = list_value( item );
-	}
-
-	/* Walkthrough local database */
-	item = list_start( ihash->list );
-	while( item != NULL && j < 8 ) {
-		inode = list_value( item );
-
-		/* Network data */
-		sin = (IP*)&inode->c_addr;
-
-		/* IP */
-		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );
-		p += 16;
-
-		/* Port */
-		memcpy( p, (UCHAR *)&sin->sin6_port, 2 );
-		p += 2;
-
-		size += 18;
-
-		item = list_next( item );
-		j++;
-	}
-	
-	return size;
 }
 
 int p2p_is_hash( BEN *node ) {

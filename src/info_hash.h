@@ -29,17 +29,20 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 #include "masala-srv.h"
 
-struct obj_infohash {
+#define IDB_TARGET_SIZE_MAX 1024
+#define IDB_NODES_SIZE_MAX 64
+
+struct obj_idb {
 	LIST *list;
 	HASH *hash;
 };
 
-struct obj_ihash {
+struct obj_target {
 	UCHAR target[SHA_DIGEST_LENGTH];
 	LIST *list;
 	HASH *hash;
 };
-typedef struct obj_ihash IHASH;
+typedef struct obj_target TARGET;
 
 struct obj_inode {
 	UCHAR id[SHA_DIGEST_LENGTH];
@@ -48,21 +51,22 @@ struct obj_inode {
 };
 typedef struct obj_inode INODE;
 
-struct obj_infohash *idb_init( void );
+struct obj_idb *idb_init( void );
 void idb_free( void );
-
 void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa );
-void idb_del_node( IHASH *target, ITEM *i_node );
-
 void idb_clean( void );
 void idb_expire( time_t now );
+int idb_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id );
 
-void idb_update( INODE *db, IP *sa, int port );
+TARGET *tgt_init( UCHAR *target_id );
+void tgt_free( ITEM *i );
+ITEM *tgt_find( UCHAR *target );
+int tgt_limit_reached( void );
 
-ITEM *idb_find_target( UCHAR *target );
-void idb_del_target( ITEM *i_id );
-
-ITEM *idb_find_node( HASH *hash, UCHAR *node_id );
-IP *idb_address( UCHAR *target );
+INODE *inode_init( TARGET *target, UCHAR *node_id );
+void inode_free( TARGET *target, ITEM *i );
+ITEM *inode_find( HASH *target, UCHAR *node_id );
+void inode_update( INODE *inode, IP *sa, int port );
+int inode_limit_reached( LIST *l );
 
 #endif

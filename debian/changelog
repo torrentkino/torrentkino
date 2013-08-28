@@ -1,3 +1,11 @@
+masala (0.8) unstable; urgency=low
+
+  * Limit the number of info_hashes, that can be stored
+  * Limit the number of nodes, that can be stored per info_hash
+  * Return NULL bytes as the token if the info_hash DB grows beyond all limits
+  * Rotate VALUEs after each request, so that many different IPs get announced
+
+ -- Aiko Barz <aiko@chroot.de>  Wed, 28 Aug 2013 22:22:00 +0100
 masala (0.7) unstable; urgency=low
 
   * Query cache

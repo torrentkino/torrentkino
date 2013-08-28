@@ -68,7 +68,7 @@ int ldb_contacted_node( LOOKUP *ldb, UCHAR *node_id ) {
 	return hash_exists( ldb->nbhd->hash, node_id, SHA_DIGEST_LENGTH);
 }
 
-void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, struct obj_ben *token, IP *from ) {
+void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, BEN *token, IP *from ) {
 	NODE *n = NULL;
 
 	if( ( n = hash_get( ldb->nbhd->hash, node_id, SHA_DIGEST_LENGTH) ) == NULL ) {

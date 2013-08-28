@@ -32,6 +32,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 struct obj_token {
 	LIST *list;
 	HASH *hash;
+	UCHAR null[TOKEN_SIZE];
 };
 
 struct obj_tkn {

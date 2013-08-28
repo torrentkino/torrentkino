@@ -144,6 +144,7 @@ size_t file_append( const char *filename, char *buffer, size_t size ) {
 	return size;
 }
 
+#if 0
 int file_rm( const char *filename ) {
 	if( unlink( filename) != 0 )
 		return 0;
@@ -195,3 +196,4 @@ int file_rmrf( char *fileordir ) {
 
 	return 1;
 }
+#endif

@@ -42,6 +42,6 @@ LOOKUP *ldb_init( UCHAR *target, IP *from );
 void ldb_free( LOOKUP *ldb );
 
 int ldb_contacted_node(LOOKUP *ldb, UCHAR *node_id);
-void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, struct obj_ben *token, IP *from );
+void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, BEN *token, IP *from );
 
 #endif

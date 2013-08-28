@@ -91,8 +91,6 @@ int p2p_localhost_lookup_remote( UCHAR *target, IP *from );
 
 void p2p_compute_realm_id( UCHAR *host_id, char *hostname );
 int p2p_packet_from_myself( UCHAR *node_id );
-int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target );
-int p2p_value_compact_list( UCHAR *nodes_compact_list, UCHAR *target );
 
 int p2p_is_hash( BEN *node );
 int p2p_is_ip( BEN *node );

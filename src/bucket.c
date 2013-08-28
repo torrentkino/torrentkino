@@ -374,3 +374,54 @@ int bckt_significant_bit( const UCHAR *id ) {
 
 	return 8 * i + j;
 }
+
+int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
+	UCHAR *p = nodes_compact_list;
+	ITEM *item = NULL;
+	BUCK *b = NULL;
+	NODE *n = NULL;
+	unsigned long int j = 0;
+	IP *sin = NULL;
+	int size = 0;
+
+	/* Find matching bucket */
+	if( ( item = bckt_find_any_match( l, target)) == NULL ) {
+		return 0;
+	} else {
+		b = list_value( item );
+	}
+
+	/* Walkthrough bucket */
+	item = list_start( b->nodes );
+	while( item != NULL && j < 8 ) {
+		n = list_value( item );
+		
+		/* Do not include nodes, that are questionable */
+		if( n->pinged > 0 ) {
+			item = list_next( item );
+			continue;
+		}
+
+		/* Network data */
+		sin = (IP*)&n->c_addr;
+
+		/* Node ID */
+		memcpy( p, n->id, SHA_DIGEST_LENGTH );
+		p += SHA_DIGEST_LENGTH;
+
+		/* IP */
+		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );
+		p += 16;
+
+		/* Port */
+		memcpy( p, (UCHAR *)&sin->sin6_port, 2 );
+		p += 2;
+
+		size += 38;
+
+		item = list_next( item );
+		j++;
+	}
+	
+	return size;
+}
