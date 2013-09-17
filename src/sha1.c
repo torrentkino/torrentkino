@@ -31,6 +31,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "sha1.h"
 
 void sha1_hash( UCHAR *hash, const char *buffer, long int bytes ) {
-	memset( hash, '\0', SHA_DIGEST_LENGTH );
+	memset( hash, '\0', SHA1_SIZE );
 	sha1( (const UCHAR *)buffer, bytes, hash );
 }

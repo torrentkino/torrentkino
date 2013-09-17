@@ -187,12 +187,12 @@ TARGET *tgt_init( UCHAR *target_id ) {
 
 	target = (TARGET *) myalloc( sizeof(TARGET), "tgt_init" );
 
-	memcpy( target->target, target_id, SHA_DIGEST_LENGTH );
+	memcpy( target->target, target_id, SHA1_SIZE );
 	target->list = list_init();
 	target->hash = hash_init( IDB_NODES_SIZE_MAX );
 
 	i = list_put(_main->idb->list, target);
-	hash_put(_main->idb->hash, target->target, SHA_DIGEST_LENGTH, i );
+	hash_put(_main->idb->hash, target->target, SHA1_SIZE, i );
 
 	hex_hash_encode( hex, target_id );
 	info( NULL, 0, "INFO_HASH: %s (%lu)",
@@ -208,14 +208,14 @@ void tgt_free( ITEM *i ) {
 	list_free( target->list );
 	hash_free( target->hash );
 
-	hash_del( _main->idb->hash, target->target, SHA_DIGEST_LENGTH );
+	hash_del( _main->idb->hash, target->target, SHA1_SIZE );
 	list_del( _main->idb->list, i );
 
 	myfree( target, "tgt_free" );
 }
 
 ITEM *tgt_find( UCHAR *target ) {
-	return hash_get( _main->idb->hash, target, SHA_DIGEST_LENGTH );
+	return hash_get( _main->idb->hash, target, SHA1_SIZE );
 }
 
 int tgt_limit_reached( void ) {
@@ -231,23 +231,30 @@ INODE *inode_init( TARGET *target, UCHAR *node_id ) {
 	
 	inode = (INODE *) myalloc( sizeof(INODE), "inode_init" );
 	
-	memcpy( inode->id, node_id, SHA_DIGEST_LENGTH );
+	memcpy( inode->id, node_id, SHA1_SIZE );
 
 	i = list_put( target->list, inode );
-	hash_put( target->hash, inode->id, SHA_DIGEST_LENGTH, i );
+	hash_put( target->hash, inode->id, SHA1_SIZE, i );
 	
 	return inode;
 }
 
 void inode_free( TARGET *target, ITEM *i ) {
 	INODE *inode = list_value( i );
-	hash_del(target->hash, inode->id, SHA_DIGEST_LENGTH );
+	hash_del(target->hash, inode->id, SHA1_SIZE );
 	list_del(target->list, i );
 	myfree(inode, "inode_free");
 }
 
 ITEM *inode_find( HASH *target, UCHAR *node_id ) {
-	return hash_get( target, node_id, SHA_DIGEST_LENGTH );
+	return hash_get( target, node_id, SHA1_SIZE );
+}
+
+int inode_limit_reached( LIST *l ) {
+	if( list_size( l ) < IDB_NODES_SIZE_MAX ) {
+		return FALSE;
+	}
+	return TRUE;
 }
 
 void inode_update( INODE *inode, IP *sa, int port ) {
@@ -258,11 +265,4 @@ void inode_update( INODE *inode, IP *sa, int port ) {
 
 	/* Store the announced port, not the the source port of the sender */
 	inode->c_addr.sin6_port = htons(port);
-}
-
-int inode_limit_reached( LIST *l ) {
-	if( list_size( l ) < IDB_NODES_SIZE_MAX ) {
-		return FALSE;
-	}
-	return TRUE;
 }

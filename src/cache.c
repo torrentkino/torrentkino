@@ -71,12 +71,12 @@ void cache_put( UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size
 	time_add_5_min_approx( &cache->renew );
 
 	item = list_put( _main->cache->list, cache );
-	hash_put( _main->cache->hash, cache->target, SHA_DIGEST_LENGTH, item );
+	hash_put( _main->cache->hash, cache->target, SHA1_SIZE, item );
 }
 
 void cache_del( ITEM *item ) {
 	CACHE *cache = list_value( item );
-	hash_del( _main->cache->hash, (UCHAR *)cache->target, SHA_DIGEST_LENGTH );
+	hash_del( _main->cache->hash, (UCHAR *)cache->target, SHA1_SIZE );
 	list_del( _main->cache->list, item );
 	myfree( cache, "cache_del" );
 }
@@ -119,7 +119,7 @@ void cache_renew( time_t now ) {
 }
 
 void cache_update( CACHE *cache, UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size ) {
-	memcpy(cache->target, target, SHA_DIGEST_LENGTH );
+	memcpy(cache->target, target, SHA1_SIZE );
 	memcpy(cache->nodes_compact_list, nodes_compact_list, nodes_compact_size );
 	cache->nodes_compact_size = nodes_compact_size;
 }
@@ -127,7 +127,7 @@ void cache_update( CACHE *cache, UCHAR *target, UCHAR *nodes_compact_list, int n
 CACHE *cache_find( UCHAR *target ) {
 	ITEM *item = NULL;
 
-	if( ( item = hash_get( _main->cache->hash, target, SHA_DIGEST_LENGTH ) ) == NULL ) {
+	if( ( item = hash_get( _main->cache->hash, target, SHA1_SIZE ) ) == NULL ) {
 		return NULL;
 	}
 

@@ -133,7 +133,7 @@ void p2p_cron( void ) {
 	/* Tick Tock */
 	gettimeofday( &_main->p2p->time_now, NULL );
 
-	if( nbhd_is_empty( _main->nbhd ) ) {
+	if( nbhd_is_empty() ) {
 		
 		/* Bootstrap PING */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_restart ) {
@@ -155,7 +155,7 @@ void p2p_cron( void ) {
 
 		/* Split buckets. Evolve neighbourhood. Run once a minute. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_split ) {
-			nbhd_split( _main->nbhd, _main->conf->node_id, TRUE );
+			nbhd_split( _main->conf->node_id, TRUE );
 			time_add_5_sec_approx( &_main->p2p->time_split );
 		}
 	
@@ -252,8 +252,8 @@ void p2p_cron_find_myself( void ) {
 }
 
 void p2p_cron_find_random( void ) {
-	UCHAR node_id[SHA_DIGEST_LENGTH];
-	rand_urandom( node_id, SHA_DIGEST_LENGTH );
+	UCHAR node_id[SHA1_SIZE];
+	rand_urandom( node_id, SHA1_SIZE );
 	p2p_cron_find( node_id );
 }
 
@@ -311,7 +311,7 @@ void p2p_cron_announce_start( void ) {
 
 		/* Remember node_id */
 		id = p;
-		p += SHA_DIGEST_LENGTH;
+		p += SHA1_SIZE;
 
 		/* IP + Port */
 		memset( &sin, '\0', sizeof(IP) );
@@ -324,43 +324,32 @@ void p2p_cron_announce_start( void ) {
 		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
 
 		/* Remember queried node */
-		nbhd_put( l->nbhd, id, (IP *)&sin, 0 );
+		ldb_put( l, id, (IP *)&sin );
 	}
 }
 
 void p2p_cron_announce_engage( ITEM *ti ) {
-	ITEM *t_new = NULL;
-	unsigned long int j = 0;
 	ITEM *item = NULL;
-	BUCK *b = NULL;
-	NODE *n = NULL;
+	ITEM *t_new = NULL;
+	ULONG j = 0;
 	TID *tid = list_value( ti );
 	LOOKUP *l = tid->lookup;
+	LNODE *n = NULL;
 
-	/* Remove nodes, that did send an invalid token. We cannot announce to
-	 * them anyway. So sort them out. */
-	nbhd_expire_nodes_with_emtpy_tokens( l->nbhd );
+	info( NULL, 0, "Start announcing after querying %lu nodes",
+		list_size( l->list ) );
 
-	/* Order the nodes within the buckets. Later, we lookup the best matching
-	 * bucket. */
-	nbhd_split( l->nbhd, l->target, FALSE );
-
-	/* And find matching bucket */
-	if( ( item = bckt_find_any_match( l->nbhd->bucket, l->target)) == NULL ) {
-		return;
-	} else {
-		b = list_value( item );
-	}
-
-	item = list_start( b->nodes );
+	item = list_start( l->list );
 	while( item != NULL && j < 8 ) {
 		n = list_value( item );
 
-		t_new = tdb_put(P2P_ANNOUNCE_ENGAGE, NULL, NULL);
-		send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
+		if( n->token_size != 0 ) {
+			t_new = tdb_put(P2P_ANNOUNCE_ENGAGE, NULL, NULL);
+			send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
+			j++;
+		}
 		
 		item = list_next( item );
-		j++;
 	}
 }
 
@@ -437,7 +426,7 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 	}
 
 	/* AES packet too small */
-	if( plain->i < SHA_DIGEST_LENGTH ) {
+	if( plain->i < SHA1_SIZE ) {
 		ben_free( packet );
 		str_free( plain );
 		info( NULL, 0, "AES packet contains less than 20 bytes" );
@@ -547,7 +536,7 @@ void p2p_request( BEN *packet, IP *from ) {
 	}
 
 	/* Remember node. This does not update the IP address. */
-	nbhd_put( _main->nbhd, id->v.s->s, (IP *)from, P2P_NBHD_BCKT_SIZE );
+	nbhd_put( id->v.s->s, (IP *)from );
 
 	/* PING */
 	if( ben_str_size( q ) == 4 && memcmp( q->v.s->s, "ping", 4 ) == 0 ) {
@@ -609,7 +598,7 @@ void p2p_reply( BEN *packet, IP *from ) {
 	}
 
 	/* Remember node. */
-	nbhd_put( _main->nbhd, id->v.s->s, (IP *)from, P2P_NBHD_BCKT_SIZE );
+	nbhd_put( id->v.s->s, (IP *)from );
 
 	ti = tdb_item( t->v.s->s );
 
@@ -654,7 +643,7 @@ int p2p_packet_from_myself( UCHAR *node_id ) {
 		 * then you may see multicast requests from yourself.
 		 * Do not warn about them.
 		 */
-		if( !nbhd_is_empty( _main->nbhd ) ) {
+		if( !nbhd_is_empty() ) {
 			info( NULL, 0, "WARNING: Received a packet from myself..." );
 		}
 
@@ -720,7 +709,7 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 
 		/* ID */
 		id = p;
-		p += SHA_DIGEST_LENGTH;
+		p += SHA1_SIZE;
 
 		/* IP */
 		sin.sin6_family = AF_INET6;
@@ -732,7 +721,7 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 		p += 2;
 
 		/* Store node */
-		nbhd_put( _main->nbhd, id, (IP *)&sin, P2P_NBHD_BCKT_SIZE );
+		nbhd_put( id, (IP *)&sin );
 	}
 }
 
@@ -847,7 +836,7 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 		target = l->target;
 	}
 
-	ldb_update_token( l, node_id, token, from );
+	ldb_update( l, node_id, token, from );
 
 	p = nodes->v.s->s;
 	for( i=0; i<nodes->v.s->i; i+=38 ) {
@@ -855,7 +844,7 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 
 		/* ID */
 		id = p;
-		p += SHA_DIGEST_LENGTH;
+		p += SHA1_SIZE;
 
 		/* IP */
 		sin.sin6_family = AF_INET6;
@@ -866,20 +855,21 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 		memcpy( &sin.sin6_port, p, 2 );
 		p += 2;
 
-		/* Store node */
-		nbhd_put( _main->nbhd, id, (IP *)&sin, P2P_NBHD_BCKT_SIZE );
-
-		/* Start new lookup */
-		if( !node_me( id ) ) {
-			if( !ldb_contacted_node( l, id ) ) {
-
-				/* Query node */
-				send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
-
-				/* Remember queried node */
-				nbhd_put( l->nbhd, id, (IP *)&sin, 0 );
-			}
+		if( node_me( id ) ) {
+			continue;
 		}
+		
+		nbhd_put( id, (IP *)&sin );
+
+		/* Do not send requests twice */
+		if( ldb_find( l, id ) != NULL ) {
+			continue;
+		}
+
+		ldb_put( l, id, (IP *)&sin );
+		
+		/* Query node */
+		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
 	}
 }
 
@@ -909,7 +899,7 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 		return;
 	}
 
-	ldb_update_token( l, node_id, token, from );
+	ldb_update( l, node_id, token, from );
 
 	/* Get values */
 	item = list_start( values->v.l );
@@ -1016,7 +1006,7 @@ void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
 }
 
 void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
-	UCHAR target[SHA_DIGEST_LENGTH];
+	UCHAR target[SHA1_SIZE];
 	int result = FALSE;
 
 	/* Validate hostname */
@@ -1089,7 +1079,7 @@ int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
 
 		/* ID */
 		id = p;
-		p += SHA_DIGEST_LENGTH;
+		p += SHA1_SIZE;
 
 		/* IP */
 		sin.sin6_family = AF_INET6;
@@ -1104,22 +1094,22 @@ int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
 		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
 
 		/* Remember queried node */
-		nbhd_put( l->nbhd, id, (IP *)&sin, 0 );
+		ldb_put( l, id, (IP *)&sin );
 	}
 
 	return TRUE;
 }
 
 void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
-	UCHAR sha1_buf1[SHA_DIGEST_LENGTH];
-	UCHAR sha1_buf2[SHA_DIGEST_LENGTH];
+	UCHAR sha1_buf1[SHA1_SIZE];
+	UCHAR sha1_buf2[SHA1_SIZE];
 	int j = 0;
 
 	/* The realm influences the way, the lookup hash gets computed */
 	if( _main->conf->bool_realm == TRUE ) {
 		sha1_hash( sha1_buf1, hostname, strlen( hostname ) );
 		sha1_hash( sha1_buf2, _main->conf->realm, strlen( _main->conf->realm ) );
-		for( j = 0; j < SHA_DIGEST_LENGTH; j++ ) {
+		for( j = 0; j < SHA1_SIZE; j++ ) {
 			host_id[j] = sha1_buf1[j] ^ sha1_buf2[j];
 		}
 	} else {
@@ -1134,7 +1124,7 @@ int p2p_is_hash( BEN *node ) {
 	if( !ben_is_str( node ) ) {
 		return 0;
 	}
-	if( ben_str_size( node ) != SHA_DIGEST_LENGTH ) {
+	if( ben_str_size( node ) != SHA1_SIZE ) {
 		return 0;
 	}
 	return 1;

@@ -27,10 +27,10 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 struct obj_lookup {
 
 	/* What are we looking for */
-    UCHAR target[SHA_DIGEST_LENGTH];
+    UCHAR target[SHA1_SIZE];
 
-	/* Organize replies like our own neighbourhood */
-	NBHD *nbhd;
+	LIST *list;
+	HASH *hash;
 
 	/* Caller */
 	IP c_addr;
@@ -38,10 +38,20 @@ struct obj_lookup {
 };
 typedef struct obj_lookup LOOKUP;
 
+struct obj_lnode {
+	UCHAR id[SHA1_SIZE];
+	IP c_addr;
+	UCHAR token[TOKEN_SIZE_MAX];
+	int token_size;
+};
+typedef struct obj_lnode LNODE;
+
 LOOKUP *ldb_init( UCHAR *target, IP *from );
-void ldb_free( LOOKUP *ldb );
+void ldb_free( LOOKUP *l );
 
-int ldb_contacted_node(LOOKUP *ldb, UCHAR *node_id);
-void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, BEN *token, IP *from );
+void ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );
 
+LNODE *ldb_find( LOOKUP *l, UCHAR *node_id );
+void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from );
+int ldb_compare(UCHAR *id1, UCHAR *id2, UCHAR *target );
 #endif

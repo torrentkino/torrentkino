@@ -1,9 +1,15 @@
+masala (0.9) unstable; urgency=low
+
+  * Use a sorted list for get_peers searches instead of bucket containers to save some bytes.
+  * By default, be verbose in the console and quiet while running as a daemon.
+
+ -- Aiko Barz <aiko@chroot.de>  Mon, 16 Sep 2013 23:25:00 +0100
 masala (0.8) unstable; urgency=low
 
   * Limit the number of info_hashes, that can be stored
   * Limit the number of nodes, that can be stored per info_hash
   * Return NULL bytes as the token if the info_hash DB grows beyond all limits
-  * Rotate VALUEs after each request, so that many different IPs get announced
+  * Rotate VALUEs after each request for a fair IP distribution
 
  -- Aiko Barz <aiko@chroot.de>  Wed, 28 Aug 2013 22:22:00 +0100
 masala (0.7) unstable; urgency=low

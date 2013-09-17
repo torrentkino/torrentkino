@@ -55,7 +55,7 @@ void send_ping( IP *sa, UCHAR *tid ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Argument */
@@ -117,7 +117,7 @@ void send_pong( IP *sa, UCHAR *tid, int tid_size ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Argument */
@@ -175,14 +175,14 @@ void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Target */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"target", 6 );
-	ben_str( val, node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Argument */
@@ -246,7 +246,7 @@ void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Nodes */
@@ -311,14 +311,14 @@ void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* info_hash */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"info_hash", 9 );
-	ben_str( val, node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Argument */
@@ -383,7 +383,7 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Nodes */
@@ -465,7 +465,7 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Token */
@@ -536,14 +536,14 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* My host ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"info_hash", 9 );
-	ben_str( val, _main->conf->host_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->host_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Port */
@@ -619,7 +619,7 @@ void send_announce_reply( IP *sa, UCHAR *tid, int tid_size ) {
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"id", 2 );
-	ben_str( val, _main->conf->node_id, SHA_DIGEST_LENGTH );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Argument */

@@ -22,7 +22,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 
-#define SHA_DIGEST_LENGTH 20
+#define SHA1_SIZE 20
 
 void sha1_hash( UCHAR *hash, const char *buffer, long int bytes );
 

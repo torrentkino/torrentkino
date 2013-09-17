@@ -36,46 +36,106 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/epoll.h>
 
 #include "lookup.h"
+#include "hex.h"
 
 LOOKUP *ldb_init( UCHAR *target, IP *from ) {
-	LOOKUP *ldb = (LOOKUP *) myalloc( sizeof(LOOKUP), "ldb_init" );
+	LOOKUP *l = (LOOKUP *) myalloc( sizeof(LOOKUP), "ldb_init" );
 
-	memcpy( ldb->target, target, SHA_DIGEST_LENGTH );
+	memcpy( l->target, target, SHA1_SIZE );
 	
 	if( from == NULL ) {
-		ldb->send_reply = FALSE;
-		memset( &ldb->c_addr, '\0', sizeof( IP ) );
+		l->send_reply = FALSE;
+		memset( &l->c_addr, '\0', sizeof( IP ) );
 	} else {
-		ldb->send_reply = TRUE;
-		memcpy( &ldb->c_addr, from, sizeof( IP ) );
+		l->send_reply = TRUE;
+		memcpy( &l->c_addr, from, sizeof( IP ) );
 	}
 
-	ldb->nbhd = nbhd_init();
-	
-	return ldb;
+	l->hash = hash_init( 1000 );
+	l->list = list_init();
+
+	return l;
 }
 
-void ldb_free( LOOKUP *ldb ) {
-	if( ldb == NULL ) {
+void ldb_free( LOOKUP *l ) {
+	if( l == NULL ) {
+		return;
+	}
+	hash_free( l->hash );
+	list_clear( l->list );
+	list_free( l->list );
+	myfree( l, "ldb_free" );
+}
+
+void ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
+	ITEM *i = NULL;
+	LNODE *new = NULL;
+	LNODE *n = NULL;
+
+	/* Found: Huh? */
+	if( ldb_find( l, node_id ) != NULL ) {
 		return;
 	}
 
-	nbhd_free( ldb->nbhd );
-	myfree( ldb, "ldb_free" );
+	new = (LNODE *) myalloc( sizeof( LNODE ), "ldb_put" );
+	memcpy( new->id, node_id, SHA1_SIZE );
+	memcpy( &new->c_addr, from, sizeof( IP ) );
+	memset( new->token, '\0', TOKEN_SIZE_MAX );
+	new->token_size = 0;
+
+	/* Create a sorted list. The first nodes are the best fitting. */
+	i = list_start( l->list );
+	while( i != NULL ) {
+		n = list_value( i );
+
+		/* Look, whose node_id fits better to the target */
+		if( ldb_compare( node_id, n->id, l->target ) < 0 ) {
+			list_ins( l->list, i, new );
+			hash_put( l->hash, new->id, SHA1_SIZE, new );
+			return;
+		}
+
+		i = list_next( i );
+	}
+
+	/* Last resort. Append the node, so that it does not get a query again. */
+	list_put( l->list, new );
+	hash_put( l->hash, new->id, SHA1_SIZE, new );
 }
 
-int ldb_contacted_node( LOOKUP *ldb, UCHAR *node_id ) {
-	return hash_exists( ldb->nbhd->hash, node_id, SHA_DIGEST_LENGTH);
+LNODE *ldb_find( LOOKUP *l, UCHAR *node_id ) {
+	return hash_get( l->hash, node_id, SHA1_SIZE );
 }
 
-void ldb_update_token( LOOKUP *ldb, UCHAR *node_id, BEN *token, IP *from ) {
-	NODE *n = NULL;
+void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from ) {
+	LNODE *n = NULL;
 
-	if( ( n = hash_get( ldb->nbhd->hash, node_id, SHA_DIGEST_LENGTH) ) == NULL ) {
+	if( ( n = hash_get( l->hash, node_id, SHA1_SIZE ) ) == NULL ) {
 		return;
 	}
-	
+
 	memcpy( &n->c_addr, from, sizeof( IP ) );
 	memcpy( &n->token, token->v.s->s, token->v.s->i );
 	n->token_size = token->v.s->i;
+}
+
+int ldb_compare(UCHAR *id1, UCHAR *id2, UCHAR *target) {
+	UCHAR xor1;
+	UCHAR xor2;
+	int i = 0;
+
+	for( i=0; i<SHA1_SIZE; i++ ) {
+		if( id1[i] == id2[i] ) {
+			continue;
+		}
+		xor1 = id1[i] ^ target[i];
+		xor2 = id2[i] ^ target[i];
+		if( xor1 < xor2 ) {
+			return -1;
+		} else {
+			return 1;
+		}
+	}
+
+	return 0;
 }

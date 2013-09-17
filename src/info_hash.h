@@ -38,14 +38,14 @@ struct obj_idb {
 };
 
 struct obj_target {
-	UCHAR target[SHA_DIGEST_LENGTH];
+	UCHAR target[SHA1_SIZE];
 	LIST *list;
 	HASH *hash;
 };
 typedef struct obj_target TARGET;
 
 struct obj_inode {
-	UCHAR id[SHA_DIGEST_LENGTH];
+	UCHAR id[SHA1_SIZE];
 	IP c_addr;
 	time_t time_anno;
 };
@@ -66,7 +66,7 @@ int tgt_limit_reached( void );
 INODE *inode_init( TARGET *target, UCHAR *node_id );
 void inode_free( TARGET *target, ITEM *i );
 ITEM *inode_find( HASH *target, UCHAR *node_id );
-void inode_update( INODE *inode, IP *sa, int port );
 int inode_limit_reached( LIST *l );
+void inode_update( INODE *inode, IP *sa, int port );
 
 #endif

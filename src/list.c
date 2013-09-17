@@ -125,8 +125,8 @@ ITEM *list_put( LIST *list, void *payload ) {
 	if( list == NULL ) {
 		return NULL;
 	}
-	
-	if( list->size == ULONG_MAX ) {
+
+	if( list_size( list ) == ULONG_MAX ) {
 		return NULL;
 	}
 
@@ -152,25 +152,56 @@ ITEM *list_put( LIST *list, void *payload ) {
 	return item;
 }
 
-ITEM *list_join( LIST *list, ITEM *here, void *payload ) {
+ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
+	ITEM *item = NULL;
+	ITEM *prev = NULL;
+
+	if( list == NULL ) {
+		return NULL;
+	}
+	
+	if( list_size( list ) == ULONG_MAX ) {
+		return NULL;
+	}
+
+	if( list_size( list ) == 0 ) {
+		return list_put( list, payload );
+	}
+	
+	/* Payload */
+	item = (ITEM *) myalloc( sizeof(ITEM), "list_ins" );
+	item->val = payload;
+
+	/* Pointer */
+	prev = here->prev;
+
+	item->next = here;
+	item->prev = prev;
+
+	here->prev = item;
+
+	if( prev != NULL ) {
+		prev->next = item;
+	}
+
+	list->size += 1;
+
+	return item;
+}
+
+ITEM *list_add( LIST *list, ITEM *here, void *payload ) {
 	ITEM *item = NULL;
 	ITEM *next = NULL;
 
 	if( list == NULL ) {
 		return NULL;
 	}
-	
-	if( list->size == ULONG_MAX ) {
+
+	if( list_size( list ) == ULONG_MAX ) {
 		return NULL;
 	}
 
-	/* This insert is like a normal list_put */
-	if( list->item == NULL ) {
-		return list_put( list, payload );
-	}
-	
-	/* This insert is like a normal list_put */
-	if( here->next == NULL ) {
+	if( list_size( list ) == 0 ) {
 		return list_put( list, payload );
 	}
 
@@ -185,7 +216,10 @@ ITEM *list_join( LIST *list, ITEM *here, void *payload ) {
 	item->prev = here;
 	
 	here->next = item;
-	next->prev = item;
+
+	if( next != NULL ) {
+		next->prev = item;
+	}
 
 	list->size += 1;
 

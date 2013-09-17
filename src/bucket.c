@@ -43,7 +43,7 @@ LIST *bckt_init( void ) {
 	LIST *l = list_init();
 	
 	/* First bucket */
-	memset( b->id, '\0', SHA_DIGEST_LENGTH );
+	memset( b->id, '\0', SHA1_SIZE );
 	b->nodes = list_init();
 
 	/* Connect bucket */
@@ -69,7 +69,7 @@ void bckt_free( LIST *thislist ) {
 	list_free( thislist );
 }
 
-int bckt_put( LIST *l, NODE *n, ULONG size_limit ) {
+int bckt_put( LIST *l, NODE *n ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
 
@@ -90,9 +90,8 @@ int bckt_put( LIST *l, NODE *n, ULONG size_limit ) {
 	}
 
 	/* Do not store more than 20 nodes per bucket. The first 8 nodes are the
-	 * most relevant. The get_peers search gets dumped into one big bucket
-	 * first. So, disable this limit in that case. */
-	if( size_limit != 0 && list_size( b->nodes ) >= size_limit ) {
+	 * most relevant. */
+	if( list_size( b->nodes ) >= BCKT_SIZE_MAX ) {
 		return FALSE;
 	}
 
@@ -138,14 +137,14 @@ ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id ) {
 		b = list_value( list_next( item ) );
 
 		/* Does this bucket fits better than the next one? */
-		if( memcmp( id, b->id, SHA_DIGEST_LENGTH) < 0 ) {
+		if( memcmp( id, b->id, SHA1_SIZE ) < 0 ) {
 			return item;
 		}
 
 		item = list_next( item );
 	}
 
-	/* No bucket found, so return the last one */
+	/* No best bucket found, so return the last one */
 	return list_stop( thislist );
 }
 
@@ -206,10 +205,10 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	ITEM *item_n = NULL;
 	NODE *n = NULL;
 	BUCK *b_new = NULL;
-	UCHAR id_new[SHA_DIGEST_LENGTH];
+	UCHAR id_new[SHA1_SIZE];
 
 	/* Search bucket we want to evolve */
-	if( ( item_b = bckt_find_best_match( thislist, target)) == NULL ) {
+	if( ( item_b = bckt_find_best_match( thislist, target ) ) == NULL ) {
 		return FALSE;
 	}
 	b = list_value( item_b );
@@ -220,17 +219,17 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	}
 
 	/* Compute id of the new bucket */
-	if( bckt_compute_id( thislist, item_b, id_new) < 0 ) {
+	if( bckt_compute_id( thislist, item_b, id_new ) < 0 ) {
 		return FALSE;
 	}
 	
 	/* Create new bucket */
 	b_new = (BUCK *) myalloc( sizeof(BUCK), "split_bucket" );
-	memcpy( b_new->id, id_new, SHA_DIGEST_LENGTH );
+	memcpy( b_new->id, id_new, SHA1_SIZE );
 	b_new->nodes = list_init();
 	
-	/* Insert new bucket */
-	list_join( thislist, item_b, b_new );
+	/* Add new bucket */
+	list_add( thislist, item_b, b_new );
 
 	/* Remember nodes */
 	list_n = b->nodes;
@@ -347,7 +346,7 @@ int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id ) {
 		return -1;
 	}
 
-	memcpy( id, b->id, SHA_DIGEST_LENGTH );
+	memcpy( id, b->id, SHA1_SIZE );
 	id[bit / 8] |= ( 0x80 >> ( bit % 8 ) );
 
 	return 1;
@@ -406,8 +405,8 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 		sin = (IP*)&n->c_addr;
 
 		/* Node ID */
-		memcpy( p, n->id, SHA_DIGEST_LENGTH );
-		p += SHA_DIGEST_LENGTH;
+		memcpy( p, n->id, SHA1_SIZE );
+		p += SHA1_SIZE;
 
 		/* IP */
 		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );

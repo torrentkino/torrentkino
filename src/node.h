@@ -23,16 +23,10 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "token.h"
 
 struct obj_node {
+	UCHAR id[SHA1_SIZE];
 	IP c_addr;
-
-	UCHAR id[SHA_DIGEST_LENGTH];
-
-	UCHAR token[TOKEN_SIZE_MAX];
-	int token_size;
-
 	time_t time_ping;
 	time_t time_find;
-
 	int pinged;
 };
 typedef struct obj_node NODE;

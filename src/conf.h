@@ -36,11 +36,12 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_PORTMIN 1
 #define CONF_PORTMAX 65535
 
-#define CONF_BEQUIET 0
-#define CONF_VERBOSE 1
+#define CONF_UNDEF 0
+#define CONF_BEQUIET 1
+#define CONF_VERBOSE 2
 
 #define CONF_DAEMON 0
-#define CONF_FOREGROUND 1
+#define CONF_CONSOLE 1
 
 #define CONF_HOSTFILE "/etc/hostname"
 
@@ -63,42 +64,35 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 struct obj_conf {
-	char username[MAIN_BUF+1];
-	char home[MAIN_BUF+1];
+	char username[BUF_SIZE];
+	char home[BUF_SIZE];
 
 #ifdef MASALA
-	char hostname[MAIN_BUF+1];
-	UCHAR node_id[SHA_DIGEST_LENGTH];
-	UCHAR host_id[SHA_DIGEST_LENGTH];
-	UCHAR null_id[SHA_DIGEST_LENGTH];
-	char bootstrap_node[MAIN_BUF+1];
+	char hostname[BUF_SIZE];
+	UCHAR node_id[SHA1_SIZE];
+	UCHAR host_id[SHA1_SIZE];
+	UCHAR null_id[SHA1_SIZE];
+	char bootstrap_node[BUF_SIZE];
 	char bootstrap_port[CONF_PORT_SIZE+1];
 	int announce_port;
 
-	char key[MAIN_BUF+1];
+	char key[BUF_SIZE];
 	int bool_encryption;
 
-	char realm[MAIN_BUF+1];
+	char realm[BUF_SIZE];
 	int bool_realm;
 	
-	char file[MAIN_BUF+1];
+	char file[BUF_SIZE];
 #endif
 
 #ifdef TUMBLEWEED
-	char index_name[MAIN_BUF+1];
+	char index_name[BUF_SIZE];
 	int ipv6_only;
 #endif
 
-	/* Number of cores */
 	int cores;
-
-	/* Verbosity */
-	int quiet;
-
-	/* Verbosity mode */
+	int verbosity;
 	int mode;
-
-	/* TCP/UDP Port */
 	int port;
 };
 

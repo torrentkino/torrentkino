@@ -281,13 +281,13 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address, int port
 
 	IP sa;
 	socklen_t salen = sizeof(IP );
-	char buffer[MAIN_BUF+1];
+	char buffer[BUF_SIZE];
 	int sockfd = -1;
 	int n = 0;
 	struct timeval tv;
 
 	memset( &sa, '\0', salen );
-	memset( buffer, '\0', MAIN_BUF+1 );
+	memset( buffer, '\0', BUF_SIZE );
 
 	/* Setup UDP */
 	sockfd = socket( AF_INET6, SOCK_DGRAM, 0 );
@@ -312,7 +312,7 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address, int port
 		return 0;
 	}
 
-	n = recvfrom( sockfd, buffer, MAIN_BUF, 0, (struct sockaddr *)&sa, &salen );
+	n = recvfrom( sockfd, buffer, BUF_OFF1, 0, (struct sockaddr *)&sa, &salen );
 	if( n % 18 != 0 ) {
 		return 0;
 	}
@@ -324,7 +324,7 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address, int port
 }
 
 int _nss_masala_port( void ) {
-	char filename[MAIN_BUF+1];
+	char filename[BUF_SIZE];
 	int filesize = 0;
 	UCHAR *fbuf = NULL;
 	BEN *ben = NULL;
@@ -335,7 +335,7 @@ int _nss_masala_port( void ) {
 		return -1;
 	}
 
-	snprintf( filename, MAIN_BUF+1, "%s/%s", getenv( "HOME" ), ".masala.conf" );
+	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), ".masala.conf" );
 
 	if( !file_isreg( filename ) ) {
 		return -1;

@@ -20,7 +20,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef HEX_H
 #define HEX_H
 
-#define HEX_LEN 2*SHA_DIGEST_LENGTH+1
+#define HEX_LEN 2*SHA1_SIZE+1
 
 void hex_hash_encode( char *out, const UCHAR *in );
 

@@ -30,7 +30,7 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 int masala_lookup( const char *hostname, int size ) {
 	IP sa;
 	socklen_t salen = sizeof( IP );
-	UCHAR buffer[MAIN_BUF+1];
+	UCHAR buffer[BUF_SIZE];
 	int sockfd = -1;
 	int n = 0;
 	struct timeval tv;
@@ -44,7 +44,7 @@ int masala_lookup( const char *hostname, int size ) {
 	port = masala_port();
 
 	memset( &sa, '\0', salen );
-	memset( buffer, '\0', MAIN_BUF+1 );
+	memset( buffer, '\0', BUF_SIZE );
 
 	/* Setup UDP */
 	sockfd = socket( AF_INET6, SOCK_DGRAM, 0 );
@@ -69,7 +69,7 @@ int masala_lookup( const char *hostname, int size ) {
 		return 0;
 	}
 
-	n = recvfrom( sockfd, buffer, MAIN_BUF, 0, (struct sockaddr *)&sa, &salen );
+	n = recvfrom( sockfd, buffer, BUF_OFF1, 0, (struct sockaddr *)&sa, &salen );
 	if( n % 18 != 0 ) {
 		return 0;
 	}
@@ -95,7 +95,7 @@ int masala_lookup( const char *hostname, int size ) {
 }
 
 int masala_port( void ) {
-	char filename[MAIN_BUF+1];
+	char filename[BUF_SIZE];
 	int filesize = 0;
 	UCHAR *fbuf = NULL;
 	BEN *ben = NULL;
@@ -106,7 +106,7 @@ int masala_port( void ) {
 		fail("Looking up $HOME failed");
 	}
 
-	snprintf( filename, MAIN_BUF+1, "%s/%s", getenv( "HOME" ), ".masala.conf" );
+	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), ".masala.conf" );
 
 	if( !file_isreg( filename ) ) {
 		fail("%s not found", filename );

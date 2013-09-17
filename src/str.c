@@ -223,7 +223,7 @@ void str_gmttime( char *buffer, int size, time_t timestamp ) {
 
 	/* Last-Modified: Thu, 10 Feb 2011 20:25:39 GMT */
 	if( gmtime_r( &timestamp, &date) != NULL ) {
-		if( strftime( buffer, MAIN_BUF+1, "%a, %d %b %Y %H:%M:%S %Z", &date) == 0 ) {
+		if( strftime( buffer, BUF_SIZE, "%a, %d %b %Y %H:%M:%S %Z", &date) == 0 ) {
 			strncpy( buffer, fallback, size-1 );
 		}
 	} else {

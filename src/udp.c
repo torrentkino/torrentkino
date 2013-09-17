@@ -219,7 +219,7 @@ void *udp_thread( void *arg ) {
 
 void *udp_client( void *arg ) {
 	
-	if( nbhd_is_empty( _main->nbhd ) ) {
+	if( nbhd_is_empty() ) {
 		p2p_bootstrap();
 		time_add_1_min_approx( &_main->p2p->time_restart );
 	}

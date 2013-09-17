@@ -20,10 +20,11 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MAKRO_H
 #define MAKRO_H
 
-#define MAIN_BUF 1023
+#define BUF_SIZE 1024
+#define BUF_OFF1 1023
 #define MAIN_PROTVER 1
 #define MAIN_IPBUF 39
-#define SHA_DIGEST_LENGTH 20
+#define SHA1_SIZE 20
 
 #define TRUE 1
 #define FALSE 0

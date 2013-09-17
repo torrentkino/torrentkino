@@ -51,8 +51,9 @@ struct obj_conf *conf_init( void ) {
 	char *p = NULL;
 #endif
 
-	conf->mode = CONF_FOREGROUND;
 	conf->port = CONF_PORT;
+	conf->mode = CONF_CONSOLE;
+	conf->verbosity = CONF_UNDEF;
 
 #ifdef MASALA
 	conf->announce_port = CONF_PORT;
@@ -60,43 +61,43 @@ struct obj_conf *conf_init( void ) {
 
 	if( ( getenv( "HOME" ) ) == NULL ) {
 #ifdef MASALA
-		strncpy( conf->home, "/tmp", MAIN_BUF );
+		strncpy( conf->home, "/tmp", BUF_OFF1 );
 #endif
 #ifdef TUMBLEWEED
-		strncpy( conf->home, "/var/www", MAIN_BUF );
+		strncpy( conf->home, "/var/www", BUF_OFF1 );
 #endif
 	} else {
 #ifdef MASALA
-		snprintf( conf->home, MAIN_BUF+1, "%s", getenv( "HOME") );
+		snprintf( conf->home, BUF_SIZE, "%s", getenv( "HOME") );
 #endif
 #ifdef TUMBLEWEED
-		snprintf( conf->home, MAIN_BUF+1, "%s/%s", getenv( "HOME"), "Public" );
+		snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "HOME"), "Public" );
 #endif
 	}
 
 #ifdef MASALA
-	snprintf( conf->file, MAIN_BUF+1, "%s/.masala.conf", conf->home );
+	snprintf( conf->file, BUF_SIZE, "%s/.masala.conf", conf->home );
 #endif
 
 #ifdef MASALA
 	/* /etc/hostname */
-	strncpy( conf->hostname, "bulk.p2p", MAIN_BUF );
+	strncpy( conf->hostname, "bulk.p2p", BUF_OFF1 );
 	if( file_isreg( CONF_HOSTFILE ) ) {
 		if( ( fbuf = (char *) file_load( CONF_HOSTFILE, 0, file_size( CONF_HOSTFILE ) ) ) != NULL ) {
 			if( ( p = strchr( fbuf, '\n')) != NULL ) {
 				*p = '\0';
 			}
-			snprintf( conf->hostname, MAIN_BUF+1, "%s.p2p", fbuf );
+			snprintf( conf->hostname, BUF_SIZE, "%s.p2p", fbuf );
 			myfree( fbuf, "conf_init" );
 		}
 	}
 #endif
 
 #ifdef MASALA
-	snprintf( conf->key, MAIN_BUF+1, "%s", CONF_KEY );
+	snprintf( conf->key, BUF_SIZE, "%s", CONF_KEY );
 	conf->bool_encryption = FALSE;
 
-	snprintf( conf->realm, MAIN_BUF+1, "%s", CONF_REALM );
+	snprintf( conf->realm, BUF_SIZE, "%s", CONF_REALM );
 	conf->bool_realm = FALSE;
 #endif
 
@@ -106,11 +107,11 @@ struct obj_conf *conf_init( void ) {
 #endif
 
 #ifdef MASALA
-	rand_urandom( conf->node_id, SHA_DIGEST_LENGTH );
+	rand_urandom( conf->node_id, SHA1_SIZE );
 #endif
 
 #ifdef MASALA
-	memset( conf->null_id, '\0', SHA_DIGEST_LENGTH );
+	memset( conf->null_id, '\0', SHA1_SIZE );
 #endif
 
 #ifdef TUMBLEWEED
@@ -120,24 +121,18 @@ struct obj_conf *conf_init( void ) {
 #endif
 
 #ifdef TUMBLEWEED
-	conf->quiet = CONF_BEQUIET;
+	strncpy( conf->username, CONF_USERNAME, BUF_OFF1 );
 #elif MASALA
-	conf->quiet = CONF_BEQUIET;
-#endif
-
-#ifdef TUMBLEWEED
-	strncpy( conf->username, CONF_USERNAME, MAIN_BUF );
-#elif MASALA
-	strncpy( conf->username, CONF_USERNAME, MAIN_BUF );
+	strncpy( conf->username, CONF_USERNAME, BUF_OFF1 );
 #endif
 
 #ifdef MASALA
-	snprintf( conf->bootstrap_node, MAIN_BUF+1, "%s", CONF_BOOTSTRAP_NODE );
+	snprintf( conf->bootstrap_node, BUF_SIZE, "%s", CONF_BOOTSTRAP_NODE );
 	snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%i", CONF_PORT );
 #endif
 
 #ifdef TUMBLEWEED
-	snprintf( conf->index_name, MAIN_BUF+1, "%s", CONF_INDEX_NAME );
+	snprintf( conf->index_name, BUF_SIZE, "%s", CONF_INDEX_NAME );
 #endif
 
 #ifdef TUMBLEWEED
@@ -157,6 +152,13 @@ void conf_check( void ) {
 #ifdef MASALA
 	char hex[HEX_LEN];
 #endif
+
+	/* By default, be verbose in the console and quiet while running as a
+	 * daemon. */
+	if( _main->conf->verbosity == CONF_UNDEF ) {
+		_main->conf->verbosity = ( _main->conf->mode == CONF_CONSOLE ) ?
+			CONF_VERBOSE : CONF_BEQUIET;
+	}
 
 #ifdef MASALA
 	info( NULL, 0, "Hostname: %s (-h)", _main->conf->hostname );
@@ -204,16 +206,16 @@ void conf_check( void ) {
 	}
 #endif
 
-	if( _main->conf->mode == CONF_FOREGROUND ) {
-		info( NULL, 0, "Mode: Foreground (-d)" );
+	if( _main->conf->mode == CONF_CONSOLE ) {
+		info( NULL, 0, "Mode: Console (-d)" );
 	} else {
 		info( NULL, 0, "Mode: Daemon (-d)" );
 	}
 
-	if( _main->conf->quiet == CONF_BEQUIET ) {
-		info( NULL, 0, "Verbosity: Quiet (-v)" );
+	if( _main->conf->verbosity == CONF_BEQUIET ) {
+		info( NULL, 0, "Verbosity: Quiet (-q/-v)" );
 	} else {
-		info( NULL, 0, "Verbosity: Verbose (-v)" );
+		info( NULL, 0, "Verbosity: Verbose (-q/-v)" );
 	}
 
 	/* Port == 0 => Random source port */

@@ -100,7 +100,13 @@ void tdb_del( ITEM *i ) {
 		tid = list_value( i );
 	}
 
-	ldb_free( tid->lookup );
+	switch( tdb_type( i ) ) {
+		case P2P_GET_PEERS:
+		case P2P_ANNOUNCE_START:
+			ldb_free( tdb_ldb( i ) );
+			break;
+	}
+
 	hash_del( _main->transaction->hash, tdb_tid( i ), TID_SIZE );
 	list_del( _main->transaction->list, i );
 	myfree( tid, "tdb_del" );

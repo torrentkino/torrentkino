@@ -43,7 +43,7 @@ void hex_hash_encode( char *out, const UCHAR *in ) {
 
 	memset( out, '\0', HEX_LEN );
 
-	for( i=0; i<SHA_DIGEST_LENGTH; i++ ) {
+	for( i=0; i<SHA1_SIZE; i++ ) {
 		snprintf( p1, 3, "%02x", *p0 ); 
 		p0++;
 		p1+=2;

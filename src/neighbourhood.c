@@ -63,16 +63,13 @@ NBHD *nbhd_init( void ) {
 	return nbhd;
 }
 
-void nbhd_free( NBHD *nbhd ) {
-	if( nbhd == NULL ) {
-		return;
-	}
-	bckt_free( nbhd->bucket );
-	hash_free( nbhd->hash );
-	myfree( nbhd, "nbhd_free" );
+void nbhd_free( void ) {
+	bckt_free( _main->nbhd->bucket );
+	hash_free( _main->nbhd->hash );
+	myfree( _main->nbhd, "nbhd_free" );
 }
 
-void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa, ULONG size_limit ) {
+void nbhd_put( UCHAR *id, IP *sa ) {
 	NODE *n = NULL;
 
 	/* It's me */
@@ -81,7 +78,7 @@ void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa, ULONG size_limit ) {
 	}
 
 	/* Find the node or create a new one */
-	if( ( n = hash_get( nbhd->hash, id, SHA_DIGEST_LENGTH)) != NULL ) {
+	if( ( n = hash_get( _main->nbhd->hash, id, SHA1_SIZE)) != NULL ) {
 		node_update( n, sa );
 		return;
 	}
@@ -90,25 +87,25 @@ void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa, ULONG size_limit ) {
 	n = node_init( id, sa );
 
 	/* Remember node */
-	if( !bckt_put( nbhd->bucket, n, size_limit ) ) {
+	if( !bckt_put( _main->nbhd->bucket, n ) ) {
 		node_free( n );
 		return;
 	}
 
 	/* Fast access */
-	hash_put( nbhd->hash, n->id, SHA_DIGEST_LENGTH, n );
+	hash_put( _main->nbhd->hash, n->id, SHA1_SIZE, n );
 }
 
-void nbhd_del( NBHD *nbhd, NODE *n ) {
-	bckt_del( nbhd->bucket, n );
-	hash_del( nbhd->hash, n->id, SHA_DIGEST_LENGTH );
+void nbhd_del( NODE *n ) {
+	bckt_del( _main->nbhd->bucket, n );
+	hash_del( _main->nbhd->hash, n->id, SHA1_SIZE );
 	node_free( n );
 }
 
 void nbhd_pinged( UCHAR *id ) {
 	NODE *n = NULL;
 
-	if( ( n = hash_get( _main->nbhd->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if( ( n = hash_get( _main->nbhd->hash, id, SHA1_SIZE)) == NULL ) {
 		return;
 	}
 
@@ -121,7 +118,7 @@ void nbhd_pinged( UCHAR *id ) {
 void nbhd_ponged( UCHAR *id, IP *sa ) {
 	NODE *n = NULL;
 
-	if( ( n = hash_get( _main->nbhd->hash, id, SHA_DIGEST_LENGTH)) == NULL ) {
+	if( ( n = hash_get( _main->nbhd->hash, id, SHA1_SIZE)) == NULL ) {
 		return;
 	}
 
@@ -154,7 +151,7 @@ void nbhd_expire( time_t now ) {
 
 			  /* Bad node */
 			  if( n->pinged >= 4 ) {
-				   nbhd_del( _main->nbhd, n );
+				   nbhd_del( n );
 			  }
 			  
 			  item_n = item_n_next;
@@ -164,41 +161,10 @@ void nbhd_expire( time_t now ) {
 	}
 }
 
-void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd ) {
-	ITEM *item_b = NULL;
-	BUCK *b = NULL;
-	ITEM *item_n = NULL;
-	ITEM *item_n_next = NULL;
-	NODE *n = NULL;
-
-	/* Cycle through all the buckets */
-	item_b = list_start( nbhd->bucket );
-	while( item_b != NULL ) {
-		 b = list_value( item_b );
-
-		 /* Cycle through all the nodes */
-		 item_n = list_start( b->nodes );
-		 while( item_n != NULL ) {
-			  n = list_value( item_n );
-
-			  item_n_next = list_next( item_n );
-
-			  /* Bad node */
-			  if( n->token_size == 0 ) {
-				   nbhd_del( nbhd, n );
-			  }
-			  
-			  item_n = item_n_next;
-		 }
-
-		 item_b = list_next( item_b );
-	}
+void nbhd_split( UCHAR *target, int verbose ) {
+	bckt_split_loop( _main->nbhd->bucket, target, verbose );
 }
 
-void nbhd_split( NBHD *nbhd, UCHAR *target, int verbose ) {
-	bckt_split_loop( nbhd->bucket, target, verbose );
-}
-
-int nbhd_is_empty( NBHD *nbhd ) {
-	return bckt_is_empty( nbhd->bucket );
+int nbhd_is_empty( void ) {
+	return bckt_is_empty( _main->nbhd->bucket );
 }

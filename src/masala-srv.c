@@ -103,7 +103,7 @@ int main( int argc, char **argv ) {
 
 	cache_free();
 	idb_free();
-	nbhd_free(_main->nbhd);
+	nbhd_free();
 	tdb_free();
 	tkn_free();
 	p2p_free();

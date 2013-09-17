@@ -210,7 +210,7 @@ void ben_int( BEN *node, long int i ) {
 long int ben_enc_size( BEN *node ) {
 	ITEM *item = NULL;
 	struct obj_tuple *tuple = NULL;
-	char buf[MAIN_BUF+1];
+	char buf[BUF_SIZE];
 	long int size = 0;
 
 	if( node == NULL )
@@ -262,12 +262,12 @@ long int ben_enc_size( BEN *node ) {
 			break;
 
 		case BEN_INT:
-			snprintf( buf, MAIN_BUF+1, "i%lie", node->v.i );
+			snprintf( buf, BUF_SIZE, "i%lie", node->v.i );
 			size += strlen( buf );
 			break;
 
 		case BEN_STR:
-			snprintf( buf, MAIN_BUF+1, "%li:", node->v.s->i );
+			snprintf( buf, BUF_SIZE, "%li:", node->v.s->i );
 			size += strlen( buf ) + node->v.s->i;
 			break;
 
@@ -300,7 +300,7 @@ struct obj_raw *ben_enc( BEN *node ) {
 UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 	ITEM *item = NULL;
 	struct obj_tuple *tuple = NULL;
-	char buf[MAIN_BUF+1];
+	char buf[BUF_SIZE];
 	long int len = 0;
 
 	if( node == NULL || p == NULL ) {
@@ -350,7 +350,7 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 			break;
 
 		case BEN_INT:
-			snprintf( buf, MAIN_BUF+1, "i%lie", node->v.i );
+			snprintf( buf, BUF_SIZE, "i%lie", node->v.i );
 			len = strlen( buf );
 			memcpy( p, buf, len );
 			p += len;
@@ -358,7 +358,7 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 
 		case BEN_STR:
 			/* Meta */
-			snprintf( buf, MAIN_BUF+1, "%li:", node->v.s->i );
+			snprintf( buf, BUF_SIZE, "%li:", node->v.s->i );
 			len = strlen( buf );
 			memcpy( p, buf, len );
 			p += len;

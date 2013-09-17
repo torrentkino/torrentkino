@@ -37,11 +37,11 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "fail.h"
 
 void fail( const char *format, ... ) {
-	char va_buf[MAIN_BUF+1];
+	char va_buf[BUF_SIZE];
 	va_list vlist;
 
 	va_start(vlist, format);
-	vsnprintf(va_buf, MAIN_BUF+1, format, vlist);
+	vsnprintf(va_buf, BUF_SIZE, format, vlist);
 	va_end(vlist);
 
 	fprintf( stderr, "%s\n", va_buf );

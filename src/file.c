@@ -163,7 +163,7 @@ int file_rmdir( const char *dirname ) {
 int file_rmrf( char *fileordir ) {
 	DIR *dh	= NULL;
 	struct dirent *entry = NULL;
-	char filename[MAIN_BUF+1];
+	char filename[BUF_SIZE];
 
 	if( file_isreg( fileordir ) ) {
 		if( !file_rm( fileordir ) ) {
@@ -176,7 +176,7 @@ int file_rmrf( char *fileordir ) {
 	  
 		while( ( entry = readdir( dh ) ) != NULL ) {
 			if( strcmp( entry->d_name,"." ) != 0 && strcmp( entry->d_name,".." ) != 0 ) {
-				snprintf( filename, MAIN_BUF+1, "%s/%s", fileordir, entry->d_name );
+				snprintf( filename, BUF_SIZE, "%s/%s", fileordir, entry->d_name );
 				if( !file_rmrf( filename ) ) {
 					return 0;
 				}

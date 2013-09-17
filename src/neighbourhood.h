@@ -31,18 +31,17 @@ struct obj_nbhd {
 typedef struct obj_nbhd NBHD;
 
 NBHD *nbhd_init( void );
-void nbhd_free( NBHD *nbhd );
+void nbhd_free( void );
 
-void nbhd_put( NBHD *nbhd, UCHAR *id, IP *sa, ULONG size_limit );
-void nbhd_del( NBHD *nbhd, NODE *n );
+void nbhd_put( UCHAR *id, IP *sa );
+void nbhd_del( NODE *n );
 
 void nbhd_pinged( UCHAR *id );
 void nbhd_ponged( UCHAR *id, IP *sa );
 
 void nbhd_expire( time_t now );
-void nbhd_expire_nodes_with_emtpy_tokens( NBHD *nbhd );
-void nbhd_split( NBHD *nbhd, UCHAR *target, int verbose );
+void nbhd_split( UCHAR *target, int verbose );
 
-int nbhd_is_empty( NBHD *nbhd );
+int nbhd_is_empty( void );
 
 #endif

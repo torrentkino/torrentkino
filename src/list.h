@@ -45,8 +45,10 @@ ITEM *list_stop( LIST *list );
 ULONG list_size( LIST *list );
 
 ITEM *list_put( LIST *list, void *payload );
-ITEM *list_join( LIST *list, ITEM *here, void *payload );
 ITEM *list_del( LIST *list, ITEM *item );
+
+ITEM *list_ins( LIST *list, ITEM *here, void *payload );
+ITEM *list_add( LIST *list, ITEM *here, void *payload );
 
 ITEM *list_next( ITEM *item );
 ITEM *list_prev( ITEM *item );

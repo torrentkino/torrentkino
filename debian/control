@@ -3,7 +3,7 @@ Section: net
 Priority: extra
 Maintainer: Aiko Barz <aiko@chroot.de>
 Build-Depends: debhelper (>= 8.0.0)
-Standards-Version: 3.9.3
+Standards-Version: 3.9.4
 Homepage: https://github.com/torrentkino/masala
 
 Package: masala

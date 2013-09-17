@@ -34,7 +34,7 @@ struct obj_cache {
 };
 
 struct obj_cache_entry {
-	UCHAR target[SHA_DIGEST_LENGTH];
+	UCHAR target[SHA1_SIZE];
 	UCHAR nodes_compact_list[144]; /* 8*(16+2) */
 	int nodes_compact_size;
 	

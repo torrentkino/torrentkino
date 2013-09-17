@@ -76,20 +76,20 @@ void opts_interpreter( char *var, char *val ) {
 
 		if( *p0 == '/' ) {
 			/* Absolute path? */
-			snprintf( _main->conf->home, MAIN_BUF+1, "%s", p0 );
+			snprintf( _main->conf->home, BUF_SIZE, "%s", p0 );
 		} else {
 			/* Relative path? */
 			if( ( p1 = getenv( "PWD")) != NULL ) {
-				snprintf( _main->conf->home, MAIN_BUF+1, "%s/%s", p1, p0 );
+				snprintf( _main->conf->home, BUF_SIZE, "%s/%s", p1, p0 );
 			} else {
-				snprintf( _main->conf->home, MAIN_BUF+1, "/notexistant" );
+				snprintf( _main->conf->home, BUF_SIZE, "/notexistant" );
 			}
 		}
 	}
 
 	/* Create HTML index */
 	if( strcmp( var, "-i") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->index_name, MAIN_BUF+1, "%s", val );
+		snprintf( _main->conf->index_name, BUF_SIZE, "%s", val );
 	}
 
 	/* IPv6 only */
@@ -101,20 +101,20 @@ void opts_interpreter( char *var, char *val ) {
 
 #ifdef MASALA
 	if( strcmp( var, "-x") == 0 && val != NULL && strlen( val ) > 1 ) {
-		strncpy( _main->conf->bootstrap_node, val, MAIN_BUF );
+		strncpy( _main->conf->bootstrap_node, val, BUF_OFF1 );
 	} else if( strcmp( var, "-y") == 0 && val != NULL && strlen( val ) > 1 ) {
 		snprintf( _main->conf->bootstrap_port, CONF_PORT_SIZE+1, "%s", val );
 	} else if( strcmp( var, "-k") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->key, MAIN_BUF+1, "%s", val );
+		snprintf( _main->conf->key, BUF_SIZE, "%s", val );
 		_main->conf->bool_encryption = TRUE;
 	} else if( strcmp( var, "-h") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->hostname, MAIN_BUF+1, "%s", val );
+		snprintf( _main->conf->hostname, BUF_SIZE, "%s", val );
 
 		/* Compute host_id. Respect the realm. */
 		p2p_compute_realm_id( _main->conf->host_id, _main->conf->hostname );
 
 	} else if( strcmp( var, "-r") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->realm, MAIN_BUF+1, "%s", val );
+		snprintf( _main->conf->realm, BUF_SIZE, "%s", val );
 		_main->conf->bool_realm = TRUE;
 
 		/* Change realm. Recompute the host_id. */
@@ -129,14 +129,16 @@ void opts_interpreter( char *var, char *val ) {
 
 	/* Verbosity */
 	if( strcmp( var, "-v") == 0 && val == NULL ) {
-		_main->conf->quiet = CONF_VERBOSE;
+		_main->conf->verbosity = CONF_VERBOSE;
+	} else if( strcmp( var, "-q") == 0 && val == NULL ) {
+		_main->conf->verbosity = CONF_BEQUIET;
 	}
 
 	/* Port number */
 	if( strcmp( var, "-p") == 0 && val != NULL && strlen( val ) >= 1 ) {
 		_main->conf->port = atoi( val );
 	} else if( strcmp( var, "-u") == 0 && val != NULL ) {
-		snprintf( _main->conf->username, MAIN_BUF+1, "%s", val );
+		snprintf( _main->conf->username, BUF_SIZE, "%s", val );
 	} else if( strcmp( var, "-d") == 0 && val == NULL ) {
 		_main->conf->mode = CONF_DAEMON;
 	}

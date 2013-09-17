@@ -60,11 +60,7 @@ NODE *node_init( UCHAR *node_id, IP *sa ) {
 	NODE *n = (NODE *) myalloc( sizeof(NODE), "node_init" );
 		
 	/* ID */
-	memcpy( n->id, node_id, SHA_DIGEST_LENGTH );
-
-	/* Token */
-	memset( n->token, '\0', TOKEN_SIZE_MAX );
-	n->token_size = 0;
+	memcpy( n->id, node_id, SHA1_SIZE );
 
 	/* Timings */
 	n->time_ping = 0;
@@ -100,7 +96,7 @@ int node_me( UCHAR *node_id ) {
 }
 
 int node_equal( const UCHAR *node_a, const UCHAR *node_b ) {
-	if( memcmp( node_a, node_b, SHA_DIGEST_LENGTH) == 0 ) {
+	if( memcmp( node_a, node_b, SHA1_SIZE) == 0 ) {
 		 return 1;
 	}
 	return 0;
