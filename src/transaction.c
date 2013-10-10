@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -30,13 +30,12 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
 
 #include "transaction.h"
-#include "masala-srv.h"
+#include "torrentkino.h"
 
 struct obj_transaction *tdb_init( void ) {
 	struct obj_transaction *transaction = (struct obj_transaction *)
@@ -123,7 +122,7 @@ void tdb_expire( time_t now ) {
 		tid = list_value( item );
 
 		/* Too OLD or GAME OVER */
-		if( now > tid->time || _main->status == GAMEOVER ) {
+		if( now > tid->time || status == GAMEOVER ) {
 
 			switch( tid->type ) {
 				case P2P_ANNOUNCE_START:

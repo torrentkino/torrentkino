@@ -1,4 +1,4 @@
-SUBDIRS = masala masala-nss masala-cli
+SUBDIRS = torrentkino tknss tkcli tumbleweed
 
 .PHONY : all clean install $(SUBDIRS)
 

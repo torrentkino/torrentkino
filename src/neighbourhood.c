@@ -1,20 +1,20 @@
 /*
 Copyright 2013 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -30,14 +30,13 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
 
 #include "malloc.h"
 #include "thrd.h"
-#include "masala-srv.h"
+#include "torrentkino.h"
 #include "str.h"
 #include "list.h"
 #include "hash.h"
@@ -50,7 +49,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "token.h"
 #include "neighbourhood.h"
 #include "bucket.h"
-#include "send_p2p.h"
+#include "send_udp.h"
 #include "time.h"
 #include "lookup.h"
 #include "transaction.h"
@@ -70,7 +69,7 @@ void nbhd_free( void ) {
 }
 
 void nbhd_put( UCHAR *id, IP *sa ) {
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 
 	/* It's me */
 	if( node_me( id ) ) {
@@ -96,38 +95,26 @@ void nbhd_put( UCHAR *id, IP *sa ) {
 	hash_put( _main->nbhd->hash, n->id, SHA1_SIZE, n );
 }
 
-void nbhd_del( NODE *n ) {
+void nbhd_del( UDP_NODE *n ) {
 	bckt_del( _main->nbhd->bucket, n );
 	hash_del( _main->nbhd->hash, n->id, SHA1_SIZE );
 	node_free( n );
 }
 
 void nbhd_pinged( UCHAR *id ) {
-	NODE *n = NULL;
+	UDP_NODE *n = hash_get( _main->nbhd->hash, id, SHA1_SIZE );
 
-	if( ( n = hash_get( _main->nbhd->hash, id, SHA1_SIZE)) == NULL ) {
-		return;
+	if( n != NULL ) {
+		node_pinged( n );
 	}
-
-	n->pinged++;
-	
-	/* ~5 minutes */
-	time_add_5_min_approx( &n->time_ping );
 }
 
-void nbhd_ponged( UCHAR *id, IP *sa ) {
-	NODE *n = NULL;
+void nbhd_ponged( UCHAR *id, IP *from ) {
+	UDP_NODE *n = hash_get( _main->nbhd->hash, id, SHA1_SIZE );
 
-	if( ( n = hash_get( _main->nbhd->hash, id, SHA1_SIZE)) == NULL ) {
-		return;
+	if( n != NULL ) {
+		node_ponged( n, from );
 	}
-
-	n->pinged = 0;
-
-	/* ~5 minutes */
-	time_add_5_min_approx( &n->time_ping );
- 
-	memcpy( &n->c_addr, sa, sizeof(IP) );
 }
 
 void nbhd_expire( time_t now ) {
@@ -135,7 +122,7 @@ void nbhd_expire( time_t now ) {
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
 	ITEM *item_n_next = NULL;
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 
 	/* Cycle through all the buckets */
 	item_b = list_start( _main->nbhd->bucket );
@@ -150,7 +137,7 @@ void nbhd_expire( time_t now ) {
 			  item_n_next = list_next( item_n );
 
 			  /* Bad node */
-			  if( n->pinged >= 4 ) {
+			  if( node_bad( n ) ) {
 				   nbhd_del( n );
 			  }
 			  

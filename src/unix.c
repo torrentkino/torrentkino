@@ -1,27 +1,26 @@
 /*
 Copyright 2006 Aiko Barz
 
-This file is part of masala/tumbleweed.
+This file is part of torrentkino.
 
-masala/tumbleweed is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala/tumbleweed is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <semaphore.h>
 #include <netinet/in.h>
 #include <signal.h>
 #include <unistd.h>
@@ -30,57 +29,33 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <errno.h>
 #include <pwd.h>
 
-#ifdef TUMBLEWEED
-#include "tumbleweed.h"
-#include "main.h"
-#include "str.h"
-#include "malloc.h"
-#include "list.h"
-#include "node_web.h"
-#include "log.h"
-#include "file.h"
-#include "conf.h"
 #include "unix.h"
-#include "tcp.h"
-#include "hash.h"
-#else
-#include "masala-srv.h"
-#include "str.h"
-#include "malloc.h"
-#include "list.h"
-#include "udp.h"
-#include "log.h"
-#include "file.h"
-#include "conf.h"
-#include "unix.h"
-#include "hash.h"
-#endif
 
-void unix_signal( void ) {
+void unix_signal( struct sigaction *sig_stop, struct sigaction *sig_time ) {
 	/* STRG+C aka SIGINT => Stop the program */
-	_main->sig_stop.sa_handler = unix_sig_stop;
-	_main->sig_stop.sa_flags = 0;
-	if( ( sigemptyset( &_main->sig_stop.sa_mask) == -1) ||( sigaction( SIGINT, &_main->sig_stop, NULL) != 0) ) {
+	sig_stop->sa_handler = unix_sig_stop;
+	sig_stop->sa_flags = 0;
+	if( ( sigemptyset( &sig_stop->sa_mask ) == -1) ||( sigaction( SIGINT, sig_stop, NULL ) != 0) ) {
 		fail( "Failed to set SIGINT to handle Ctrl-C" );
 	}
 
 	/* ALARM */
-	_main->sig_time.sa_handler = unix_sig_time;
-	_main->sig_time.sa_flags = 0;
-	if( ( sigemptyset( &_main->sig_time.sa_mask) == -1) ||( sigaction( SIGALRM, &_main->sig_time, NULL) != 0) ) {
-		fail( "Failed to set SIGINT to handle Ctrl-C" );
+	sig_time->sa_handler = unix_sig_time;
+	sig_time->sa_flags = 0;
+	if( ( sigemptyset( &sig_time->sa_mask ) == -1) ||( sigaction( SIGALRM, sig_time, NULL ) != 0) ) {
+		fail( "Failed to set SIGALRM to handle Timeouts" );
 	}
 
 	/* Ignore broken PIPE. Otherwise, the server dies too whenever a browser crashes. */
-	signal( SIGPIPE,SIG_IGN );
+	signal( SIGPIPE, SIG_IGN );
 }
 
 void unix_sig_stop( int signo ) {
-	_main->status = GAMEOVER;
+	status = GAMEOVER;
 }
 
 void unix_sig_time( int signo ) {
-	_main->status = GAMEOVER;
+	status = GAMEOVER;
 }
 
 void unix_set_time( int seconds ) {
@@ -89,10 +64,6 @@ void unix_set_time( int seconds ) {
 
 void unix_fork( void ) {
 	pid_t pid = 0;
-
-	if( _main->conf->mode == CONF_CONSOLE ) {
-		return;
-	}
 
 	pid = fork();
 	if( pid < 0 ) {
@@ -108,13 +79,9 @@ void unix_fork( void ) {
 	umask( 0 );
 }
 
-void unix_limits( void ) {
+void unix_limits( int cores, int max_events ) {
 	struct rlimit rl;
-#ifdef TUMBLEWEED
-	int guess = 2 * TCP_MAX_EVENTS * _main->conf->cores + 50;
-#else
-	int guess = 2 * UDP_MAX_EVENTS * _main->conf->cores + 50;
-#endif
+	int guess = 2 * max_events * cores + 50;
 	int limit = (guess < 4096) ? 4096 : guess; /* RLIM_INFINITY; */
 	
 	if( getuid() != 0 ) {
@@ -131,7 +98,7 @@ void unix_limits( void ) {
 	info( NULL, 0, "Max open files: %i", limit );
 }
 
-void unix_dropuid0( void ) {
+void unix_dropuid0( char *username ) {
 	struct passwd *pw = NULL;
 	
 	if( getuid() != 0 ) {
@@ -139,7 +106,7 @@ void unix_dropuid0( void ) {
 	}
 
 	/* Process is running as root, drop privileges */
-	if( ( pw = getpwnam( _main->conf->username)) == NULL ) {
+	if( ( pw = getpwnam( username ) ) == NULL ) {
 		fail( "Dropping uid 0 failed. Use \"-u\" to set a valid username." );
 	}
 	if( setenv( "HOME", pw->pw_dir, 1) != 0 ) {

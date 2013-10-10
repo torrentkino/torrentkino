@@ -1,20 +1,20 @@
 /*
 Copyright 2013 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -30,14 +30,13 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
 
 #include "malloc.h"
 #include "thrd.h"
-#include "masala-srv.h"
+#include "torrentkino.h"
 #include "str.h"
 #include "list.h"
 #include "hash.h"
@@ -50,14 +49,14 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "token.h"
 #include "neighbourhood.h"
 #include "bucket.h"
-#include "send_p2p.h"
+#include "send_udp.h"
 #include "time.h"
 #include "lookup.h"
 #include "transaction.h"
 #include "p2p.h"
 
-NODE *node_init( UCHAR *node_id, IP *sa ) {
-	NODE *n = (NODE *) myalloc( sizeof(NODE), "node_init" );
+UDP_NODE *node_init( UCHAR *node_id, IP *sa ) {
+	UDP_NODE *n = (UDP_NODE *) myalloc( sizeof(UDP_NODE), "node_init" );
 		
 	/* ID */
 	memcpy( n->id, node_id, SHA1_SIZE );
@@ -73,18 +72,18 @@ NODE *node_init( UCHAR *node_id, IP *sa ) {
 	return n;
 }
 
-void node_free( NODE *n ) {
+void node_free( UDP_NODE *n ) {
 	myfree( n, "node_free" );
 }
 
-void node_update( NODE *node, IP *sa ) {
-	if( node == NULL ) {
+void node_update( UDP_NODE *n, IP *sa ) {
+	if( n == NULL ) {
 		return;
 	}
 
 	/* Update address */
-	if( memcmp( &node->c_addr, sa, sizeof(IP)) != 0 ) {
-		memcpy( &node->c_addr, sa, sizeof(IP) );
+	if( memcmp( &n->c_addr, sa, sizeof(IP)) != 0 ) {
+		memcpy( &n->c_addr, sa, sizeof(IP) );
 	}
 }
 
@@ -119,10 +118,51 @@ int node_teredo( IP *from ) {
 		{ 0x20, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	if( memcmp(from->sin6_addr.s6_addr, teredo, 4) == 0 ) {
-		log_info( from, 0, "Teredo access denied (2001:0::/32) from" );
+		info( from, 0, "Teredo access denied (2001:0::/32) from" );
 		return TRUE;
 	}
 
 	return FALSE;
 }
 */
+
+/* In the Internet Protocol Version 6 (IPv6), the address block fe80::/10 has
+ * been reserved for link-local unicast addressing.[2] The actual link local
+ * addresses are assigned with the prefix fe80::/64. */
+int node_linklocal( IP *from ) {
+	const UCHAR linklocal[] = 
+		{ 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	if( memcmp(from->sin6_addr.s6_addr, linklocal, 8) == 0 ) {
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+int node_ok( UDP_NODE *n ) {
+	return ( n->pinged <= 1 ) ? TRUE : FALSE;
+}
+
+int node_bad( UDP_NODE *n ) {
+	return ( n->pinged >= 4 ) ? TRUE : FALSE;
+}
+
+void node_pinged( UDP_NODE *n ) {
+	/* Remember no of pings */
+	n->pinged++;
+	
+	/* Try again in ~5 minutes */
+	time_add_5_min_approx( &n->time_ping );
+}
+
+void node_ponged( UDP_NODE *n, IP *from ) {
+	/* Reset no of pings */
+	n->pinged = 0;
+
+	/* Try again in ~5 minutes */
+	time_add_5_min_approx( &n->time_ping );
+
+	/* Update IP */
+	node_update( n, from );
+}

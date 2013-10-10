@@ -1,20 +1,20 @@
 /*
 Copyright 2006 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef BEN_H
@@ -39,67 +39,67 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #define BEN_INT_MAXSIZE 9223372036854775807
 #endif
 
-struct obj_ben {
+typedef struct {
+	UCHAR *s;
+	long int i;
+} STR;
+
+typedef struct {
 	int t;
 	
 	union  {
 		unsigned long int i;
-		struct obj_str *s;
+		STR *s;
 		LIST *d;
 		LIST *l;
 	} v;
-};
-typedef struct obj_ben BEN;
+} BEN;
+//typedef struct obj_ben BEN;
 
-struct obj_tuple {
-	struct obj_ben *key;
-	struct obj_ben *val;
-};
+typedef struct {
+	BEN *key;
+	BEN *val;
+} TUPLE;
 
-struct obj_raw {
+typedef struct {
 	UCHAR *code;
 	long int size;
 	UCHAR *p;
-};
-
-struct obj_str {
-	UCHAR *s;
-	long int i;
-};
+} RAW;
 
 BEN *ben_init( int type );
 void ben_free( BEN *node );
 void ben_free_r( BEN *node );
 ITEM *ben_free_item( BEN *node, ITEM *item );
 
-struct obj_raw *raw_init( void );
-void raw_free( struct obj_raw *raw );
+RAW *raw_init( void );
+void raw_free( RAW *raw );
 
 void ben_dict( BEN *node, BEN *key, BEN *val );
 void ben_list( BEN *node, BEN *val );
 void ben_str( BEN *node, UCHAR *str, long int len );
 void ben_int( BEN *node, long int i );
 
-struct obj_tuple *tuple_init( BEN *key, BEN *val );
-void tuple_free( struct obj_tuple *tuple );
+TUPLE *tuple_init( BEN *key, BEN *val );
+void tuple_free( TUPLE *tuple );
 
-struct obj_raw *ben_enc( BEN *node );
+RAW *ben_enc( BEN *node );
 UCHAR *ben_enc_rec( BEN *node, UCHAR *p );
 long int ben_enc_size( BEN *node );
 
 int ben_validate( UCHAR *bencode, long int bensize );
-int ben_validate_r( struct obj_raw *raw );
-int ben_validate_d( struct obj_raw *raw );
-int ben_validate_l( struct obj_raw *raw );
-int ben_validate_i( struct obj_raw *raw );
-int ben_validate_s( struct obj_raw *raw );
+int ben_validate_r( RAW *raw );
+int ben_validate_d( RAW *raw );
+int ben_validate_l( RAW *raw );
+int ben_validate_i( RAW *raw );
+int ben_validate_s( RAW *raw );
 
 BEN *ben_dec( UCHAR *bencode, long int bensize );
-BEN *ben_dec_r( struct obj_raw *raw );
-BEN *ben_dec_d( struct obj_raw *raw );
-BEN *ben_dec_l( struct obj_raw *raw );
-BEN *ben_dec_i( struct obj_raw *raw );
-BEN *ben_dec_s( struct obj_raw *raw );
+BEN *ben_dec_r( RAW *raw );
+BEN *ben_dec_d( RAW *raw );
+BEN *ben_dec_l( RAW *raw );
+BEN *ben_dec_i( RAW *raw );
+BEN *ben_dec_s( RAW *raw );
 
 int ben_is_dict( BEN *node );
 int ben_is_list( BEN *node );
@@ -112,8 +112,8 @@ BEN *ben_searchDictStr( BEN *node, const char *buffer );
 int ben_compare( BEN *key1, BEN *key2 );
 long int ben_str_size( BEN *node );
 
-struct obj_str *str_init( UCHAR *buf, long int len );
-void str_free( struct obj_str *str );
+STR *str_init( UCHAR *buf, long int size );
+void str_free( STR *str );
 
 //void ben_sort( BEN *node );
 

@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef P2P_H
@@ -46,7 +46,6 @@ struct obj_p2p {
 	time_t time_token;
 	time_t time_ping;
 	time_t time_find;
-	pthread_mutex_t *mutex;
 };
 
 struct obj_p2p *p2p_init( void );
@@ -63,7 +62,9 @@ void p2p_cron_announce_start( void );
 void p2p_cron_announce_engage( ITEM *ti );
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );
+#ifdef POLARSSL
 void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from );
+#endif
 void p2p_decode( UCHAR *bencode, size_t bensize, IP *from );
 
 void p2p_request( BEN *packet, IP *from );
@@ -85,9 +86,9 @@ void p2p_announce_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from );
 
 void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from );
 int p2p_localhost_lookup_cache( UCHAR *target, IP *from );
+int p2p_localhost_lookup_local( UCHAR *target, IP *from );
 int p2p_localhost_lookup_remote( UCHAR *target, IP *from );
 
-void p2p_compute_realm_id( UCHAR *host_id, char *hostname );
 int p2p_packet_from_myself( UCHAR *node_id );
 
 int p2p_is_hash( BEN *node );

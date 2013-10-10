@@ -1,13 +1,13 @@
-Source: masala
+Source: torrentkino
 Section: net
 Priority: extra
 Maintainer: Aiko Barz <aiko@chroot.de>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
-Homepage: https://github.com/torrentkino/masala
+Homepage: https://github.com/torrentkino/torrentkino
 
-Package: masala
+Package: torrentkino
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libpolarssl0
-Description: P2P DNS
- This tool translates hostnames to IPv6 addresses using P2P technology.
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: P2P/Filesharing toolbox
+ P2P based hostname to IP translator. High performance command line webserver.

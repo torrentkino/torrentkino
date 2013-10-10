@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -31,7 +31,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <sys/epoll.h>
 
-#include "send_p2p.h"
+#include "send_udp.h"
 
 /*
 	{
@@ -45,11 +45,11 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 void send_ping( IP *sa, UCHAR *tid ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 
 	/* Node ID */
 	key = ben_init( BEN_STR );
@@ -85,11 +85,15 @@ void send_ping( IP *sa, UCHAR *tid ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -107,11 +111,11 @@ void send_ping( IP *sa, UCHAR *tid ) {
 */
 
 void send_pong( IP *sa, UCHAR *tid, int tid_size ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 
 	/* Node ID */
 	key = ben_init( BEN_STR );
@@ -140,11 +144,15 @@ void send_pong( IP *sa, UCHAR *tid, int tid_size ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -164,11 +172,11 @@ void send_pong( IP *sa, UCHAR *tid, int tid_size ) {
 */
 
 void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 	char hexbuf[HEX_LEN];
 
 	/* Node ID */
@@ -212,11 +220,15 @@ void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -236,11 +248,11 @@ void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 */
 
 void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 
 	/* Node ID */
 	key = ben_init( BEN_STR );
@@ -276,11 +288,15 @@ void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -300,11 +316,11 @@ void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 */
 
 void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 	char hexbuf[HEX_LEN];
 
 	/* Node ID */
@@ -348,11 +364,15 @@ void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -373,11 +393,11 @@ void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 */
 
 void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 
 	/* Node ID */
 	key = ben_init( BEN_STR );
@@ -420,11 +440,15 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -444,12 +468,12 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 */
 
 void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *list = ben_init( BEN_LIST );
-	struct obj_ben *arg = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *list = ben_init( BEN_LIST );
+	BEN *arg = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
 	UCHAR *p = nodes_compact_list;
 	int j = 0;
 
@@ -500,11 +524,15 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -526,11 +554,11 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 */
 
 void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 
 	/* Node ID */
 	key = ben_init( BEN_STR );
@@ -587,11 +615,15 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
@@ -609,11 +641,11 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
 */
 
 void send_announce_reply( IP *sa, UCHAR *tid, int tid_size ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
-	struct obj_ben *arg = ben_init( BEN_DICT );
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
 
 	/* Node ID */
 	key = ben_init( BEN_STR );
@@ -642,23 +674,28 @@ void send_announce_reply( IP *sa, UCHAR *tid, int tid_size ) {
 	ben_dict( dict, key, val );
 
 	raw = ben_enc( dict );
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		send_aes( sa, raw );
 	} else {
-		send_exec( sa, raw );
+		send_udp( sa, raw );
 	}
+#else
+	send_udp( sa, raw );
+#endif
 	raw_free( raw );
 	ben_free( dict );
 
 	info( sa, 0, "ANNOUNCE_PEER SUCCESS to" );
 }
 
-void send_aes( IP *sa, struct obj_raw *raw ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
+#ifdef POLARSSL
+void send_aes( IP *sa, RAW *raw ) {
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
 	struct obj_str *aes = NULL;
-	struct obj_raw *enc = NULL;
+	RAW *enc = NULL;
 	UCHAR salt[AES_IV_SIZE];
 
 	/*
@@ -693,13 +730,14 @@ void send_aes( IP *sa, struct obj_raw *raw ) {
 	ben_dict( dict, key, val );
 
 	enc = ben_enc( dict );
-	send_exec( sa, enc );
+	send_udp( sa, enc );
 	raw_free( enc );
 	ben_free( dict );
 	str_free( aes );
 }
+#endif
 
-void send_exec( IP *sa, struct obj_raw *raw ) {
+void send_udp( IP *sa, RAW *raw ) {
 	socklen_t addrlen = sizeof(IP );
 
 	if( _main->udp->sockfd < 0 ) {

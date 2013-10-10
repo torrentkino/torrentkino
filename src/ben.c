@@ -1,20 +1,20 @@
 /*
 Copyright 2006 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -25,7 +25,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <semaphore.h>
 
 #include "ben.h"
 
@@ -122,35 +121,35 @@ ITEM *ben_free_item( BEN *node, ITEM *item ) {
 	return list_del( node->v.d, item );
 }
 
-struct obj_raw *raw_init( void ) {
-	struct obj_raw *raw = (struct obj_raw *) myalloc( sizeof(struct obj_raw), "raw_init" );
+RAW *raw_init( void ) {
+	RAW *raw = (RAW *) myalloc( sizeof(RAW), "raw_init" );
 	raw->code = NULL;
 	raw->size = 0;
 	raw->p = NULL;
 	return raw;
 }
 
-void raw_free( struct obj_raw *raw ) {
+void raw_free( RAW *raw ) {
 	myfree( raw->code, "raw_free" );
 	myfree( raw, "raw_free" );
 }
  
 
-struct obj_tuple *tuple_init( BEN *key, BEN *val ) {
-	struct obj_tuple *tuple = (struct obj_tuple *) myalloc( sizeof(struct obj_tuple), "tuple_init" );
+TUPLE *tuple_init( BEN *key, BEN *val ) {
+	TUPLE *tuple = (TUPLE *) myalloc( sizeof(TUPLE), "tuple_init" );
 	tuple->key = key;
 	tuple->val = val;
 	return tuple;
 }
 
-void tuple_free( struct obj_tuple *tuple ) {
+void tuple_free( TUPLE *tuple ) {
 	ben_free( tuple->key );
    	ben_free( tuple->val );
 	myfree( tuple, "tuple_item" );
 }
 
 void ben_dict( BEN *node, BEN *key, BEN *val ) {
-	struct obj_tuple *tuple = NULL;
+	TUPLE *tuple = NULL;
 
 	if( node == NULL )
 		fail( "ben_dict( 1 )" );
@@ -186,14 +185,18 @@ void ben_list( BEN *node, BEN *val ) {
 }
 
 void ben_str( BEN *node, UCHAR *str, long int len ) {
-	if( node == NULL )
-		fail( "ben_str( 1 )" );
-	if( node->t != BEN_STR)
-		fail( "ben_str( 2 )" );
-	if( str == NULL )
-		fail( "ben_str( 3 )" );
-	if( len < 0 )
-		fail( "ben_str( 4 )" );
+	if( node == NULL ) {
+		fail( "ben_str() with NULL argument" );
+	}
+	if( node->t != BEN_STR ) {
+		fail( "ben_str() with wrong type" );
+	}
+	if( str == NULL ) {
+		fail( "ben_str() with NULL argument" );
+	}
+	if( len < 0 ) {
+		fail( "ben_str() with zero size" );
+	}
 
 	node->v.s = str_init( str, len );
 }
@@ -209,7 +212,7 @@ void ben_int( BEN *node, long int i ) {
 
 long int ben_enc_size( BEN *node ) {
 	ITEM *item = NULL;
-	struct obj_tuple *tuple = NULL;
+	TUPLE *tuple = NULL;
 	char buf[BUF_SIZE];
 	long int size = 0;
 
@@ -276,8 +279,8 @@ long int ben_enc_size( BEN *node ) {
 	return size;
 }
 
-struct obj_raw *ben_enc( BEN *node ) {
-	struct obj_raw *raw = raw_init();
+RAW *ben_enc( BEN *node ) {
+	RAW *raw = raw_init();
 
 	/* Calculate size of ben data */
 	raw->size = ben_enc_size( node );
@@ -299,7 +302,7 @@ struct obj_raw *ben_enc( BEN *node ) {
 
 UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 	ITEM *item = NULL;
-	struct obj_tuple *tuple = NULL;
+	TUPLE *tuple = NULL;
 	char buf[BUF_SIZE];
 	long int len = 0;
 
@@ -375,7 +378,7 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 }
 
 BEN *ben_dec( UCHAR *bencode, long int bensize ) {
-	struct obj_raw raw;
+	RAW raw;
 
 	raw.code = (UCHAR *)bencode;
 	raw.size = bensize;
@@ -384,7 +387,7 @@ BEN *ben_dec( UCHAR *bencode, long int bensize ) {
 	return ben_dec_r( &raw );
 }
 
-BEN *ben_dec_r( struct obj_raw *raw ) {
+BEN *ben_dec_r( RAW *raw ) {
 	BEN *node = NULL;
 
 	switch( *raw->p ) {
@@ -417,7 +420,7 @@ BEN *ben_dec_r( struct obj_raw *raw ) {
 	return node;
 }
 
-BEN *ben_dec_d( struct obj_raw *raw ) {
+BEN *ben_dec_d( RAW *raw ) {
 	BEN *dict = ben_init( BEN_DICT );
 	BEN *val = NULL;
 	BEN *key = NULL;
@@ -433,7 +436,7 @@ BEN *ben_dec_d( struct obj_raw *raw ) {
 	return dict;
 }
 
-BEN *ben_dec_l( struct obj_raw *raw ) {
+BEN *ben_dec_l( RAW *raw ) {
 	BEN *list = ben_init( BEN_LIST );
 	BEN *val = NULL;
 	
@@ -447,7 +450,7 @@ BEN *ben_dec_l( struct obj_raw *raw ) {
 	return list;
 }
 
-BEN *ben_dec_s( struct obj_raw *raw ) {
+BEN *ben_dec_s( RAW *raw ) {
 	BEN *node = ben_init( BEN_STR );
 	long int i = 0;
 	long int l = 0;
@@ -488,7 +491,7 @@ BEN *ben_dec_s( struct obj_raw *raw ) {
 	return node;
 }
 
-BEN *ben_dec_i( struct obj_raw *raw ) {
+BEN *ben_dec_i( RAW *raw ) {
 	BEN *node = ben_init( BEN_INT );
 	long int i = 0;
 	UCHAR *start = NULL;
@@ -538,7 +541,7 @@ BEN *ben_dec_i( struct obj_raw *raw ) {
 }
 
 int ben_validate( UCHAR *bencode, long int bensize ) {
-	struct obj_raw raw;
+	RAW raw;
 
 	raw.code = (UCHAR *)bencode;
 	raw.size = bensize;
@@ -547,7 +550,7 @@ int ben_validate( UCHAR *bencode, long int bensize ) {
 	return ben_validate_r( &raw );
 }
 
-int ben_validate_r( struct obj_raw *raw ) {
+int ben_validate_r( RAW *raw ) {
 	if( raw == NULL )
 		return 0;
 
@@ -594,7 +597,7 @@ int ben_validate_r( struct obj_raw *raw ) {
 	return 1;
 }
 
-int ben_validate_d( struct obj_raw *raw ) {
+int ben_validate_d( RAW *raw ) {
 	if( ( long int)( ++raw->p - raw->code) >= raw->size )
 		return 0;
 	
@@ -613,7 +616,7 @@ int ben_validate_d( struct obj_raw *raw ) {
 	return 1;
 }
 
-int ben_validate_l( struct obj_raw *raw ) {
+int ben_validate_l( RAW *raw ) {
 	if( ( long int)( ++raw->p - raw->code) >= raw->size )
 		return 0;
 	
@@ -630,7 +633,7 @@ int ben_validate_l( struct obj_raw *raw ) {
 	return 1;
 }
 
-int ben_validate_s( struct obj_raw *raw ) {
+int ben_validate_s( RAW *raw ) {
 	long int i = 0;
 	UCHAR *start = raw->p;
 	UCHAR *buf = NULL;
@@ -682,7 +685,7 @@ int ben_validate_s( struct obj_raw *raw ) {
 	return 1;
 }
 
-int ben_validate_i( struct obj_raw *raw ) {
+int ben_validate_i( RAW *raw ) {
 	long int i = 0;
 	UCHAR *start = NULL;
 	UCHAR *buf = NULL;
@@ -792,7 +795,7 @@ int ben_is_int( BEN *node ) {
 BEN *ben_searchDictKey( BEN *node, BEN *key ) {
 	ITEM *item = NULL;
 	BEN *thiskey = NULL;
-	struct obj_tuple *tuple = NULL;
+	TUPLE *tuple = NULL;
 	
 	/* Tests */
 	if( node == NULL )
@@ -878,8 +881,8 @@ long int ben_str_size( BEN *node ) {
 //	ITEM *next = NULL;
 //	BEN *key1 = NULL;
 //	BEN *key2 = NULL;
-//	struct obj_tuple *tuple_this = NULL;
-//	struct obj_tuple *tuple_next = NULL;
+//	TUPLE *tuple_this = NULL;
+//	TUPLE *tuple_next = NULL;
 //	long int switchcounter = 0;
 //	int result = 0;
 //	
@@ -937,19 +940,25 @@ long int ben_str_size( BEN *node ) {
 //	}
 //}
 
-struct obj_str *str_init( UCHAR *buf, long int len ) {
-	struct obj_str *str = (struct obj_str *) myalloc( sizeof(struct obj_str), "str_init" );
-	
-	str->s = (UCHAR *) myalloc( (len+1) * sizeof(UCHAR), "str_init" );
-	if( len > 0 ) {
-		memcpy( str->s, buf, len );
+STR *str_init( UCHAR *buf, long int size ) {
+	STR *str = (STR *) myalloc( sizeof(STR), "str_init" );
+	str->s = (UCHAR *) myalloc( (size+1) * sizeof(UCHAR), "str_init" );
+
+	if( buf == NULL ) {
+		fail( "str_init() with NULL argument" );
 	}
-	str->i = len;
+	
+	if( size <= 0 ) {
+		fail( "str_init() with zero size" );
+	}
+	
+	memcpy( str->s, buf, size );
+	str->i = size;
 	
 	return str;
 }
 
-void str_free( struct obj_str *str ) {
+void str_free( STR *str ) {
 	if( str->s != NULL ) {
 		myfree( str->s, "str_free" );
 	}

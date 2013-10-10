@@ -1,45 +1,57 @@
-masala (0.9) unstable; urgency=low
+torrentkino (0.10) unstable; urgency=low
+
+  * Renamed masala to torrentkino.
+  * Merged tumbleweed into torrentkino.
+  * Switched to Linus Torvalds SHA1 implementation.
+  * AES support is off by default. Needs PolarSSL. See Makefile.
+  * ARM support. Tested on Raspbian/Raspberry PI.
+  * Ignore link-local polution.
+  * Use info_hash database for lookups too for 2 node only swarms.
+  * Better startup timings for 2 node only swarms.
+
+ -- Aiko Barz <aiko@chroot.de>  Mon, 10 Oct 2013 23:32:00 +0100
+torrentkino (0.9) unstable; urgency=low
 
   * Use a sorted list for get_peers searches instead of bucket containers to save some bytes.
   * By default, be verbose in the console and quiet while running as a daemon.
 
  -- Aiko Barz <aiko@chroot.de>  Mon, 16 Sep 2013 23:25:00 +0100
-masala (0.8) unstable; urgency=low
+torrentkino (0.8) unstable; urgency=low
 
-  * Limit the number of info_hashes, that can be stored
-  * Limit the number of nodes, that can be stored per info_hash
-  * Return NULL bytes as the token if the info_hash DB grows beyond all limits
-  * Rotate VALUEs after each request for a fair IP distribution
+  * Limit the number of info_hashes, that can be stored.
+  * Limit the number of nodes, that can be stored per info_hash.
+  * Return NULL bytes as the token if the info_hash DB grows beyond all limits.
+  * Rotate VALUEs after each request for a fair IP distribution.
 
  -- Aiko Barz <aiko@chroot.de>  Wed, 28 Aug 2013 22:22:00 +0100
-masala (0.7) unstable; urgency=low
+torrentkino (0.7) unstable; urgency=low
 
-  * Query cache
-  * Write hint file, that contains the server port. Needed by CLI+NSS
+  * Query cache.
+  * Write hint file, that contains the server port. Needed by CLI+NSS.
 
  -- Aiko Barz <aiko@chroot.de>  Sun, 11 Aug 2013 14:22:00 +0100
-masala (0.6) unstable; urgency=low
+torrentkino (0.6) unstable; urgency=low
 
   * Bittorrent compatibility
 
  -- Aiko Barz <aiko@chroot.de>  Mon, 08 Jul 2013 20:30:00 +0100
-masala (0.5) unstable; urgency=low
+torrentkino (0.5) unstable; urgency=low
 
   * Do not use lookup keys within FIND requests to save some bytes.
 
  -- Aiko Barz <aiko@chroot.de>  Tue, 02 Apr 2013 19:42:00 +0100
-masala (0.4) unstable; urgency=low
+torrentkino (0.4) unstable; urgency=low
 
   * Minor protocol changes
   * Logging changes
 
  -- Aiko Barz <aiko@chroot.de>  Fri, 15 Mar 2013 21:30:00 +0100
-masala (0.3) unstable; urgency=low
+torrentkino (0.3) unstable; urgency=low
 
   * Realm support
 
  -- Aiko Barz <aiko@chroot.de>  Tue, 12 Mar 2013 20:50:00 +0100
-masala (0.2) unstable; urgency=low
+torrentkino (0.2) unstable; urgency=low
 
   * Removed polarssl from the NSS module
   * Do the lookup hash computation within the daemon
@@ -47,8 +59,8 @@ masala (0.2) unstable; urgency=low
   * Database expiry run
 
  -- Aiko Barz <aiko@chroot.de>  Thu, 07 Mar 2013 23:10:00 +0100
-masala (0.1) unstable; urgency=low
+torrentkino (0.1) unstable; urgency=low
 
-  * masala: Initial release
+  * torrentkino: Initial release
 
  -- Aiko Barz <aiko@chroot.de>  Thu, 25 Oct 2012 22:49:00 +0100

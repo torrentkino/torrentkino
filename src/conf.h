@@ -1,20 +1,20 @@
 /*
 Copyright 2006 Aiko Barz
 
-This file is part of masala/tumbleweed.
+This file is part of torrentkino.
 
-masala/tumbleweed is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala/tumbleweed is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef CONF_H
@@ -24,19 +24,22 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "malloc.h"
 #include "fail.h"
 #include "file.h"
-#ifdef MASALA
+#include "opts.h"
+
+
+#ifdef TORRENTKINO
 #include "sha1.h"
 #include "random.h"
 #include "hex.h"
 #endif
 #include "unix.h"
 #include "str.h"
+#include "ben.h"
 
 #define CONF_CORES 2
 #define CONF_PORTMIN 1
 #define CONF_PORTMAX 65535
 
-#define CONF_UNDEF 0
 #define CONF_BEQUIET 1
 #define CONF_VERBOSE 2
 
@@ -52,22 +55,26 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_PORT 8080
 #define CONF_INDEX_NAME "index.html"
 #define CONF_KEEPALIVE 5
-#elif MASALA
-#define CONF_USERNAME "masala"
+#endif
+
+#if TORRENTKINO
+#define CONF_USERNAME "torrentkino"
 #define CONF_EPOLL_WAIT 2000
-#define CONF_SRVNAME "masala"
+#define CONF_SRVNAME "torrentkino"
 #define CONF_PORT 6881
+#define CONF_ANNOUNCED_PORT 8080
 #define CONF_BOOTSTRAP_NODE "ff0e::1"
 #define CONF_PORT_SIZE 5
-#define CONF_KEY "open.p2p"
 #define CONF_REALM "open.p2p"
 #endif
+
+#define CONF_EPOLL_MAX_EVENTS 32
 
 struct obj_conf {
 	char username[BUF_SIZE];
 	char home[BUF_SIZE];
 
-#ifdef MASALA
+#ifdef TORRENTKINO
 	char hostname[BUF_SIZE];
 	UCHAR node_id[SHA1_SIZE];
 	UCHAR host_id[SHA1_SIZE];
@@ -76,8 +83,10 @@ struct obj_conf {
 	char bootstrap_port[CONF_PORT_SIZE+1];
 	int announce_port;
 
+#ifdef POLARSSL
 	char key[BUF_SIZE];
 	int bool_encryption;
+#endif
 
 	char realm[BUF_SIZE];
 	int bool_realm;
@@ -96,10 +105,16 @@ struct obj_conf {
 	int port;
 };
 
-struct obj_conf *conf_init( void );
+struct obj_conf *conf_init( int argc, char **argv );
 void conf_free( void );
 
-void conf_check( void );
+void conf_print( void );
 void conf_write( void );
+
+void conf_home( struct obj_conf *conf, BEN *opts );
+#ifdef TORRENTKINO
+void conf_hostname( struct obj_conf *conf, BEN *opts );
+void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
+#endif
 
 #endif

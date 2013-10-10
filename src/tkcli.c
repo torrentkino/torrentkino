@@ -1,20 +1,20 @@
 /*
 Copyright 2010 Aiko Barz
 
-This file is part of masala/tumbleweed.
+This file is part of torrentkino.
 
-masala/tumbleweed is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala/tumbleweed is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -22,12 +22,12 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <arpa/inet.h>
 
-#include "masala-cli.h"
+#include "tkcli.h"
 #include "malloc.h"
 #include "file.h"
 #include "ben.h"
 
-int masala_lookup( const char *hostname, int size ) {
+int torrentkino_lookup( const char *hostname, int size ) {
 	IP sa;
 	socklen_t salen = sizeof( IP );
 	UCHAR buffer[BUF_SIZE];
@@ -41,7 +41,7 @@ int masala_lookup( const char *hostname, int size ) {
 	int port = 0;
 
 	/* Load port from config file */
-	port = masala_port();
+	port = torrentkino_port();
 
 	memset( &sa, '\0', salen );
 	memset( buffer, '\0', BUF_SIZE );
@@ -94,7 +94,7 @@ int masala_lookup( const char *hostname, int size ) {
 	return 1;
 }
 
-int masala_port( void ) {
+int torrentkino_port( void ) {
 	char filename[BUF_SIZE];
 	int filesize = 0;
 	UCHAR *fbuf = NULL;
@@ -106,7 +106,7 @@ int masala_port( void ) {
 		fail("Looking up $HOME failed");
 	}
 
-	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), ".masala.conf" );
+	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), ".torrentkino.conf" );
 
 	if( !file_isreg( filename ) ) {
 		fail("%s not found", filename );
@@ -146,7 +146,7 @@ int masala_port( void ) {
 	port_number = port->v.i;
 
 	ben_free( ben );
-	myfree( fbuf, "masala_port" );
+	myfree( fbuf, "torrentkino_port" );
 
 	return port_number;
 }
@@ -163,7 +163,7 @@ int main( int argc, char **argv ) {
 		fail( "%s is not a valid hostname", argv[1]);
 	}
 
-	if( ! masala_lookup( argv[1], strlen( argv[1] ) ) ) {
+	if( ! torrentkino_lookup( argv[1], strlen( argv[1] ) ) ) {
 		fail( "Looking up %s failed", argv[1]);
 	}
 	

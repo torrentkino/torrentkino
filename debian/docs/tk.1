@@ -1,0 +1,121 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "TORRENTKINO" "1" "October 2013" "" ""
+.
+.SH "NAME"
+\fBtorrentkino\fR \- P2P resolver
+.
+.SH "SYNOPSIS"
+\fBtorrentkino\fR [\-d] [\-q] [\-h hostname] [\-k password] [\-r realm] [\-p port] [\-x server] [\-y port] [\-u username]
+.
+.SH "DESCRIPTION"
+\fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
+.
+.P
+By default, torrentkino sends the first packet to a multicast address\. So, for intranet use cases, you do not need a bootstrap server\. Just start torrentkino on 2 nodes without any parameters\. It simply works\.
+.
+.P
+If you would like to connect nodes around the globe, you may use the Bittorrent network\. Simply select a Bittorrent bootstrap server as seen in the example below\. Your client becomes a full member of the swarm and resolves info hashes to IP/port tuples\. The swarm on the other end does the same for you\. But in your case, the info hash represents a hostname instead of a torrent file\.
+.
+.P
+A NSS module makes any hostname with \fI\.p2p\fR at the end transparently available to your Linux OS\.
+.
+.P
+Torrentkino uses a hostname cache for fast lookups within big swarms\. A queried hostname will be cached for 30 minutes\. Torrentkino also lookups that queried hostname every 5 minutes on its own\. The cache keeps being up\-to\-date\. It stops 30 minutes after your last query for that hostname\.
+.
+.SH "FILES"
+.
+.TP
+\fB/etc/nsswitch\.conf\fR
+Torrentkino gets attached to the \fIhosts\fR line\. The torrentkino daemon is only used for hostnames with \fI\.p2p\fR at the end\.
+.
+.TP
+\fB$HOME/\.torrentkino\.conf\fR
+This file gets written by the Torrentkino daemon and contains the server port number\. The NSS and CLI program read this file to get knowledge about the current daemon port\.
+.
+.SH "OPTIONS"
+.
+.TP
+\fB\-a\fR \fIhostname\fR
+By default /etc/hostname is used to determine your hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
+.
+.TP
+\fB\-b\fR \fIport\fR
+Kademlia also stores a port\. You can use \fBtk\fR to ask for that port and \-b to specify that port\. (Default: "8080")
+.
+.TP
+\fB\-n\fR \fInode id string\fR
+By default a random node id gets computed on every startup\. For testing purposes it may be useful to keep the same node id all the time\. The above string is not used directly\. Instead its SHA1 hash is used\.
+.
+.TP
+\fB\-k\fR \fIpassword\fR
+Setting a password results in encrypting each packet with AES256\. The encrypted message is encapsulated in bencode too\. You effectively isolate your nodes from the rest of the world this way\. This method is not compatible to the Bittorrent network and only works between torrentkino daemons\.
+.
+.TP
+\fB\-r\fR \fIrealm\fR
+Creating a realm affects the method how to compute the info hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. So now, everybody may have his own https://owncloud\.p2p within his own realm for example\.
+.
+.TP
+\fB\-p\fR \fIport\fR
+Listen to this port (Default: UDP/6881)
+.
+.TP
+\fB\-x\fR \fIserver\fR
+Use server as a bootstrap server\. The server can be an IPv6 address, a FQHN like www\.example\.net or even a IPv6 multicast address\. (Default: ff0e::1)
+.
+.TP
+\fB\-y\fR \fIport\fR
+The bootstrap server will be addressed at this port\. (Default: UDP/6881)
+.
+.TP
+\fB\-u\fR \fIusername\fR
+When starting as root, use \-u to change the UID\.
+.
+.TP
+\fB\-d\fR
+Start as a daemon and run in background\. The output will be send to syslog\.
+.
+.TP
+\fB\-v\fR
+Verbose\.
+.
+.SH "INSTALLATION"
+.
+.IP "\(bu" 4
+apt\-get install build\-essential
+.
+.IP "\(bu" 4
+apt\-get install debhelper
+.
+.IP "\(bu" 4
+apt\-get install git\-buildpackage
+.
+.IP "\(bu" 4
+apt\-get install libpolarssl\-dev
+.
+.IP "\(bu" 4
+git\-buildpackage
+.
+.IP "" 0
+.
+.SH "EXAMPLES"
+Announce the hostname \fIowncloud\.p2p\fR within the realm TooManySecrets to an IPv6 Bittorrent bootstrap server\. That bootstrap server is maintained by the creator of the Transmission DHT stack:
+.
+.IP "" 4
+.
+.nf
+
+$ torrentkino \-h owncloud\.p2p \-r TooManySecrets \-x dht\.wifi\.pps\.jussieu\.fr
+$ getent hosts owncloud\.p2p
+$ tk owncloud\.p2p
+.
+.fi
+.
+.IP "" 0
+.
+.SH "BUGS"
+Lack of IPv6 support by the providers\.
+.
+.SH "SEE ALSO"
+nsswitch\.conf(5)

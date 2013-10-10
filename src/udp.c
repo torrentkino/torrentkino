@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -29,7 +29,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <errno.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <sys/epoll.h>
 #include <sys/resource.h>
@@ -37,7 +36,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "malloc.h"
 #include "thrd.h"
-#include "masala-srv.h"
+#include "torrentkino.h"
 #include "str.h"
 #include "list.h"
 #include "log.h"
@@ -46,7 +45,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "hash.h"
 #include "udp.h"
 #include "unix.h"
-#include "ben.h"
 #include "token.h"
 #include "neighbourhood.h"
 #include "lookup.h"
@@ -54,6 +52,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 #include "bucket.h"
 #include "time.h"
+#include "worker.h"
 
 struct obj_udp *udp_init( void ) {
 	struct obj_udp *udp = (struct obj_udp *) myalloc( sizeof(struct obj_udp), "udp_init" );
@@ -63,14 +62,8 @@ struct obj_udp *udp_init( void ) {
 	memset( (char *) &udp->s_addr, '\0', udp->s_addrlen );
 	udp->sockfd = -1;
 
-	/* Workers running */
-	udp->id = 0;
-
 	/* Listen to multicast */
 	udp->multicast = 0;
-
-	/* Worker */
-	udp->threads = NULL;
 
 	return udp;
 }
@@ -107,27 +100,9 @@ void udp_start( void ) {
 	
 	/* Setup epoll */
 	udp_event();
-	
-	/* Drop privileges */
-	unix_dropuid0();
-
-	/* Create worker */
-	udp_pool();
 }
 
 void udp_stop( void ) {
-	int i = 0;
-
-	/* Join threads */
-	pthread_attr_destroy( &_main->udp->attr );
-	for( i=0; i <= _main->conf->cores; i++ ) {
-		if( pthread_join( *_main->udp->threads[i], NULL) != 0 ) {
-			fail( "pthread_join() failed" );
-		}
-		myfree( _main->udp->threads[i], "udp_pool" );
-	}
-	myfree( _main->udp->threads, "udp_pool" );
-
 	/* Close socket */
 	if( close( _main->udp->sockfd) != 0 ) {
 		fail( "close() failed." );
@@ -157,46 +132,23 @@ void udp_event( void ) {
 	}
 }
 
-void udp_pool( void ) {
-	int i = 0;
-	
-	/* Initialize and set thread detached attribute */
-	pthread_attr_init( &_main->udp->attr );
-	pthread_attr_setdetachstate( &_main->udp->attr, PTHREAD_CREATE_JOINABLE );
-
-	/* Create worker threads */
-	_main->udp->threads = (pthread_t **) myalloc( (_main->conf->cores+1) * sizeof(pthread_t *), "udp_pool" );
-	for( i=0; i < _main->conf->cores; i++ ) {
-		_main->udp->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t), "udp_pool" );
-		if( pthread_create( _main->udp->threads[i], &_main->udp->attr, udp_thread, NULL) != 0 ) {
-			fail( "pthread_create()" );
-		}
-	}
-
-	/* Send 1st request while the workers are starting */
-	_main->udp->threads[_main->conf->cores] = (pthread_t *) myalloc( sizeof(pthread_t), "udp_pool" );
-	if( pthread_create( _main->udp->threads[_main->conf->cores], NULL, udp_client, NULL) != 0 ) {
-		fail( "pthread_create()" );
-	}
-}
-
 void *udp_thread( void *arg ) {
-	struct epoll_event events[UDP_MAX_EVENTS];
+	struct epoll_event events[CONF_EPOLL_MAX_EVENTS];
 	int nfds;
 	int id = 0;
+	
+	mutex_block( _main->work->mutex );
+	id = _main->work->id++;
+	mutex_unblock( _main->work->mutex );
+	
+	info( NULL, 0, "UDP Thread[%i] - Max events: %i", id, CONF_EPOLL_MAX_EVENTS );
 
-	mutex_block( _main->p2p->mutex );
-	id = _main->udp->id++;
-	mutex_unblock( _main->p2p->mutex );
+	while( status == RUMBLE ) {
 
-	info( NULL, 0, "UDP Thread[%i] - Max events: %i", id, UDP_MAX_EVENTS );
-
-	while( _main->status == RUMBLE ) {
-
-		nfds = epoll_wait( _main->udp->epollfd, events, UDP_MAX_EVENTS, CONF_EPOLL_WAIT );
+		nfds = epoll_wait( _main->udp->epollfd, events, CONF_EPOLL_MAX_EVENTS, CONF_EPOLL_WAIT );
 
 		/* Shutdown server */
-		if( _main->status != RUMBLE ) {
+		if( status != RUMBLE ) {
 			break;
 		}
 
@@ -210,7 +162,7 @@ void *udp_thread( void *arg ) {
 				udp_cron();
 			}
 		} else if( nfds > 0 ) {
-			udp_worker( events, nfds, id );
+			udp_worker( events, nfds );
 		}
 	}
 
@@ -227,7 +179,7 @@ void *udp_client( void *arg ) {
 	pthread_exit( NULL );
 }
 
-void udp_worker( struct epoll_event *events, int nfds, int thrd_id ) {
+void udp_worker( struct epoll_event *events, int nfds ) {
 	int i;
 
 	for( i=0; i<nfds; i++ ) {
@@ -271,7 +223,7 @@ void udp_input( int sockfd ) {
 	IP c_addr;
 	socklen_t c_addrlen = sizeof(IP );
 
-	while( _main->status == RUMBLE ) {
+	while( status == RUMBLE ) {
 		memset( &c_addr, '\0', c_addrlen );
 		memset( buffer, '\0', UDP_BUF+1 );
 
@@ -299,9 +251,9 @@ void udp_input( int sockfd ) {
 }
 
 void udp_cron( void ) {
-	mutex_block( _main->p2p->mutex );
+	mutex_block( _main->work->mutex );
 	p2p_cron();
-	mutex_unblock( _main->p2p->mutex );
+	mutex_unblock( _main->work->mutex );
 }
 
 void udp_multicast( void ) {

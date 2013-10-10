@@ -1,47 +1,44 @@
 /*
 Copyright 2006 Aiko Barz
 
-This file is part of masala/tumbleweed.
+This file is part of torrentkino.
 
-masala/tumbleweed is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala/tumbleweed is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <semaphore.h>
-#include <signal.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
-#ifdef TUMBLEWEED
-#include "tumbleweed.h"
 #include "opts.h"
-#else
-#include "masala-srv.h"
-#include "p2p.h"
-#include "opts.h"
-#endif
 
-void opts_load( int argc, char **argv ) {
+BEN *opts_init( void ) {
+	return ben_init( BEN_DICT );
+}
+
+void opts_free( BEN *opts ) {
+	ben_free( opts );
+}
+
+void opts_load( BEN *opts, int argc, char **argv ) {
+	BEN *key = NULL;
+	BEN *val = NULL;
 	unsigned int i;
 
 	/* ./program blabla */
 	if( argc < 2 ) {
 		return;
 	}
+
 	if( argv == NULL ) {
 		return;
 	}
@@ -50,96 +47,27 @@ void opts_load( int argc, char **argv ) {
 		if( argv[i] != NULL && argv[i][0] == '-' ) {
 			
 			/* -x */
-			if( strlen( argv[i]) == 2 ) {
+			if( strlen( argv[i] ) == 2 ) {
 				if( i+1 < argc && argv[i+1] != NULL && argv[i+1][0] != '-' ) {
-					
+
 					/* -x abc */
-					opts_interpreter( argv[i], argv[i+1] );
+					key = ben_init( BEN_STR );
+					val = ben_init( BEN_STR );
+					ben_str( key, ( UCHAR *)argv[i], strlen( argv[i] ) );
+					ben_str( val, ( UCHAR *)argv[i+1], strlen( argv[i+1] ) );
+					ben_dict( opts, key, val );
 					i++;
+
 				} else {
-					
+
 					/* -x -y => -x */
-					opts_interpreter( argv[i], NULL );
+					key = ben_init( BEN_STR );
+					val = ben_init( BEN_STR );
+					ben_str( key, ( UCHAR *)argv[i], strlen( argv[i] ) );
+					ben_str( val, ( UCHAR *)"_", 1 );
+					ben_dict( opts, key, val );
 				}
 			}
 		}
-	}
-}
-
-void opts_interpreter( char *var, char *val ) {
-#ifdef TUMBLEWEED
-	char *p0 = NULL, *p1 = NULL;
-
-	/* WWW Directory */
-	if( strcmp( var, "-s") == 0 && val != NULL && strlen( val ) > 1 ) {
-		p0 = val;
-
-		if( *p0 == '/' ) {
-			/* Absolute path? */
-			snprintf( _main->conf->home, BUF_SIZE, "%s", p0 );
-		} else {
-			/* Relative path? */
-			if( ( p1 = getenv( "PWD")) != NULL ) {
-				snprintf( _main->conf->home, BUF_SIZE, "%s/%s", p1, p0 );
-			} else {
-				snprintf( _main->conf->home, BUF_SIZE, "/notexistant" );
-			}
-		}
-	}
-
-	/* Create HTML index */
-	if( strcmp( var, "-i") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->index_name, BUF_SIZE, "%s", val );
-	}
-
-	/* IPv6 only */
-	if( strcmp( var, "-6") == 0 && val == NULL ) {
-		_main->conf->ipv6_only = TRUE;
-	}
-
-#endif
-
-#ifdef MASALA
-	if( strcmp( var, "-x") == 0 && val != NULL && strlen( val ) > 1 ) {
-		strncpy( _main->conf->bootstrap_node, val, BUF_OFF1 );
-	} else if( strcmp( var, "-y") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->bootstrap_port, CONF_PORT_SIZE+1, "%s", val );
-	} else if( strcmp( var, "-k") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->key, BUF_SIZE, "%s", val );
-		_main->conf->bool_encryption = TRUE;
-	} else if( strcmp( var, "-h") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->hostname, BUF_SIZE, "%s", val );
-
-		/* Compute host_id. Respect the realm. */
-		p2p_compute_realm_id( _main->conf->host_id, _main->conf->hostname );
-
-	} else if( strcmp( var, "-r") == 0 && val != NULL && strlen( val ) > 1 ) {
-		snprintf( _main->conf->realm, BUF_SIZE, "%s", val );
-		_main->conf->bool_realm = TRUE;
-
-		/* Change realm. Recompute the host_id. */
-		p2p_compute_realm_id( _main->conf->host_id, _main->conf->hostname );
-
-	} else if( strcmp( var, "-n") == 0 && val != NULL && strlen( val ) > 1 ) {
-		sha1_hash( _main->conf->node_id, val, strlen( val ) );
-	} else if( strcmp( var, "-a") == 0 && val != NULL && strlen( val ) >= 1 ) {
-		_main->conf->announce_port = atoi( val );
-	}
-#endif
-
-	/* Verbosity */
-	if( strcmp( var, "-v") == 0 && val == NULL ) {
-		_main->conf->verbosity = CONF_VERBOSE;
-	} else if( strcmp( var, "-q") == 0 && val == NULL ) {
-		_main->conf->verbosity = CONF_BEQUIET;
-	}
-
-	/* Port number */
-	if( strcmp( var, "-p") == 0 && val != NULL && strlen( val ) >= 1 ) {
-		_main->conf->port = atoi( val );
-	} else if( strcmp( var, "-u") == 0 && val != NULL ) {
-		snprintf( _main->conf->username, BUF_SIZE, "%s", val );
-	} else if( strcmp( var, "-d") == 0 && val == NULL ) {
-		_main->conf->mode = CONF_DAEMON;
 	}
 }

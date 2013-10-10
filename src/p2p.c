@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -30,14 +30,13 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
 
 #include "malloc.h"
 #include "thrd.h"
-#include "masala-srv.h"
+#include "torrentkino.h"
 #include "str.h"
 #include "list.h"
 #include "hash.h"
@@ -48,14 +47,16 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "opts.h"
 #include "udp.h"
 #include "ben.h"
+#ifdef POLARSSL
 #include "aes.h"
+#endif
 #include "token.h"
 #include "neighbourhood.h"
 #include "bucket.h"
 #include "lookup.h"
 #include "transaction.h"
 #include "p2p.h"
-#include "send_p2p.h"
+#include "send_udp.h"
 #include "search.h"
 #include "time.h"
 #include "random.h"
@@ -63,6 +64,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "hex.h"
 #include "info_hash.h"
 #include "cache.h"
+#include "worker.h"
 
 struct obj_p2p *p2p_init( void ) {
 	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
@@ -80,13 +82,10 @@ struct obj_p2p *p2p_init( void ) {
 
 	gettimeofday( &p2p->time_now, NULL );
 
-	p2p->mutex = mutex_init();
-
 	return p2p;
 }
 
 void p2p_free( void ) {
-	mutex_destroy( _main->p2p->mutex );
 	myfree( _main->p2p, "p2p_free" );
 }
 
@@ -98,7 +97,7 @@ void p2p_bootstrap( void ) {
 	int i = 0;
 	ITEM *ti = NULL;
 
-	info( NULL, 0, "Connecting to a bootstrap server" );
+	//info( NULL, 0, "Connecting to a bootstrap server" );
 
 	/* Compute address of bootstrap node */
 	memset( &hints, '\0', sizeof(struct addrinfo) );
@@ -153,16 +152,11 @@ void p2p_cron( void ) {
 			time_add_1_min_approx( &_main->p2p->time_expire );
 		}
 
-		/* Split buckets. Evolve neighbourhood. Run once a minute. */
+		/* Split buckets. Evolve neighbourhood. Run often to evolve
+		 * neighbourhood fast. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_split ) {
 			nbhd_split( _main->conf->node_id, TRUE );
 			time_add_5_sec_approx( &_main->p2p->time_split );
-		}
-	
-		/* Ping all nodes every ~5 minutes. Run once a minute. */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_ping ) {
-			p2p_cron_ping();
-			time_add_1_min_approx( &_main->p2p->time_ping );
 		}
 	
 		/* Find nodes every ~5 minutes. Run once a minute. */
@@ -183,6 +177,12 @@ void p2p_cron( void ) {
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce ) {
 			p2p_cron_announce_start();
 			time_add_5_min_approx( &_main->p2p->time_announce );
+		}
+
+		/* Ping all nodes every ~5 minutes. Run once a minute. */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_ping ) {
+			p2p_cron_ping();
+			time_add_1_min_approx( &_main->p2p->time_ping );
 		}
 
 		/* Renew cached requests */
@@ -211,7 +211,7 @@ void p2p_cron_ping( void ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 	ITEM *ti = NULL;
 	unsigned long int j = 0;
 
@@ -261,7 +261,7 @@ void p2p_cron_find( UCHAR *target ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 	unsigned long int j = 0;
 	ITEM *ti = NULL;
 
@@ -355,13 +355,13 @@ void p2p_cron_announce_engage( ITEM *ti ) {
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 	/* Tick Tock */
-	mutex_block( _main->p2p->mutex );
+	mutex_block( _main->work->mutex );
 	gettimeofday( &_main->p2p->time_now, NULL );
-	mutex_unblock( _main->p2p->mutex );
+	mutex_unblock( _main->work->mutex );
 
 	/* UDP packet too small */
 	if( bensize < 1 ) {
-		info( NULL, 0, "UDP packet too small" );
+		info( from, 0, "UDP packet too small" );
 		return;
 	}
 
@@ -371,20 +371,31 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 		return;
 	}
 
+	/* Ignore link-local address */
+	if( node_linklocal( from ) ) {
+		info( from, 0, "DROP LINK-LOCAL" );
+		return;
+	}
+
 	/* Validate bencode */
 	if( !ben_validate( bencode, bensize ) ) {
-		info( NULL, 0, "UDP packet contains broken bencode" );
+		info( from, 0, "UDP packet contains broken bencode" );
 		return;
 	}
 
 	/* Encrypted message or plaintext message */
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption ) {
 		p2p_decrypt( bencode, bensize, from );
 	} else {
 		p2p_decode( bencode, bensize, from );
 	}
+#else
+	p2p_decode( bencode, bensize, from );
+#endif
 }
 
+#ifdef POLARSSL
 void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 	BEN *packet = NULL;
 	BEN *salt = NULL;
@@ -448,6 +459,7 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 	ben_free( packet );
 	str_free( plain );
 }
+#endif
 
 void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 	BEN *packet = NULL;
@@ -472,7 +484,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		return;
 	}
 
-	mutex_block( _main->p2p->mutex );
+	mutex_block( _main->work->mutex );
 
 	switch( *y->v.s->s ) {
 
@@ -486,7 +498,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 			info( NULL, 0, "Unknown message type" );
 	}
 	
-	mutex_unblock( _main->p2p->mutex );
+	mutex_unblock( _main->work->mutex );
 
 	ben_free( packet );
 }
@@ -720,6 +732,16 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 		memcpy( &sin.sin6_port, p, 2 );
 		p += 2;
 
+		/* Ignore myself */
+		if( node_me( id ) ) {
+			continue;
+		}
+	
+		/* Ignore link-local address */
+		if( node_linklocal( &sin ) ) {
+			continue;
+		}
+
 		/* Store node */
 		nbhd_put( id, (IP *)&sin );
 	}
@@ -760,7 +782,8 @@ void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
 	}
 
 	/* Look at the routing table */
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, info_hash->v.s->s );
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list,
+		info_hash->v.s->s );
 
 	/* Send nodes */
 	if( nodes_compact_size > 0 ) {
@@ -855,11 +878,17 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 		memcpy( &sin.sin6_port, p, 2 );
 		p += 2;
 
+		/* Ignore myself */
 		if( node_me( id ) ) {
 			continue;
 		}
-		
-		nbhd_put( id, (IP *)&sin );
+
+		/* Ignore link-local address */
+		if( node_linklocal( &sin ) ) {
+			continue;
+		}
+	
+		nbhd_put( id, &sin );
 
 		/* Do not send requests twice */
 		if( ldb_find( l, id ) != NULL ) {
@@ -1016,23 +1045,33 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 	}
 
 	/* Compute lookup key */
-	p2p_compute_realm_id( target, (char *)hostname );
-
+	conf_hostid( target, (char *)hostname,
+		_main->conf->realm, _main->conf->bool_realm );
 
 	/* Check local cache */
-	mutex_block( _main->p2p->mutex );
+	mutex_block( _main->work->mutex );
 	result = p2p_localhost_lookup_cache( target, from );
-	mutex_unblock( _main->p2p->mutex );
+	mutex_unblock( _main->work->mutex );
 
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (cached)", hostname );
 		return;
 	}
 
+	/* Check local database */
+	mutex_block( _main->work->mutex );
+	result = p2p_localhost_lookup_local( target, from );
+	mutex_unblock( _main->work->mutex );
+
+	if( result == TRUE ) {
+		info( NULL, 0, "LOOKUP %s (local)", hostname );
+		return;
+	}
+
 	/* Start remote search */
-	mutex_block( _main->p2p->mutex );
+	mutex_block( _main->work->mutex );
 	result = p2p_localhost_lookup_remote( target, from );
-	mutex_unblock( _main->p2p->mutex );
+	mutex_unblock( _main->work->mutex );
 
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (remote)", hostname );
@@ -1045,7 +1084,26 @@ int p2p_localhost_lookup_cache( UCHAR *target, IP *from ) {
 	int nodes_compact_size = 0;
 
 	/* Check cache for hostname */
-	nodes_compact_size = cache_lookup( target, nodes_compact_list );
+	nodes_compact_size = cache_compact_list( nodes_compact_list, target );
+	if( nodes_compact_size <= 0 ) {
+		return FALSE;
+	}
+
+	sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
+		(const struct sockaddr *)from, sizeof( IP ) );
+
+	return TRUE;
+}
+
+/* Use local info_hash database for lookups too. This is nessecary if only 2
+ * nodes are active: Node A announces its name to node B. But Node B cannot talk
+ * to itself to lookup A. So, it must use its database directly. */
+int p2p_localhost_lookup_local( UCHAR *target, IP *from ) {
+	UCHAR nodes_compact_list[144]; /* 8 * ( 16 + 2 ) */
+	int nodes_compact_size = 0;
+
+	/* Check cache for hostname */
+	nodes_compact_size = idb_compact_list( nodes_compact_list, target );
 	if( nodes_compact_size <= 0 ) {
 		return FALSE;
 	}
@@ -1098,23 +1156,6 @@ int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
 	}
 
 	return TRUE;
-}
-
-void p2p_compute_realm_id( UCHAR *host_id, char *hostname ) {
-	UCHAR sha1_buf1[SHA1_SIZE];
-	UCHAR sha1_buf2[SHA1_SIZE];
-	int j = 0;
-
-	/* The realm influences the way, the lookup hash gets computed */
-	if( _main->conf->bool_realm == TRUE ) {
-		sha1_hash( sha1_buf1, hostname, strlen( hostname ) );
-		sha1_hash( sha1_buf2, _main->conf->realm, strlen( _main->conf->realm ) );
-		for( j = 0; j < SHA1_SIZE; j++ ) {
-			host_id[j] = sha1_buf1[j] ^ sha1_buf2[j];
-		}
-	} else {
-		sha1_hash( host_id, hostname, strlen( hostname ) );
-	}
 }
 
 int p2p_is_hash( BEN *node ) {

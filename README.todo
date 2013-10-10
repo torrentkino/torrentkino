@@ -1,3 +1,16 @@
+Torrentkino
 - cli and nss program shall use bencode
 - Daemon cookie protection
-- Mask password in process list
+- TLD Switch
+- IPv4 support
+- More complex caching
+- Look for e Messages
+- Look for want flags
+- Multiple answers within NSS modul
+
+Tumbleweed
+- ranges optional
+- Smaller buffer for dates
+
+All:
+- Refactor hash

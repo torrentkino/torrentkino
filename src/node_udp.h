@@ -1,44 +1,50 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NODE_H
-#define NODE_H
+#ifndef NODE_UDP_H
+#define NODE_UDP_H
 
 #include "token.h"
 
-struct obj_node {
+typedef struct {
 	UCHAR id[SHA1_SIZE];
 	IP c_addr;
 	time_t time_ping;
 	time_t time_find;
 	int pinged;
-};
-typedef struct obj_node NODE;
+} UDP_NODE;
 
-NODE *node_init( UCHAR *node_id, IP *sa );
-void node_free( NODE *n );
+UDP_NODE *node_init( UCHAR *node_id, IP *sa );
+void node_free( UDP_NODE *n );
 
-void node_update( NODE *node, IP *sa );
+void node_update( UDP_NODE *n, IP *sa );
 
 int node_me( UCHAR *node_id );
 int node_equal( const UCHAR *node_a, const UCHAR *node_b );
 int node_localhost( IP *from );
 /* int node_teredo( IP *from ); */
+int node_linklocal( IP *from );
 
-#endif
+int node_ok( UDP_NODE *n );
+int node_bad( UDP_NODE *n );
+
+void node_pinged( UDP_NODE *n );
+void node_ponged( UDP_NODE *n, IP *from );
+
+#endif /* NODE_UDP_H */

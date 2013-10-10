@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -30,7 +30,6 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
@@ -69,7 +68,7 @@ void bckt_free( LIST *thislist ) {
 	list_free( thislist );
 }
 
-int bckt_put( LIST *l, NODE *n ) {
+int bckt_put( LIST *l, UDP_NODE *n ) {
 	ITEM *i = NULL;
 	BUCK *b = NULL;
 
@@ -104,7 +103,7 @@ int bckt_put( LIST *l, NODE *n ) {
 	return TRUE;
 }
 
-void bckt_del( LIST *l, NODE *n ) {
+void bckt_del( LIST *l, UDP_NODE *n ) {
 	ITEM *item_b = NULL;
 	ITEM *item_n = NULL;
 	BUCK *b = NULL;
@@ -178,7 +177,7 @@ ITEM *bckt_find_node( LIST *thislist, const UCHAR *id ) {
 	ITEM *item_n = NULL;
 	BUCK *b = NULL;
 	LIST *list_n = NULL;
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 
 	if( ( item_b = bckt_find_best_match( thislist, id)) == NULL ) {
 		return NULL;
@@ -203,7 +202,7 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	BUCK *b = NULL;
 	LIST *list_n = NULL;
 	ITEM *item_n = NULL;
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 	BUCK *b_new = NULL;
 	UCHAR id_new[SHA1_SIZE];
 
@@ -277,7 +276,7 @@ void bckt_split_print( LIST *l ) {
 	ITEM *item_b = NULL;
 	BUCK *b = NULL;
 	ITEM *item_n = NULL;
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 	char hex[HEX_LEN];
 
 	info( NULL, 0, "Bucket split:" );
@@ -378,7 +377,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 	UCHAR *p = nodes_compact_list;
 	ITEM *item = NULL;
 	BUCK *b = NULL;
-	NODE *n = NULL;
+	UDP_NODE *n = NULL;
 	unsigned long int j = 0;
 	IP *sin = NULL;
 	int size = 0;
@@ -396,7 +395,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 		n = list_value( item );
 		
 		/* Do not include nodes, that are questionable */
-		if( n->pinged > 0 ) {
+		if( !node_ok( n ) ) {
 			item = list_next( item );
 			continue;
 		}

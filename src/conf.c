@@ -1,27 +1,26 @@
 /*
 Copyright 2006 Aiko Barz
 
-This file is part of masala/tumbleweed.
+This file is part of torrentkino.
 
-masala/tumbleweed is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala/tumbleweed is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <semaphore.h>
 #include <netinet/in.h>
 #include <signal.h>
 
@@ -30,182 +29,275 @@ along with masala/tumbleweed.  If not, see <http://www.gnu.org/licenses/>.
 #include "str.h"
 #include "malloc.h"
 #include "list.h"
-#include "node_web.h"
+#include "node_tcp.h"
 #include "log.h"
 #include "file.h"
 #include "unix.h"
 #endif
 
-#ifdef MASALA
-#include "ben.h"
-#include "masala-srv.h"
+#ifdef TORRENTKINO
+#include "torrentkino.h"
 #include "log.h"
 #endif
 
 #include "conf.h"
 
-struct obj_conf *conf_init( void ) {
+struct obj_conf *conf_init( int argc, char **argv ) {
 	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf), "conf_init" );
-#ifdef MASALA
-	char *fbuf = NULL;
-	char *p = NULL;
-#endif
+	BEN *opts = opts_init();
+	BEN *value = NULL;
 
-	conf->port = CONF_PORT;
-	conf->mode = CONF_CONSOLE;
-	conf->verbosity = CONF_UNDEF;
+	/* Parse command line */
+	opts_load( opts, argc, argv );
 
-#ifdef MASALA
-	conf->announce_port = CONF_PORT;
-#endif
-
-	if( ( getenv( "HOME" ) ) == NULL ) {
-#ifdef MASALA
-		strncpy( conf->home, "/tmp", BUF_OFF1 );
-#endif
-#ifdef TUMBLEWEED
-		strncpy( conf->home, "/var/www", BUF_OFF1 );
-#endif
+	/* Mode */
+	if( ben_searchDictStr( opts, "-d" ) != NULL ) {
+		conf->mode = CONF_DAEMON;
 	} else {
-#ifdef MASALA
-		snprintf( conf->home, BUF_SIZE, "%s", getenv( "HOME") );
-#endif
+		conf->mode = CONF_CONSOLE;
+	}
+
+	/* Verbosity */
+	if( ben_searchDictStr( opts, "-v" ) != NULL ) {
+		conf->verbosity = CONF_VERBOSE;
+	} else if ( ben_searchDictStr( opts, "-q" ) != NULL ) {
+		conf->verbosity = CONF_BEQUIET;
+	} else {
+		/* Be verbose in the console and quiet while running as a daemon. */
+		conf->verbosity = ( conf->mode == CONF_CONSOLE ) ?
+			CONF_VERBOSE : CONF_BEQUIET;
+	}
+
+	/* Port */
+	value = ben_searchDictStr( opts, "-p" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		conf->port = atoi( (char *)value->v.s->s );
+	} else {
+		conf->port = CONF_PORT;
+	}
+	if( conf->port < CONF_PORTMIN || conf->port > CONF_PORTMAX ) {
+		conf->port = CONF_PORT;
+	}
+
+	/* Username */
+	value = ben_searchDictStr( opts, "-u" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		snprintf( conf->username, BUF_SIZE, "%s", value->v.s->s );
+	} else {
+		strncpy( conf->username, CONF_USERNAME, BUF_OFF1 );
+	}
+
+	/* Cores */
+	conf->cores = ( unix_cpus() > 2 ) ? unix_cpus() : CONF_CORES;
+	if( conf->cores < 1 || conf->cores > 128 ) {
+		fail( "Invalid number of CPU cores" );
+	}
+
+	/* HOME */
+	conf_home( conf, opts );
+
 #ifdef TUMBLEWEED
-		snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "HOME"), "Public" );
-#endif
+	/* IPv6 only */
+	if( ben_searchDictStr( opts, "-6" ) != NULL ) {
+		conf->ipv6_only = TRUE;
+	} else {
+		conf->ipv6_only = FALSE;
 	}
 
-#ifdef MASALA
-	snprintf( conf->file, BUF_SIZE, "%s/.masala.conf", conf->home );
-#endif
-
-#ifdef MASALA
-	/* /etc/hostname */
-	strncpy( conf->hostname, "bulk.p2p", BUF_OFF1 );
-	if( file_isreg( CONF_HOSTFILE ) ) {
-		if( ( fbuf = (char *) file_load( CONF_HOSTFILE, 0, file_size( CONF_HOSTFILE ) ) ) != NULL ) {
-			if( ( p = strchr( fbuf, '\n')) != NULL ) {
-				*p = '\0';
-			}
-			snprintf( conf->hostname, BUF_SIZE, "%s.p2p", fbuf );
-			myfree( fbuf, "conf_init" );
-		}
+	/* HTML index */
+	value = ben_searchDictStr( opts, "-i" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		snprintf( conf->index_name, BUF_SIZE, "%s", (char *)value->v.s->s );
+	} else {
+		snprintf( conf->index_name, BUF_SIZE, "%s", CONF_INDEX_NAME );
+	}
+	if( !str_isValidFilename( conf->index_name ) ) {
+		fail( "Index %s looks suspicious", conf->index_name );
 	}
 #endif
 
-#ifdef MASALA
-	snprintf( conf->key, BUF_SIZE, "%s", CONF_KEY );
-	conf->bool_encryption = FALSE;
+#ifdef TORRENTKINO
+	/* Hostname */
+	conf_hostname( conf, opts );
 
-	snprintf( conf->realm, BUF_SIZE, "%s", CONF_REALM );
-	conf->bool_realm = FALSE;
-#endif
+	/* Realm */
+	value = ben_searchDictStr( opts, "-r" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		snprintf( conf->realm, BUF_SIZE, "%s", (char *)value->v.s->s );
+		conf->bool_realm = TRUE;
+	} else {
+		snprintf( conf->realm, BUF_SIZE, "%s", CONF_REALM );
+		conf->bool_realm = FALSE;
+	}
 
-	/* SHA1 Hash of hostname */
-#ifdef MASALA
-	sha1_hash( conf->host_id, conf->hostname, strlen( conf->hostname ) );
-#endif
+	/* Compute host_id. Respect the realm. */
+	conf_hostid( conf->host_id, conf->hostname,
+		conf->realm, conf->bool_realm );
 
-#ifdef MASALA
-	rand_urandom( conf->node_id, SHA1_SIZE );
-#endif
+	/* Announce this port */
+	value = ben_searchDictStr( opts, "-b" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		conf->announce_port = atoi( (char *)value->v.s->s );
+	} else {
+		conf->announce_port = CONF_ANNOUNCED_PORT;
+	}
+	if( conf->announce_port < CONF_PORTMIN || conf->announce_port > CONF_PORTMAX ) {
+		fail( "Invalid announce port number. (-a)" );
+	}
 
-#ifdef MASALA
+	snprintf( conf->file, BUF_SIZE, "%s/.torrentkino.conf", conf->home );
+
+	/* Node ID */
+	value = ben_searchDictStr( opts, "-n" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		sha1_hash( conf->node_id, (char *)value->v.s->s, ben_str_size( value ) );
+	} else {
+		rand_urandom( conf->node_id, SHA1_SIZE );
+	}
+
 	memset( conf->null_id, '\0', SHA1_SIZE );
+
+	/* Bootstrap node */
+	value = ben_searchDictStr( opts, "-x" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		strncpy( conf->bootstrap_node, (char *)value->v.s->s, BUF_OFF1 );
+	} else {
+		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", CONF_BOOTSTRAP_NODE );
+	}
+
+	/* Bootstrap port */
+	value = ben_searchDictStr( opts, "-y" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%s",
+			value->v.s->s );
+	} else {
+		snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%i", CONF_PORT );
+	}
+	if( str_isSafePort( conf->bootstrap_port) < 0 ) {
+		fail( "Invalid bootstrap port number. (-y)" );
+	}
+
+#ifdef POLARSSL
+	/* Secret key */
+	value = ben_searchDictStr( opts, "-k" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		snprintf( conf->key, BUF_SIZE, "%s", (char *)value->v.s->s );
+		conf->bool_encryption = TRUE;
+	} else {
+		memset( conf->key, '\0', BUF_SIZE );
+		conf->bool_encryption = FALSE;
+	}
+#endif
 #endif
 
-#ifdef TUMBLEWEED
-	conf->cores = (unix_cpus() > 2) ? unix_cpus() : CONF_CORES;
-#elif MASALA
-	conf->cores = (unix_cpus() > 2) ? unix_cpus() : CONF_CORES;
-#endif
-
-#ifdef TUMBLEWEED
-	strncpy( conf->username, CONF_USERNAME, BUF_OFF1 );
-#elif MASALA
-	strncpy( conf->username, CONF_USERNAME, BUF_OFF1 );
-#endif
-
-#ifdef MASALA
-	snprintf( conf->bootstrap_node, BUF_SIZE, "%s", CONF_BOOTSTRAP_NODE );
-	snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%i", CONF_PORT );
-#endif
-
-#ifdef TUMBLEWEED
-	snprintf( conf->index_name, BUF_SIZE, "%s", CONF_INDEX_NAME );
-#endif
-
-#ifdef TUMBLEWEED
-	conf->ipv6_only = FALSE;
-#endif
+	opts_free( opts );
 
 	return conf;
 }
 
 void conf_free( void ) {
-	if( _main->conf != NULL ) {
-		myfree( _main->conf, "conf_free" );
+	myfree( _main->conf, "conf_free" );
+}
+
+void conf_home( struct obj_conf *conf, BEN *opts ) {
+#ifdef TUMBLEWEED
+	BEN *value = NULL;
+#endif
+
+	if( ( getenv( "HOME" ) ) == NULL ) {
+		fail("Reading environment variable $HOME failed");
+	}
+
+#ifdef TORRENTKINO
+	snprintf( conf->home, BUF_SIZE, "%s", getenv( "HOME") );
+#endif
+
+#ifdef TUMBLEWEED
+	value = ben_searchDictStr( opts, "-w" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		char *p0 = NULL, *p1 = NULL;
+
+		p0 = (char *)value->v.s->s;;
+
+		/* Absolute path or relative path */
+		if( *p0 == '/' ) {
+			snprintf( conf->home, BUF_SIZE, "%s", p0 );
+		} else if( ( p1 = getenv( "PWD" ) ) != NULL ) {
+			snprintf( conf->home, BUF_SIZE, "%s/%s", p1, p0 );
+		} else {
+			snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "HOME"), "Public" );
+		}
+	} else {
+		snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "HOME"), "Public" );
+	}
+#endif
+
+	if( !file_isdir( conf->home ) ) {
+		fail( "%s does not exist", conf->home );
 	}
 }
 
-void conf_check( void ) {
-#ifdef MASALA
+#ifdef TORRENTKINO
+void conf_hostname( struct obj_conf *conf, BEN *opts ) {
+	BEN *value = NULL;
+	char *f = NULL;
+	char *p = NULL;
+	
+	/* Hostname from args */
+	value = ben_searchDictStr( opts, "-a" );
+	if( value != NULL && ben_str_size( value ) >= 1 ) {
+		snprintf( conf->hostname, BUF_SIZE, "%s", (char *)value->v.s->s );
+		return;
+	} else {
+		strncpy( conf->hostname, "bulk.p2p", BUF_OFF1 );
+	}
+
+	/* Hostname from file */
+	if( ! file_isreg( CONF_HOSTFILE ) ) {
+		return;
+	}
+
+	f = (char *) file_load( CONF_HOSTFILE, 0, file_size( CONF_HOSTFILE ) );
+
+	if( f == NULL ) {
+		return;
+	}
+		
+	if( ( p = strchr( f, '\n')) != NULL ) {
+		*p = '\0';
+	}
+
+	snprintf( conf->hostname, BUF_SIZE, "%s.p2p", f );
+
+	myfree( f, "conf_hostname" );
+}
+
+void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
+	UCHAR sha1_buf1[SHA1_SIZE];
+	UCHAR sha1_buf2[SHA1_SIZE];
+	int j = 0;
+
+	/* The realm influences the way, the lookup hash gets computed */
+	if( bool == TRUE ) {
+		sha1_hash( sha1_buf1, hostname, strlen( hostname ) );
+		sha1_hash( sha1_buf2, realm, strlen( realm ) );
+
+		for( j = 0; j < SHA1_SIZE; j++ ) {
+			host_id[j] = sha1_buf1[j] ^ sha1_buf2[j];
+		}
+	} else {
+		sha1_hash( host_id, hostname, strlen( hostname ) );
+	}
+}
+#endif
+
+void conf_print( void ) {
+#ifdef TORRENTKINO
 	char hex[HEX_LEN];
 #endif
 
-	/* By default, be verbose in the console and quiet while running as a
-	 * daemon. */
-	if( _main->conf->verbosity == CONF_UNDEF ) {
-		_main->conf->verbosity = ( _main->conf->mode == CONF_CONSOLE ) ?
-			CONF_VERBOSE : CONF_BEQUIET;
-	}
-
-#ifdef MASALA
-	info( NULL, 0, "Hostname: %s (-h)", _main->conf->hostname );
-#endif
-
-#ifdef MASALA
-	hex_hash_encode( hex, _main->conf->node_id );
-	info( NULL, 0, "Node ID: %s", hex );
-
-	hex_hash_encode( hex, _main->conf->host_id );
-	info( NULL, 0, "Host ID: %s", hex );
-#endif
-
-#ifdef MASALA
-	info( NULL, 0, "Bootstrap Node: %s (-x)", _main->conf->bootstrap_node );
-	info( NULL, 0, "Bootstrap Port: UDP/%s (-y)", _main->conf->bootstrap_port );
-#endif
-
-#ifdef TUMBLEWEED
-	info( NULL, 0, "Listen to TCP/%i (-p)", _main->conf->port );
-#elif MASALA
-	info( NULL, 0, "Listen to UDP/%i (-p)", _main->conf->port );
-#endif
-
-#ifdef MASALA
-	if( _main->conf->announce_port < CONF_PORTMIN || _main->conf->announce_port > CONF_PORTMAX ) {
-		fail( "Invalid announce port number. (-a)" );
-	} else {
-		info( NULL, 0, "Announce Port: %i (-a)", _main->conf->announce_port );
-	}
-#endif
-
-#ifdef TUMBLEWEED
-	info( NULL, 0, "Shared: %s (-s)", _main->conf->home );
+	info( NULL, 0, "CPU Cores: %i", _main->conf->cores );
 	
-	if( !file_isdir( _main->conf->home) ) {
-		fail( "The shared directory does not exist" );
-	}
-#endif
-
-#ifdef TUMBLEWEED
-	info( NULL, 0, "Index file: %s (-i)", _main->conf->index_name );
-	if( !str_isValidFilename( _main->conf->index_name ) ) {
-		fail( "%s looks suspicious", _main->conf->index_name );
-	}
-#endif
-
 	if( _main->conf->mode == CONF_CONSOLE ) {
 		info( NULL, 0, "Mode: Console (-d)" );
 	} else {
@@ -218,48 +310,54 @@ void conf_check( void ) {
 		info( NULL, 0, "Verbosity: Verbose (-q/-v)" );
 	}
 
-	/* Port == 0 => Random source port */
-	if( _main->conf->port < CONF_PORTMIN || _main->conf->port > CONF_PORTMAX ) {
-		fail( "Invalid port number. (-p)" );
-	}
-	
-	/* Check bootstrap server port */
-#ifndef TUMBLEWEED
-	if( str_isSafePort( _main->conf->bootstrap_port) < 0 ) {
-		fail( "Invalid bootstrap port number. (-y)" );
-	}
+#ifdef TUMBLEWEED
+	info( NULL, 0, "Workdir: %s (-w)", _main->conf->home );
+	info( NULL, 0, "Index file: %s (-i)", _main->conf->index_name );
 #endif
 
+#ifdef TUMBLEWEED
+	info( NULL, 0, "Listen to TCP/%i (-p)", _main->conf->port );
+#elif TORRENTKINO
+	info( NULL, 0, "Listen to UDP/%i (-p)", _main->conf->port );
+#endif
+
+#ifdef TORRENTKINO
+	info( NULL, 0, "Hostname: %s (-a)", _main->conf->hostname );
+
+	hex_hash_encode( hex, _main->conf->node_id );
+	info( NULL, 0, "Node ID: %s", hex );
+
+	hex_hash_encode( hex, _main->conf->host_id );
+	info( NULL, 0, "Host ID: %s", hex );
+
+	info( NULL, 0, "Bootstrap Node: %s (-x)", _main->conf->bootstrap_node );
+	info( NULL, 0, "Bootstrap Port: UDP/%s (-y)", _main->conf->bootstrap_port );
+	info( NULL, 0, "Announce Port: %i (-a)", _main->conf->announce_port );
+
+	/* Realm */
+	if( _main->conf->bool_realm == 1 ) {
+		info( NULL, 0, "Realm: %s (-r)", _main->conf->realm );
+	} else {
+		info( NULL, 0, "Realm: None (-r)" );
+	}
+
 	/* Encryption */
-#ifdef MASALA
+#ifdef POLARSSL
 	if( _main->conf->bool_encryption == 1 ) {
 		info( NULL, 0, "Encryption key: %s (-k)", _main->conf->key );
 	} else {
 		info( NULL, 0, "Encryption key: None (-k)" );
 	}
 #endif
-
-	/* Realm */
-#ifdef MASALA
-	if( _main->conf->bool_realm == 1 ) {
-		info( NULL, 0, "Realm: %s (-r)", _main->conf->realm );
-	} else {
-		info( NULL, 0, "Realm: None (-r)" );
-	}
 #endif
-
-	info( NULL, 0, "Worker threads: %i", _main->conf->cores );
-	if( _main->conf->cores < 1 || _main->conf->cores > 128 ) {
-		fail( "Invalid core number." );
-	}
 }
 
-#ifdef MASALA
+#ifdef TORRENTKINO
 void conf_write( void ) {
-	struct obj_ben *dict = ben_init( BEN_DICT );
-	struct obj_ben *key = NULL;
-	struct obj_ben *val = NULL;
-	struct obj_raw *raw = NULL;
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
 
 	/* Port */
 	key = ben_init( BEN_STR );

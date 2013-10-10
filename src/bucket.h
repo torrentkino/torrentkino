@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef BUCKET_H
@@ -23,7 +23,7 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "ben.h"
 #include "hex.h"
-#include "node.h"
+#include "node_udp.h"
 
 #define BCKT_SIZE_MAX 20
 
@@ -35,8 +35,8 @@ typedef struct obj_neighboorhood_bucket BUCK;
 
 LIST *bckt_init( void );
 void bckt_free( LIST *thislist );
-int bckt_put( LIST *l, NODE *n );
-void bckt_del( LIST *l, NODE *n );
+int bckt_put( LIST *l, UDP_NODE *n );
+void bckt_del( LIST *l, UDP_NODE *n );
 
 ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id );
 ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id );

@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -30,13 +30,12 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
 
 #include "cache.h"
-#include "masala-srv.h"
+#include "torrentkino.h"
 #include "p2p.h"
 #include "hex.h"
 
@@ -134,7 +133,7 @@ CACHE *cache_find( UCHAR *target ) {
 	return list_value( item );
 }
 
-int cache_lookup( UCHAR *target, UCHAR *nodes_compact_list ) {
+int cache_compact_list( UCHAR *nodes_compact_list, UCHAR *target ) {
 	CACHE *cache = cache_find( target );
 
 	/* Not found */

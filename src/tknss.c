@@ -1,20 +1,20 @@
 /*
 Copyright 2011 Aiko Barz
 
-This file is part of masala.
+This file is part of torrentkino.
 
-masala is free software: you can redistribute it and/or modify
+torrentkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-masala is distributed in the hope that it will be useful,
+torrentkino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with masala.  If not, see <http://www.gnu.org/licenses/>.
+along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -29,29 +29,29 @@ along with masala.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "ben.h"
 #include "file.h"
-#include "masala-nss.h"
+#include "tknss.h"
 
-enum nss_status _nss_masala_gethostbyname_r( const char *hostname, struct hostent *host,
+enum nss_status _nss_torrentkino_gethostbyname_r( const char *hostname, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop ) {
 
-	return _nss_masala_gethostbyname3_r( hostname, AF_UNSPEC, host,
+	return _nss_torrentkino_gethostbyname3_r( hostname, AF_UNSPEC, host,
 			buffer, buflen,
 			errnop, h_errnop,
 			NULL, NULL );
 }
 
-enum nss_status _nss_masala_gethostbyname2_r( const char *hostname, int af, struct hostent *host,
+enum nss_status _nss_torrentkino_gethostbyname2_r( const char *hostname, int af, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop ) {
 
-	return _nss_masala_gethostbyname3_r( hostname, af, host,
+	return _nss_torrentkino_gethostbyname3_r( hostname, af, host,
 			buffer, buflen,
 			errnop, h_errnop,
 			NULL, NULL );
 }
 
-enum nss_status _nss_masala_gethostbyname3_r( const char *hostname, int af, struct hostent *host,
+enum nss_status _nss_torrentkino_gethostbyname3_r( const char *hostname, int af, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
 	
@@ -65,25 +65,25 @@ enum nss_status _nss_masala_gethostbyname3_r( const char *hostname, int af, stru
 		return NSS_STATUS_UNAVAIL;
 	}
 
-	if( !_nss_masala_valid_hostname( hostname, size ) ) {
+	if( !_nss_torrentkino_valid_hostname( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_masala_valid_tld( hostname, size ) ) {
+	if( !_nss_torrentkino_valid_tld( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	return _nss_masala_hostent( hostname, size, af, host, 
+	return _nss_torrentkino_hostent( hostname, size, af, host, 
 			buffer, buflen,
 			errnop, h_errnop,
 			ttlp, canonp );
 }
 
-enum nss_status _nss_masala_gethostbyname4_r( const char *hostname,
+enum nss_status _nss_torrentkino_gethostbyname4_r( const char *hostname,
 		struct gaih_addrtuple **pat,
 		char *buffer, size_t buflen,
 		int *errnop, int *h_errnop,
@@ -91,24 +91,24 @@ enum nss_status _nss_masala_gethostbyname4_r( const char *hostname,
 
 	int size = strlen( hostname );
 
-	if( !_nss_masala_valid_hostname( hostname, size ) ) {
+	if( !_nss_torrentkino_valid_hostname( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_masala_valid_tld( hostname, size ) ) {
+	if( !_nss_torrentkino_valid_tld( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	return _nss_masala_gaih_tuple( hostname, size, pat, buffer,
+	return _nss_torrentkino_gaih_tuple( hostname, size, pat, buffer,
 			buflen, errnop, 
 			h_errnop, ttlp );
 }
 
-enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
+enum nss_status _nss_torrentkino_hostent( const char *hostname, int size, int af,
 		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
 
@@ -128,14 +128,14 @@ enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	port = _nss_masala_port();
+	port = _nss_torrentkino_port();
 	if( port < 1 || port > 65535 ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_masala_lookup( hostname, size, address, port ) ) {
+	if( !_nss_torrentkino_lookup( hostname, size, address, port ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
@@ -176,7 +176,7 @@ enum nss_status _nss_masala_hostent( const char *hostname, int size, int af,
 	return NSS_STATUS_SUCCESS;
 }
 
-enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
+enum nss_status _nss_torrentkino_gaih_tuple( const char *hostname, int size, struct
 		gaih_addrtuple **pat, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp ) {
 
@@ -194,14 +194,14 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
 		return NSS_STATUS_TRYAGAIN;
 	}
 
-	port = _nss_masala_port();
+	port = _nss_torrentkino_port();
 	if( port < 1 || port > 65535 ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_masala_lookup( hostname, size, address, port ) ) {
+	if( !_nss_torrentkino_lookup( hostname, size, address, port ) ) {
 		*errnop = ENOMEM;
 		*h_errnop = NO_RECOVERY;
 		return NSS_STATUS_TRYAGAIN;
@@ -228,7 +228,7 @@ enum nss_status _nss_masala_gaih_tuple( const char *hostname, int size, struct
 	return NSS_STATUS_SUCCESS;
 }
 
-int _nss_masala_valid_hostname( const char *hostname, int size ) {
+int _nss_torrentkino_valid_hostname( const char *hostname, int size ) {
 
 	int i = 0;
 	
@@ -253,7 +253,7 @@ int _nss_masala_valid_hostname( const char *hostname, int size ) {
 	return 1;
 }
 
-int _nss_masala_valid_tld( const char *hostname, int size ) {
+int _nss_torrentkino_valid_tld( const char *hostname, int size ) {
 
 	const char *p0 = NULL;
 	const char *p1 = NULL;
@@ -277,7 +277,7 @@ int _nss_masala_valid_tld( const char *hostname, int size ) {
 	return 1;
 }
 
-int _nss_masala_lookup( const char *hostname, int size, UCHAR *address, int port ) {
+int _nss_torrentkino_lookup( const char *hostname, int size, UCHAR *address, int port ) {
 
 	IP sa;
 	socklen_t salen = sizeof(IP );
@@ -323,7 +323,7 @@ int _nss_masala_lookup( const char *hostname, int size, UCHAR *address, int port
 	return 1;
 }
 
-int _nss_masala_port( void ) {
+int _nss_torrentkino_port( void ) {
 	char filename[BUF_SIZE];
 	int filesize = 0;
 	UCHAR *fbuf = NULL;
@@ -335,7 +335,7 @@ int _nss_masala_port( void ) {
 		return -1;
 	}
 
-	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), ".masala.conf" );
+	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), ".torrentkino.conf" );
 
 	if( !file_isreg( filename ) ) {
 		return -1;
@@ -351,39 +351,39 @@ int _nss_masala_port( void ) {
 	}
 
 	if( !ben_validate( fbuf, filesize ) ) {
-		myfree( fbuf, "masala_port" );
+		myfree( fbuf, "torrentkino_port" );
 		return -1;
 	}
 
 	/* Parse request */
 	ben = ben_dec( fbuf, filesize );
 	if( ben == NULL ) {
-		myfree( fbuf, "masala_port" );
+		myfree( fbuf, "torrentkino_port" );
 		return -1;
 	}
 	if( ben->t != BEN_DICT ) {
 		ben_free( ben );
-		myfree( fbuf, "masala_port" );
+		myfree( fbuf, "torrentkino_port" );
 		return -1;
 	}
 
 	port = ben_searchDictStr( ben, "port" );
 	if( !ben_is_int( port ) ) {
 		ben_free( ben );
-		myfree( fbuf, "masala_port" );
+		myfree( fbuf, "torrentkino_port" );
 		return -1;
 	}
 
 	if( port->v.i < 1 || port->v.i > 65535 ) {
 		ben_free( ben );
-		myfree( fbuf, "masala_port" );
+		myfree( fbuf, "torrentkino_port" );
 		return -1;
 	}
 
 	port_number = port->v.i;
 
 	ben_free( ben );
-	myfree( fbuf, "masala_port" );
+	myfree( fbuf, "torrentkino_port" );
 
 	return port_number;
 }
