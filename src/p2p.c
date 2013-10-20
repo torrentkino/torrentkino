@@ -67,7 +67,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "worker.h"
 
 struct obj_p2p *p2p_init( void ) {
-	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p), "p2p_init" );
+	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p) );
 
 	p2p->time_maintainance = 0;
 	p2p->time_multicast = 0;
@@ -86,7 +86,7 @@ struct obj_p2p *p2p_init( void ) {
 }
 
 void p2p_free( void ) {
-	myfree( _main->p2p, "p2p_free" );
+	myfree( _main->p2p );
 }
 
 void p2p_bootstrap( void ) {
@@ -97,12 +97,11 @@ void p2p_bootstrap( void ) {
 	int i = 0;
 	ITEM *ti = NULL;
 
-	//info( NULL, 0, "Connecting to a bootstrap server" );
-
 	/* Compute address of bootstrap node */
 	memset( &hints, '\0', sizeof(struct addrinfo) );
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_family = AF_INET6;
+
+	hints.ai_family = IP_FAMILY;
 	rc = getaddrinfo( _main->conf->bootstrap_node, _main->conf->bootstrap_port,
 		&hints, &addrinfo );
 	if( rc != 0 ) {
@@ -114,17 +113,17 @@ void p2p_bootstrap( void ) {
 	while( p != NULL && i < P2P_MAX_BOOTSTRAP_NODES ) {
 
 		/* Send PING to a bootstrap node */
-		if( strcmp( _main->conf->bootstrap_node, CONF_BOOTSTRAP_NODE ) == 0 ) {
-			ti = tdb_put(P2P_PING_MULTICAST, NULL, NULL);
+		if( strcmp( _main->conf->bootstrap_node, CONF_MULTICAST ) == 0 ) {
+			ti = tdb_put(P2P_PING_MULTICAST, NULL, NULL );
 			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		} else {
-			ti = tdb_put(P2P_PING, NULL, NULL);
+			ti = tdb_put(P2P_PING, NULL, NULL );
 			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		}
-		
+
 		p = p->ai_next;	i++;
 	}
-	
+
 	freeaddrinfo( addrinfo );
 }
 
@@ -199,9 +198,9 @@ void p2p_cron( void ) {
 	}
 
 	/* Try to register multicast address until it works. */
-	if( _main->udp->multicast == 0 ) {
+	if( _main->udp->multicast == FALSE ) {
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_multicast ) {
-			udp_multicast();
+			udp_multicast( UDP_JOIN_MCAST );
 			time_add_5_min_approx( &_main->p2p->time_multicast );
 		}
 	}
@@ -290,7 +289,7 @@ void p2p_cron_find( UCHAR *target ) {
 
 void p2p_cron_announce_start( void ) {
 	LOOKUP *l = NULL;
-	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) */
+	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
 	UCHAR *target = _main->conf->host_id;
 	ITEM *ti = NULL;
 	UCHAR *p = NULL;
@@ -307,24 +306,19 @@ void p2p_cron_announce_start( void ) {
 	l = tdb_ldb( ti );
 
 	p = nodes_compact_list;
-	for( j=0; j<nodes_compact_size; j+=38 ) {
+	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_TRIPLE ) {
 
-		/* Remember node_id */
-		id = p;
-		p += SHA1_SIZE;
+		/* ID */
+		id = p;	p += SHA1_SIZE;
 
 		/* IP + Port */
-		memset( &sin, '\0', sizeof(IP) );
-		sin.sin6_family = AF_INET6;
-		
-		memcpy( &sin.sin6_addr, p, 16 ); p += 16;
-		memcpy( &sin.sin6_port, p, 2 ); p += 2;
+		p = p2p_merge_sin( &sin, p );
 
 		/* Query node */
-		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
+		send_get_peers_request( &sin, target, tdb_tid( ti ) );
 
 		/* Remember queried node */
-		ldb_put( l, id, (IP *)&sin );
+		ldb_put( l, id, &sin );
 	}
 }
 
@@ -650,21 +644,19 @@ void p2p_reply( BEN *packet, IP *from ) {
 int p2p_packet_from_myself( UCHAR *node_id ) {
 	if( node_me( node_id ) ) {
 		
-		/* Received packet from myself 
-		 * If the neighbourhood is empty, 
-		 * then you may see multicast requests from yourself.
+		/* Received packet from myself: 
+		 * You may see multicast requests from yourself
+		 * if the neighbourhood is empty.
 		 * Do not warn about them.
 		 */
 		if( !nbhd_is_empty() ) {
 			info( NULL, 0, "WARNING: Received a packet from myself..." );
 		}
 
-		/* Yep */
-		return 1;
+		return TRUE;
 	}
 
-	/* No */
-	return 0;
+	return FALSE;
 }
 
 void p2p_ping( BEN *tid, IP *from ) {
@@ -677,7 +669,7 @@ void p2p_pong( UCHAR *node_id, IP *from ) {
 
 void p2p_find_node_get_request( BEN *arg, BEN *tid, IP *from ) {
 	BEN *target = NULL;
-	UCHAR nodes_compact_list[304]; /* 8 * (20+16+2) */
+	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
 	int nodes_compact_size = 0;
 
 	/* Target */
@@ -704,33 +696,29 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 	long int i = 0;
 	IP sin;
 
+#ifdef IPV6
 	nodes = ben_searchDictStr( arg, "nodes6" );
+#elif IPV4
+	nodes = ben_searchDictStr( arg, "nodes" );
+#endif
 	if( !ben_is_str( nodes ) ) {
-		info( NULL, 0, "nodes6 key missing" );
+		info( NULL, 0, "nodes key missing" );
 		return;
 	}
 
-	if( ben_str_size( nodes ) % 38 != 0 ) {
-		info( NULL, 0, "nodes6 key broken" );
+	if( ben_str_size( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
+		info( NULL, 0, "nodes key broken" );
 		return;
 	}
 
 	p = nodes->v.s->s;
-	for( i=0; i<nodes->v.s->i; i+=38 ) {
-		memset( &sin, '\0', sizeof(IP) );
+	for( i=0; i<nodes->v.s->i; i+=IP_SIZE_META_TRIPLE ) {
 
 		/* ID */
-		id = p;
-		p += SHA1_SIZE;
+		id = p;	p += SHA1_SIZE;
 
-		/* IP */
-		sin.sin6_family = AF_INET6;
-		memcpy( &sin.sin6_addr, p, 16 );
-		p += 16;
-
-		/* Port */
-		memcpy( &sin.sin6_port, p, 2 );
-		p += 2;
+		/* IP + Port */
+		p = p2p_merge_sin( &sin, p );
 
 		/* Ignore myself */
 		if( node_me( id ) ) {
@@ -743,7 +731,7 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 		}
 
 		/* Store node */
-		nbhd_put( id, (IP *)&sin );
+		nbhd_put( id, &sin );
 	}
 }
 
@@ -761,7 +749,7 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 
 void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
 	BEN *info_hash = NULL;
-	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) or 8*(16+2) */
+	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
 	int nodes_compact_size = 0;
 
 	/* info_hash */
@@ -810,7 +798,11 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 	}
 
 	values = ben_searchDictStr( arg, "values" );
+#ifdef IPV6
 	nodes = ben_searchDictStr( arg, "nodes6" );
+#elif IPV4
+	nodes = ben_searchDictStr( arg, "nodes" );
+#endif
 
 	if( values != NULL ) {
 		if( !ben_is_list( values ) ) {
@@ -823,8 +815,8 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 	}
 	
 	if( nodes != NULL ) {
-		if( !ben_is_str( nodes ) || ben_str_size( nodes ) % 38 != 0 ) {
-			info( NULL, 0, "nodes6 key missing or broken" );
+		if( !ben_is_str( nodes ) || ben_str_size( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
+			info( NULL, 0, "nodes key missing or broken" );
 			return;
 		} else {
 			p2p_get_peers_get_nodes( nodes, node_id, ti, token, from );
@@ -862,21 +854,13 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 	ldb_update( l, node_id, token, from );
 
 	p = nodes->v.s->s;
-	for( i=0; i<nodes->v.s->i; i+=38 ) {
-		memset( &sin, '\0', sizeof(IP) );
+	for( i=0; i<nodes->v.s->i; i+=IP_SIZE_META_TRIPLE ) {
 
 		/* ID */
-		id = p;
-		p += SHA1_SIZE;
+		id = p;	p += SHA1_SIZE;
 
-		/* IP */
-		sin.sin6_family = AF_INET6;
-		memcpy( &sin.sin6_addr, p, 16 );
-		p += 16;
-
-		/* Port */
-		memcpy( &sin.sin6_port, p, 2 );
-		p += 2;
+		/* IP + Port */
+		p = p2p_merge_sin( &sin, p );
 
 		/* Ignore myself */
 		if( node_me( id ) ) {
@@ -915,7 +899,7 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 */
 
 void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token, IP *from ) {
-	UCHAR nodes_compact_list[144]; /* 8*(16+2) */
+	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
 	UCHAR *p = nodes_compact_list;
 	LOOKUP *l = tdb_ldb( ti );
 	int nodes_compact_size = 0;
@@ -935,14 +919,14 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 	while( item != NULL && j < 8 ) {
 		val = list_value( item );
 
-		if( !ben_is_str( val ) || ben_str_size( val ) != 18 ) {
+		if( !ben_is_str( val ) || ben_str_size( val ) != IP_SIZE_META_PAIR ) {
 			info( NULL, 0, "Values list broken" );
 			return;
 		}
 
 		memcpy( p, val->v.s->s, val->v.s->i );
-		nodes_compact_size += 18;
-		p += 18;
+		nodes_compact_size += IP_SIZE_META_PAIR;
+		p += IP_SIZE_META_PAIR;
 
 		item = list_next(item);
 		j++;
@@ -1013,10 +997,9 @@ void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from ) {
 	}
 
 	/* Store info_hash */
-	idb_put( info_hash->v.s->s, port->v.i, node_id, from );
-
-	/* Send ack */
-	send_announce_reply( from, tid->v.s->s, tid->v.s->i );
+	if( idb_put( info_hash->v.s->s, port->v.i, node_id, from ) ) {
+		send_announce_reply( from, tid->v.s->s, tid->v.s->i );
+	}
 }
 
 /*
@@ -1080,7 +1063,7 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 }
 
 int p2p_localhost_lookup_cache( UCHAR *target, IP *from ) {
-	UCHAR nodes_compact_list[144]; /* 8 * ( 16 + 2 ) */
+	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
 	int nodes_compact_size = 0;
 
 	/* Check cache for hostname */
@@ -1099,7 +1082,7 @@ int p2p_localhost_lookup_cache( UCHAR *target, IP *from ) {
  * nodes are active: Node A announces its name to node B. But Node B cannot talk
  * to itself to lookup A. So, it must use its database directly. */
 int p2p_localhost_lookup_local( UCHAR *target, IP *from ) {
-	UCHAR nodes_compact_list[144]; /* 8 * ( 16 + 2 ) */
+	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
 	int nodes_compact_size = 0;
 
 	/* Check cache for hostname */
@@ -1115,7 +1098,7 @@ int p2p_localhost_lookup_local( UCHAR *target, IP *from ) {
 }
 
 int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
-	UCHAR nodes_compact_list[304]; /* 8*(20+16+2) */
+	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
 	int nodes_compact_size = 0;
 	IP sin;
 	UCHAR *p = NULL;
@@ -1132,27 +1115,19 @@ int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
 	l = tdb_ldb( ti );
 
 	p = nodes_compact_list;
-	for( j=0; j<nodes_compact_size; j+=38 ) {
-		memset( &sin, '\0', sizeof(IP) );
+	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_TRIPLE ) {
 
 		/* ID */
-		id = p;
-		p += SHA1_SIZE;
+		id = p;	p += SHA1_SIZE;
 
-		/* IP */
-		sin.sin6_family = AF_INET6;
-		memcpy( &sin.sin6_addr, p, 16 );
-		p += 16;
-
-		/* Port */
-		memcpy( &sin.sin6_port, p, 2 );
-		p += 2;
+		/* IP + Port */
+		p = p2p_merge_sin( &sin, p );
 
 		/* Query node */
-		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
+		send_get_peers_request( &sin, target, tdb_tid( ti ) );
 
 		/* Remember queried node */
-		ldb_put( l, id, (IP *)&sin );
+		ldb_put( l, id, &sin );
 	}
 
 	return TRUE;
@@ -1178,7 +1153,7 @@ int p2p_is_ip( BEN *node ) {
 	if( !ben_is_str( node ) ) {
 		return 0;
 	}
-	if( ben_str_size( node ) != 16 ) {
+	if( ben_str_size( node ) != IP_SIZE ) {
 		return 0;
 	}
 	return 1;
@@ -1195,4 +1170,19 @@ int p2p_is_port( BEN *node ) {
 		return 0;
 	}
 	return 1;
+}
+
+UCHAR *p2p_merge_sin( IP *sin, UCHAR *p ) {
+	memset( sin, '\0', sizeof(IP) );
+#ifdef IPV6
+	sin->sin6_family = AF_INET6;
+	memcpy( &sin->sin6_addr, p, IP_SIZE ); p += IP_SIZE;
+	memcpy( &sin->sin6_port, p, 2 ); p += 2;
+#elif IPV4
+	sin->sin_family = AF_INET;
+	memcpy( &sin->sin_addr, p, IP_SIZE ); p += IP_SIZE;
+	memcpy( &sin->sin_port, p, 2 ); p += 2;
+#endif
+
+	return p;
 }

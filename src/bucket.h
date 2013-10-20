@@ -24,6 +24,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 #include "hex.h"
 #include "node_udp.h"
+#include "torrentkino.h"
 
 #define BCKT_SIZE_MAX 20
 

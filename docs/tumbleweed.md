@@ -36,13 +36,6 @@ Keep-alive and Range Requests as seen in the wild.
   * `-6`:
 	IPv6 only.
 
-## INSTALLATION
-  * apt-get install build-essential
-  * apt-get install debhelper
-  * apt-get install git-buildpackage
-  * apt-get install libmagic-dev
-  * git-buildpackage
-
 ## EXAMPLES
 
 Serve *~/Public* at port *8080*:

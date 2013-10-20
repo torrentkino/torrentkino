@@ -264,7 +264,11 @@ void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	/* Nodes */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
+#ifdef IPV6
 	ben_str( key, (UCHAR *)"nodes6", 6 );
+#elif IPV4
+	ben_str( key, (UCHAR *)"nodes", 5 );
+#endif
 	ben_str( val, nodes_compact_list, nodes_compact_size );
 	ben_dict( arg, key, val );
 
@@ -409,7 +413,11 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	/* Nodes */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
+#ifdef IPV6
 	ben_str( key, (UCHAR *)"nodes6", 6 );
+#elif IPV4
+	ben_str( key, (UCHAR *)"nodes", 5 );
+#endif
 	ben_str( val, nodes_compact_list, nodes_compact_size );
 	ben_dict( arg, key, val );
 
@@ -478,11 +486,11 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 	int j = 0;
 
 	/* Values list */
-	for( j=0; j<nodes_compact_size; j+=18 ) {
+	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_PAIR ) {
 		val = ben_init( BEN_STR );
-		ben_str( val, p, 18 );
+		ben_str( val, p, IP_SIZE_META_PAIR );
 		ben_list( list, val );
-		p += 18;
+		p += IP_SIZE_META_PAIR;
 	}
 
 	/* Node ID */

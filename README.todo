@@ -1,8 +1,6 @@
 Torrentkino
-- cli and nss program shall use bencode
 - Daemon cookie protection
 - TLD Switch
-- IPv4 support
 - More complex caching
 - Look for e Messages
 - Look for want flags
@@ -11,6 +9,3 @@ Torrentkino
 Tumbleweed
 - ranges optional
 - Smaller buffer for dates
-
-All:
-- Refactor hash

@@ -20,7 +20,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef LOG_H
 #define LOG_H
 
-#include "main.h"
 #include "conf.h"
 
 void info( IP *c_addr, int code, const char *format, ... );

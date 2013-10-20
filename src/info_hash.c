@@ -17,24 +17,14 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/time.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <signal.h>
-#include <sys/epoll.h>
 
 #include "info_hash.h"
 
 struct obj_idb *idb_init( void ) {
-	struct obj_idb *idb = (struct obj_idb *) myalloc(sizeof(struct obj_idb), "idb_init");
+	struct obj_idb *idb = (struct obj_idb *) myalloc(sizeof(struct obj_idb) );
 	idb->list = list_init();
 	idb->hash = hash_init( IDB_TARGET_SIZE_MAX );
 	return idb;
@@ -45,10 +35,10 @@ void idb_free( void ) {
 	list_clear( _main->idb->list );
 	list_free( _main->idb->list );
 	hash_free( _main->idb->hash );
-	myfree( _main->idb, "idb_free" );
+	myfree( _main->idb );
 }
 
-void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa ) {
+int idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa ) {
 	TARGET *target = NULL;
 	INODE *inode = NULL;
 	ITEM *i = NULL;
@@ -59,7 +49,7 @@ void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa ) {
 		hex_hash_encode( hex, target_id );
 		info( NULL, 0, "INFO_HASH LIMIT (%i) REACHED. NOT STORING %s...",
 			IDB_TARGET_SIZE_MAX, hex );
-		return;
+		return FALSE;
 	}
 
 	/* ID list */
@@ -74,7 +64,7 @@ void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa ) {
 		hex_hash_encode( hex, target_id );
 		info( NULL, 0, "NODE LIMIT (%i) REACHED FOR INFO_HASH %s...",
 			IDB_NODES_SIZE_MAX, hex );
-		return;
+		return FALSE;
 	}
 
 	/* Node list */
@@ -85,6 +75,8 @@ void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa ) {
 	}
 
 	inode_update( inode, sa, port );
+
+	return TRUE;
 }
 
 void idb_clean( void ) {
@@ -159,15 +151,16 @@ int idb_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id ) {
 		/* Network data */
 		sin = (IP*)&inode->c_addr;
 
-		/* IP */
-		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );
-		p += 16;
+		/* IP + Port */
+#ifdef IPV6
+		memcpy( p, (UCHAR *)&sin->sin6_addr, IP_SIZE ); p += IP_SIZE;
+		memcpy( p, (UCHAR *)&sin->sin6_port, 2 ); p += 2;
+#elif IPV4
+		memcpy( p, (UCHAR *)&sin->sin_addr, IP_SIZE ); p += IP_SIZE;
+		memcpy( p, (UCHAR *)&sin->sin_port, 2 ); p += 2;
+#endif
 
-		/* Port */
-		memcpy( p, (UCHAR *)&sin->sin6_port, 2 );
-		p += 2;
-
-		size += 18;
+		size += IP_SIZE_META_PAIR;
 
 		item = list_next( item );
 		j++;
@@ -185,7 +178,7 @@ TARGET *tgt_init( UCHAR *target_id ) {
 	ITEM *i = NULL;
 	char hex[HEX_LEN];
 
-	target = (TARGET *) myalloc( sizeof(TARGET), "tgt_init" );
+	target = (TARGET *) myalloc( sizeof(TARGET) );
 
 	memcpy( target->target, target_id, SHA1_SIZE );
 	target->list = list_init();
@@ -211,7 +204,7 @@ void tgt_free( ITEM *i ) {
 	hash_del( _main->idb->hash, target->target, SHA1_SIZE );
 	list_del( _main->idb->list, i );
 
-	myfree( target, "tgt_free" );
+	myfree( target );
 }
 
 ITEM *tgt_find( UCHAR *target ) {
@@ -229,7 +222,7 @@ INODE *inode_init( TARGET *target, UCHAR *node_id ) {
 	INODE *inode = NULL;
 	ITEM *i = NULL;
 	
-	inode = (INODE *) myalloc( sizeof(INODE), "inode_init" );
+	inode = (INODE *) myalloc( sizeof(INODE) );
 	
 	memcpy( inode->id, node_id, SHA1_SIZE );
 
@@ -243,7 +236,7 @@ void inode_free( TARGET *target, ITEM *i ) {
 	INODE *inode = list_value( i );
 	hash_del(target->hash, inode->id, SHA1_SIZE );
 	list_del(target->list, i );
-	myfree(inode, "inode_free");
+	myfree(inode );
 }
 
 ITEM *inode_find( HASH *target, UCHAR *node_id ) {
@@ -264,5 +257,9 @@ void inode_update( INODE *inode, IP *sa, int port ) {
 	memcpy(&inode->c_addr, sa, sizeof(IP));
 
 	/* Store the announced port, not the the source port of the sender */
+#ifdef IPV6
 	inode->c_addr.sin6_port = htons(port);
+#elif IPV4
+	inode->c_addr.sin_port = htons(port);
+#endif
 }

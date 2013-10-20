@@ -27,7 +27,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "mime.h"
 
 struct obj_mdb *mime_init( void ) {
-	struct obj_mdb *mime = (struct obj_mdb *) myalloc( sizeof(struct obj_mdb), "mime_init" );
+	struct obj_mdb *mime = (struct obj_mdb *) myalloc( sizeof(struct obj_mdb) );
 	mime->list = list_init();
 	mime->hash = NULL;
 	mime->mutex = mutex_init();
@@ -39,11 +39,11 @@ void mime_free( void ) {
 	list_free( _main->mime->list );
 	hash_free( _main->mime->hash );
 	mutex_destroy( _main->mime->mutex );
-	myfree( _main->mime, "mime_free" );
+	myfree( _main->mime );
 }
 
 struct obj_mime *mime_add( const char *key, const char *value ) {
-	struct obj_mime *tuple = (struct obj_mime *) myalloc( sizeof(struct obj_mime), "mime_add" );
+	struct obj_mime *tuple = (struct obj_mime *) myalloc( sizeof(struct obj_mime) );
 
 	strncpy( tuple->key, key, MIME_KEYLEN );
 	strncpy( tuple->val, value, MIME_VALLEN );

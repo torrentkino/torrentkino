@@ -36,43 +36,13 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "str.h"
 #include "ben.h"
 
-#define CONF_CORES 2
-#define CONF_PORTMIN 1
-#define CONF_PORTMAX 65535
-
-#define CONF_BEQUIET 1
-#define CONF_VERBOSE 2
-
-#define CONF_DAEMON 0
-#define CONF_CONSOLE 1
-
-#define CONF_HOSTFILE "/etc/hostname"
-
-#ifdef TUMBLEWEED
-#define CONF_USERNAME "tumbleweed"
-#define CONF_EPOLL_WAIT 1000
-#define CONF_SRVNAME "tumbleweed"
-#define CONF_PORT 8080
-#define CONF_INDEX_NAME "index.html"
-#define CONF_KEEPALIVE 5
-#endif
-
-#if TORRENTKINO
-#define CONF_USERNAME "torrentkino"
-#define CONF_EPOLL_WAIT 2000
-#define CONF_SRVNAME "torrentkino"
-#define CONF_PORT 6881
-#define CONF_ANNOUNCED_PORT 8080
-#define CONF_BOOTSTRAP_NODE "ff0e::1"
-#define CONF_PORT_SIZE 5
-#define CONF_REALM "open.p2p"
-#endif
-
-#define CONF_EPOLL_MAX_EVENTS 32
-
 struct obj_conf {
 	char username[BUF_SIZE];
 	char home[BUF_SIZE];
+	int cores;
+	int verbosity;
+	int mode;
+	int port;
 
 #ifdef TORRENTKINO
 	char hostname[BUF_SIZE];
@@ -82,27 +52,18 @@ struct obj_conf {
 	char bootstrap_node[BUF_SIZE];
 	char bootstrap_port[CONF_PORT_SIZE+1];
 	int announce_port;
-
+	char realm[BUF_SIZE];
+	int bool_realm;
+	char file[BUF_SIZE];
 #ifdef POLARSSL
 	char key[BUF_SIZE];
 	int bool_encryption;
 #endif
-
-	char realm[BUF_SIZE];
-	int bool_realm;
-	
-	char file[BUF_SIZE];
 #endif
 
 #ifdef TUMBLEWEED
 	char index_name[BUF_SIZE];
-	int ipv6_only;
 #endif
-
-	int cores;
-	int verbosity;
-	int mode;
-	int port;
 };
 
 struct obj_conf *conf_init( int argc, char **argv );
@@ -116,5 +77,8 @@ void conf_home( struct obj_conf *conf, BEN *opts );
 void conf_hostname( struct obj_conf *conf, BEN *opts );
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
 #endif
+
+int conf_verbosity( void );
+int conf_mode( void );
 
 #endif

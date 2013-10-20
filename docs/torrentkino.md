@@ -3,8 +3,7 @@ torrentkino(1) -- P2P resolver
 
 ## SYNOPSIS
 
-`torrentkino` [-d] [-q] [-h hostname] [-k password] [-r realm] [-p port]
-[-x server] [-y port] [-u username]
+`torrentkino` [-d] [-q] [-h hostname] [-r realm] [-p port] [-x server] [-y port] [-u username]
 
 ## DESCRIPTION
 
@@ -56,13 +55,6 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
 	purposes it may be useful to keep the same node id all the time. The above
 	string is not used directly. Instead its SHA1 hash is used.
 
-  * `-k` *password*:
-	Setting a password results in encrypting each packet with AES256. The
-	encrypted message is encapsulated in bencode too. You effectively
-	isolate your nodes from the rest of the world this way. This method is not
-	compatible to the Bittorrent network and only works between torrentkino
-	daemons.
-
   * `-r` *realm*:
 	Creating a realm affects the method how to compute the info hash. It helps
 	you to isolate your nodes and be part of a bigger swarm at the same time.
@@ -88,12 +80,12 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
   * `-v`:
 	Verbose.
 
-## INSTALLATION
-  * apt-get install build-essential
-  * apt-get install debhelper
-  * apt-get install git-buildpackage
-  * apt-get install libpolarssl-dev
-  * git-buildpackage
+  * `-k` *password*:
+	Setting a password results in encrypting each packet with AES256. The
+	encrypted message is encapsulated in bencode too. You effectively
+	isolate your nodes from the rest of the world this way. This method is not
+	compatible to the Bittorrent network and only works between torrentkino
+	daemons. (Needs to be compiled with PolarSSL support. See Makefile.)
 
 ## EXAMPLES
 

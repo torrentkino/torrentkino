@@ -40,7 +40,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "hex.h"
 
 struct obj_cache *cache_init( void ) {
-	struct obj_cache *cache = (struct obj_cache *) myalloc( sizeof(struct obj_cache), "cache_init" );
+	struct obj_cache *cache = (struct obj_cache *) myalloc( sizeof(struct obj_cache) );
 	cache->list = list_init();
 	cache->hash = hash_init( CACHE_SIZE );
 	return cache;
@@ -50,7 +50,7 @@ void cache_free( void ) {
 	list_clear( _main->cache->list );
 	list_free( _main->cache->list );
 	hash_free( _main->cache->hash );
-	myfree( _main->cache, "cache_free" );
+	myfree( _main->cache );
 }
 
 void cache_put( UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size ) {
@@ -63,7 +63,7 @@ void cache_put( UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size
 		return;
 	}
 
-	cache = (CACHE *) myalloc( sizeof(CACHE), "cache_put" );
+	cache = (CACHE *) myalloc( sizeof(CACHE) );
 	cache_update( cache, target, nodes_compact_list, nodes_compact_size );
 	
 	time_add_30_min( &cache->lifetime );
@@ -77,7 +77,7 @@ void cache_del( ITEM *item ) {
 	CACHE *cache = list_value( item );
 	hash_del( _main->cache->hash, (UCHAR *)cache->target, SHA1_SIZE );
 	list_del( _main->cache->list, item );
-	myfree( cache, "cache_del" );
+	myfree( cache );
 }
 
 void cache_expire( time_t now ) {

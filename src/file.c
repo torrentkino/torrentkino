@@ -98,15 +98,15 @@ char *file_load( const char *filename, long int offset, size_t size ) {
 		return 0;
 	}
 
-	buffer = (char *) myalloc( (size+1) * sizeof(char), "file_load" );
+	buffer = (char *) myalloc( (size+1) * sizeof(char) );
 
 	if( size != fread( buffer, sizeof(char), size, fh) ) {
-		myfree( buffer, "file_load" );
+		myfree( buffer );
 		return NULL;
 	}
 
 	if( fclose( fh) != 0 ) {
-		myfree( buffer, "file_load" );
+		myfree( buffer );
 		return NULL;
 	}
 	

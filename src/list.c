@@ -23,7 +23,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "list.h"
 
 LIST *list_init( void ) {
-	LIST *list = (LIST *) myalloc( sizeof(LIST), "list_init" );
+	LIST *list = (LIST *) myalloc( sizeof(LIST) );
 
 	list->item = NULL;
 	list->size = 0;
@@ -40,7 +40,7 @@ void list_free( LIST *list ) {
 		list_del( list, list->item );
 	}
 
-	myfree( list, "list_free" );
+	myfree( list );
 }
 
 void list_clear( LIST *list ) {
@@ -52,7 +52,7 @@ void list_clear( LIST *list ) {
 
 	item = list_start( list );
 	while( item != NULL ) {
-		myfree( item->val, "list_clear" );
+		myfree( item->val );
 		item = list_next( item );
 	}
 }
@@ -115,7 +115,7 @@ ITEM *list_put( LIST *list, void *payload ) {
 		return NULL;
 	}
 
-	item = (ITEM *) myalloc( sizeof(ITEM), "list_put" );
+	item = (ITEM *) myalloc( sizeof(ITEM) );
 	item->val = payload;
 	item->next = NULL;
 	item->prev = NULL;
@@ -154,7 +154,7 @@ ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
 	}
 	
 	/* Payload */
-	item = (ITEM *) myalloc( sizeof(ITEM), "list_ins" );
+	item = (ITEM *) myalloc( sizeof(ITEM) );
 	item->val = payload;
 
 	/* Pointer */
@@ -191,7 +191,7 @@ ITEM *list_add( LIST *list, ITEM *here, void *payload ) {
 	}
 
 	/* Payload */
-	item = (ITEM *) myalloc( sizeof(ITEM), "list_join" );
+	item = (ITEM *) myalloc( sizeof(ITEM) );
 	item->val = payload;
 
 	/* Pointer */
@@ -231,7 +231,7 @@ ITEM *list_del( LIST *list, ITEM *item ) {
 		item->next->prev = item->prev;
 	}
 
-	myfree( item, "list_del" );
+	myfree( item );
 
 	list->size -= 1;
 

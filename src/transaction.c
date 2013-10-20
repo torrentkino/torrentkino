@@ -39,7 +39,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_transaction *tdb_init( void ) {
 	struct obj_transaction *transaction = (struct obj_transaction *)
-		myalloc( sizeof(struct obj_transaction), "tdb_init" );
+		myalloc( sizeof(struct obj_transaction) );
 	transaction->list = list_init();
 	transaction->hash = hash_init( 1000 );
 	return transaction;
@@ -50,7 +50,7 @@ void tdb_free( void ) {
 	list_clear( _main->transaction->list );
 	list_free( _main->transaction->list );
 	hash_free( _main->transaction->hash );
-	myfree( _main->transaction, "tdb_free" );
+	myfree( _main->transaction );
 }
 
 void tdb_clean( void ) {
@@ -63,7 +63,7 @@ ITEM *tdb_put( int type, UCHAR *target, IP *from ) {
 	ITEM *item = NULL;
 	TID *tid = NULL;
 
-	tid = (TID *) myalloc( sizeof(TID), "tdb_put" );
+	tid = (TID *) myalloc( sizeof(TID) );
 
 	/* ID */
 	tdb_create_random_id( tid->id );
@@ -108,7 +108,7 @@ void tdb_del( ITEM *i ) {
 
 	hash_del( _main->transaction->hash, tdb_tid( i ), TID_SIZE );
 	list_del( _main->transaction->list, i );
-	myfree( tid, "tdb_del" );
+	myfree( tid );
 }
 
 void tdb_expire( time_t now ) {

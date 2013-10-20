@@ -1,7 +1,7 @@
 export CODENAME = tumbleweed
 export CC = gcc
 export CFLAGS = -O2 -std=gnu99 -Wall -Wwrite-strings -pedantic
-CFLAGS += -DTUMBLEWEED
+CFLAGS += -DTUMBLEWEED -DIPV6
 CFLAGS += -DMAGIC
 LDFLAGS = -lpthread
 LDFLAGS += -lmagic

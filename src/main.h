@@ -22,9 +22,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #define BUF_SIZE 1024
 #define BUF_OFF1 1023
-#define MAIN_PROTVER 1
-#define MAIN_IPBUF 39
 #define SHA1_SIZE 20
+#define TIMEOUT 10
 
 #define TRUE 1
 #define FALSE 0
@@ -32,12 +31,71 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define GAMEOVER 0
 #define RUMBLE 1
 
-#define TIMEOUT 10
+#define CONF_CORES 2
+#define CONF_PORTMIN 1
+#define CONF_PORTMAX 65535
+
+#define CONF_BEQUIET 1
+#define CONF_VERBOSE 2
+
+#define CONF_DAEMON 0
+#define CONF_CONSOLE 1
+
+#define CONF_HOSTFILE "/etc/hostname"
+
+#define CONF_FILE ".torrentkino.conf"
+
+#define CONF_EPOLL_MAX_EVENTS 32
+
+#ifdef TUMBLEWEED
+#define CONF_USERNAME "tumbleweed"
+#define CONF_EPOLL_WAIT 1000
+#define CONF_SRVNAME "tumbleweed"
+#define CONF_PORT 8080
+#define CONF_INDEX_NAME "index.html"
+#define CONF_KEEPALIVE 5
+#endif
+
+#if TORRENTKINO
+#define CONF_USERNAME "torrentkino"
+#define CONF_EPOLL_WAIT 2000
+#define CONF_SRVNAME "torrentkino"
+#define CONF_PORT 6881
+#define CONF_ANNOUNCED_PORT 8080
+#define CONF_PORT_SIZE 5
+#define CONF_REALM "open.p2p"
+#ifdef IPV6
+#define CONF_MULTICAST "ff0e::1"
+#elif IPV4
+#define CONF_MULTICAST "224.0.0.252"
+#endif
+#endif
 
 typedef unsigned long int ULONG;
 typedef unsigned char UCHAR;
 typedef long int LONG;
+
+#ifdef IPV6
+#define IP_SIZE 16
+#define IP_SIZE_META_PAIR 18
+#define IP_SIZE_META_PAIR8 144
+#define IP_SIZE_META_TRIPLE 38
+#define IP_SIZE_META_TRIPLE8 304
+#define IP_FAMILY AF_INET6
+#define IP_ADDRLEN INET6_ADDRSTRLEN
 typedef struct sockaddr_in6 IP;
+typedef struct in6_addr IN_ADDR;
+#elif IPV4
+#define IP_SIZE 4
+#define IP_SIZE_META_PAIR 6
+#define IP_SIZE_META_PAIR8 48
+#define IP_SIZE_META_TRIPLE 26
+#define IP_SIZE_META_TRIPLE8 208
+#define IP_FAMILY AF_INET
+#define IP_ADDRLEN INET_ADDRSTRLEN
+typedef struct sockaddr_in IP;
+typedef struct in_addr IN_ADDR;
+#endif
 
 extern int status;
 

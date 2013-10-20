@@ -20,34 +20,33 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef HASH_H
 #define HASH_H
 
-struct obj_pair {
+#include "malloc.h"
+
+typedef struct {
 	UCHAR *key;
-	long int keysize;
+	LONG size;
 	void *value;
-};
-typedef struct obj_pair PAIR;
+} PAIR;
 
-struct obj_bucket {
-	unsigned int count;
+typedef struct {
 	PAIR *pairs;
-};
-typedef struct obj_bucket BUCKET;
+	ULONG size;
+} BUCKET;
 
-struct obj_hash {
-	unsigned int count;
+typedef struct {
 	BUCKET *buckets;
-};
-typedef struct obj_hash HASH;
+	ULONG size;
+} HASH;
 
-HASH *hash_init( unsigned int capacity );
+HASH *hash_init( ULONG capacity );
 void hash_free( HASH *map );
 
-unsigned long hash_this( UCHAR *str, long int keysize );
-PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, long int keysize );
+ULONG hash_this( UCHAR *key, LONG size );
+PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, LONG size );
 
-void *hash_get( const HASH *map, UCHAR *key, long int keysize );
-int hash_put( HASH *map, UCHAR *key, long int keysize, void *value );
-void hash_del( HASH *map, UCHAR *key, long int keysize );
-int hash_exists( const HASH *map, UCHAR *key, long int keysize );
+void *hash_get( const HASH *map, UCHAR *key, LONG size );
+int hash_put( HASH *map, UCHAR *key, LONG size, void *value );
+void hash_del( HASH *map, UCHAR *key, LONG size );
+int hash_exists( const HASH *map, UCHAR *key, LONG size );
 
 #endif

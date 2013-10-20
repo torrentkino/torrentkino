@@ -54,7 +54,7 @@ void node_free( void ) {
 }
 
 ITEM *node_put( void ) {
-	TCP_NODE *n = (TCP_NODE *) myalloc( sizeof(TCP_NODE), "node_put" );
+	TCP_NODE *n = (TCP_NODE *) myalloc( sizeof(TCP_NODE) );
 	ITEM *thisnode = NULL;
 
 	/* Address information */
@@ -109,7 +109,7 @@ ITEM *node_put( void ) {
 	mutex_unblock( _main->work->tcp_node );
 
 	if( thisnode == NULL ) {
-		myfree( n, "node_put" );
+		myfree( n );
 	}
 
 	return thisnode;
@@ -127,7 +127,7 @@ void node_shutdown( ITEM *thisnode ) {
 
 	/* Unlink node object */
 	mutex_block( _main->work->tcp_node );
-	myfree( thisnode->val, "node_shutdown" );
+	myfree( thisnode->val );
 	list_del( _main->node, thisnode );
 	mutex_unblock( _main->work->tcp_node );
 }

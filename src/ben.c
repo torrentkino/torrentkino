@@ -29,7 +29,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 
 BEN *ben_init( int type ) {
-	BEN *node = (BEN *) myalloc( sizeof(BEN), "ben_init" );
+	BEN *node = (BEN *) myalloc( sizeof(BEN) );
 
 	node->t = type;
 
@@ -59,7 +59,7 @@ void ben_free( BEN *node ) {
 	ben_free_r( node );
 
 	/* Delete the last node */
-	myfree( node, "ben_free" );
+	myfree( node );
 }
 
 void ben_free_r( BEN *node ) {
@@ -114,7 +114,7 @@ ITEM *ben_free_item( BEN *node, ITEM *item ) {
 	} else {
 		/* Remove ben object */
 		ben_free_r( item->val );
-		myfree( item->val, "ben_free_item" );
+		myfree( item->val );
 		item->val = NULL;
 	}
 	
@@ -122,7 +122,7 @@ ITEM *ben_free_item( BEN *node, ITEM *item ) {
 }
 
 RAW *raw_init( void ) {
-	RAW *raw = (RAW *) myalloc( sizeof(RAW), "raw_init" );
+	RAW *raw = (RAW *) myalloc( sizeof(RAW) );
 	raw->code = NULL;
 	raw->size = 0;
 	raw->p = NULL;
@@ -130,13 +130,13 @@ RAW *raw_init( void ) {
 }
 
 void raw_free( RAW *raw ) {
-	myfree( raw->code, "raw_free" );
-	myfree( raw, "raw_free" );
+	myfree( raw->code );
+	myfree( raw );
 }
  
 
 TUPLE *tuple_init( BEN *key, BEN *val ) {
-	TUPLE *tuple = (TUPLE *) myalloc( sizeof(TUPLE), "tuple_init" );
+	TUPLE *tuple = (TUPLE *) myalloc( sizeof(TUPLE) );
 	tuple->key = key;
 	tuple->val = val;
 	return tuple;
@@ -145,7 +145,7 @@ TUPLE *tuple_init( BEN *key, BEN *val ) {
 void tuple_free( TUPLE *tuple ) {
 	ben_free( tuple->key );
    	ben_free( tuple->val );
-	myfree( tuple, "tuple_item" );
+	myfree( tuple );
 }
 
 void ben_dict( BEN *node, BEN *key, BEN *val ) {
@@ -290,7 +290,7 @@ RAW *ben_enc( BEN *node ) {
 	}
 
 	/* Encode ben object */
-	raw->code = (UCHAR *) myalloc( (raw->size) * sizeof(UCHAR), "ben_enc" );
+	raw->code = (UCHAR *) myalloc( (raw->size) * sizeof(UCHAR) );
 	raw->p = ben_enc_rec( node,raw->code );
 	if( raw->p == NULL ||( long int)(raw->p-raw->code) != raw->size ) {
 		raw_free( raw );
@@ -474,10 +474,10 @@ BEN *ben_dec_s( RAW *raw ) {
 				raw->p++;
 				break;
 			case ':':
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_dec_s" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
 				memcpy( buf,start,i );
 				l = atol( (char *)buf );
-				myfree( buf, "ben_dec_s" );
+				myfree( buf );
 	
 				raw->p += 1;
 				ben_str( node, raw->p, l );
@@ -522,10 +522,10 @@ BEN *ben_dec_i( RAW *raw ) {
 				raw->p++;
 				break;
 			case 'e':
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_dec_i" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
 				memcpy( buf,start,i );
 				result = atol( (char *)buf );
-				myfree( buf, "ben_dec_i" );
+				myfree( buf );
 
 				raw->p++;
 				run = 0;
@@ -662,10 +662,10 @@ int ben_validate_s( RAW *raw ) {
 				if( i <= 0 || i > BEN_STR_MAXLEN )
 					return 0;
 
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_validate_s" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
 				memcpy( buf,start,i );
 				i = atol( (char *)buf );
-				myfree( buf, "ben_validate_s" );
+				myfree( buf );
 
 				/* i < 0 makes no sense */
 				if( i < 0 || i > BEN_STR_MAXSIZE )
@@ -722,10 +722,10 @@ int ben_validate_i( RAW *raw ) {
 				if( i <= 0 || i > BEN_INT_MAXLEN )
 					return 0;
 
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR), "ben_validate_i" );
+				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
 				memcpy( buf, start, i );
 				result = atol( (char *)buf );
-				myfree( buf, "ben_validate_i" );
+				myfree( buf );
 
 				if( result < 0 || result > BEN_INT_MAXSIZE )
 					return 0;
@@ -941,17 +941,17 @@ long int ben_str_size( BEN *node ) {
 //}
 
 STR *str_init( UCHAR *buf, long int size ) {
-	STR *str = (STR *) myalloc( sizeof(STR), "str_init" );
-	str->s = (UCHAR *) myalloc( (size+1) * sizeof(UCHAR), "str_init" );
+	STR *str = (STR *) myalloc( sizeof(STR) );
 
 	if( buf == NULL ) {
 		fail( "str_init() with NULL argument" );
 	}
 	
-	if( size <= 0 ) {
+	if( size < 0 ) {
 		fail( "str_init() with zero size" );
 	}
-	
+
+	str->s = myalloc( (size+1) * sizeof(UCHAR) );
 	memcpy( str->s, buf, size );
 	str->i = size;
 	
@@ -960,7 +960,7 @@ STR *str_init( UCHAR *buf, long int size ) {
 
 void str_free( STR *str ) {
 	if( str->s != NULL ) {
-		myfree( str->s, "str_free" );
+		myfree( str->s );
 	}
-	myfree( str, "str_free" );
+	myfree( str );
 }

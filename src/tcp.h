@@ -31,7 +31,6 @@ struct obj_tcp {
 	IP s_addr;
 	socklen_t s_addrlen;
 	int sockfd;
-	int optval;
 
 	/* Epoll */
 	int epollfd;

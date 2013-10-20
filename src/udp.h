@@ -20,9 +20,14 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef UDP_H
 #define UDP_H
 
-#include "main.h"
+#include "torrentkino.h"
+#include "p2p.h"
+#include "worker.h"
 
 #define UDP_BUF 1460
+
+#define UDP_JOIN_MCAST 0
+#define UDP_LEAVE_MCAST 1
 
 struct obj_udp {
 	/* Socket data */
@@ -36,8 +41,9 @@ struct obj_udp {
 	/* Listen to multicast address */
 	int multicast;
 };
+typedef struct obj_udp UDP;
 
-struct obj_udp *udp_init( void );
+UDP *udp_init( void );
 void udp_free( void );
 
 void udp_start( void );
@@ -54,6 +60,6 @@ void udp_rearm( int sockfd );
 void udp_input( int sockfd );
 void udp_cron( void );
 
-void udp_multicast( void );
+void udp_multicast( int mode );
 
 #endif

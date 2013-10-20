@@ -94,5 +94,6 @@ int p2p_packet_from_myself( UCHAR *node_id );
 int p2p_is_hash( BEN *node );
 int p2p_is_ip( BEN *node );
 int p2p_is_port( BEN *node );
+UCHAR *p2p_merge_sin( IP *sin, UCHAR *p );
 
 #endif

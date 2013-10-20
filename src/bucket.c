@@ -17,28 +17,14 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
 #include <string.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/time.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <pthread.h>
 #include <signal.h>
-#include <netdb.h>
-#include <sys/epoll.h>
 
-#include "main.h"
 #include "bucket.h"
 
 LIST *bckt_init( void ) {
-	BUCK *b = (BUCK *) myalloc( sizeof(BUCK), "bckt_init" );
+	BUCK *b = (BUCK *) myalloc( sizeof(BUCK) );
 	LIST *l = list_init();
 	
 	/* First bucket */
@@ -223,7 +209,7 @@ int bckt_split( LIST *thislist, const UCHAR *target ) {
 	}
 	
 	/* Create new bucket */
-	b_new = (BUCK *) myalloc( sizeof(BUCK), "split_bucket" );
+	b_new = (BUCK *) myalloc( sizeof(BUCK) );
 	memcpy( b_new->id, id_new, SHA1_SIZE );
 	b_new->nodes = list_init();
 	
@@ -404,18 +390,18 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 		sin = (IP*)&n->c_addr;
 
 		/* Node ID */
-		memcpy( p, n->id, SHA1_SIZE );
-		p += SHA1_SIZE;
+		memcpy( p, n->id, SHA1_SIZE ); p += SHA1_SIZE;
 
-		/* IP */
-		memcpy( p, (UCHAR *)&sin->sin6_addr, 16 );
-		p += 16;
+		/* IP + Port */
+#ifdef IPV6
+		memcpy( p, (UCHAR *)&sin->sin6_addr, IP_SIZE ); p += IP_SIZE;
+		memcpy( p, (UCHAR *)&sin->sin6_port, 2 ); p += 2;
+#elif IPV4
+		memcpy( p, (UCHAR *)&sin->sin_addr, IP_SIZE ); p += IP_SIZE;
+		memcpy( p, (UCHAR *)&sin->sin_port, 2 ); p += 2;
+#endif
 
-		/* Port */
-		memcpy( p, (UCHAR *)&sin->sin6_port, 2 );
-		p += 2;
-
-		size += 38;
+		size += IP_SIZE_META_TRIPLE;
 
 		item = list_next( item );
 		j++;

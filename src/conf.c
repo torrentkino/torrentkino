@@ -43,7 +43,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "conf.h"
 
 struct obj_conf *conf_init( int argc, char **argv ) {
-	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf), "conf_init" );
+	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf) );
 	BEN *opts = opts_init();
 	BEN *value = NULL;
 
@@ -97,13 +97,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf_home( conf, opts );
 
 #ifdef TUMBLEWEED
-	/* IPv6 only */
-	if( ben_searchDictStr( opts, "-6" ) != NULL ) {
-		conf->ipv6_only = TRUE;
-	} else {
-		conf->ipv6_only = FALSE;
-	}
-
 	/* HTML index */
 	value = ben_searchDictStr( opts, "-i" );
 	if( value != NULL && ben_str_size( value ) >= 1 ) {
@@ -145,7 +138,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		fail( "Invalid announce port number. (-a)" );
 	}
 
-	snprintf( conf->file, BUF_SIZE, "%s/.torrentkino.conf", conf->home );
+	snprintf( conf->file, BUF_SIZE, "%s/%s", conf->home, CONF_FILE );
 
 	/* Node ID */
 	value = ben_searchDictStr( opts, "-n" );
@@ -160,9 +153,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	/* Bootstrap node */
 	value = ben_searchDictStr( opts, "-x" );
 	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		strncpy( conf->bootstrap_node, (char *)value->v.s->s, BUF_OFF1 );
+		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", (char *)value->v.s->s );
 	} else {
-		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", CONF_BOOTSTRAP_NODE );
+		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", CONF_MULTICAST );
 	}
 
 	/* Bootstrap port */
@@ -196,7 +189,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 }
 
 void conf_free( void ) {
-	myfree( _main->conf, "conf_free" );
+	myfree( _main->conf );
 }
 
 void conf_home( struct obj_conf *conf, BEN *opts ) {
@@ -269,7 +262,7 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 
 	snprintf( conf->hostname, BUF_SIZE, "%s.p2p", f );
 
-	myfree( f, "conf_hostname" );
+	myfree( f );
 }
 
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
@@ -296,7 +289,7 @@ void conf_print( void ) {
 	char hex[HEX_LEN];
 #endif
 
-	info( NULL, 0, "CPU Cores: %i", _main->conf->cores );
+	info( NULL, 0, "Threads: %i", _main->conf->cores );
 	
 	if( _main->conf->mode == CONF_CONSOLE ) {
 		info( NULL, 0, "Mode: Console (-d)" );
@@ -366,6 +359,17 @@ void conf_write( void ) {
 	ben_int( val, _main->conf->port );
 	ben_dict( dict, key, val );
 
+	/* IP mode */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_INT );
+	ben_str( key, (UCHAR *)"ip_version", 10 );
+#ifdef IPV6
+	ben_int( val, 6 );
+#elif IPV4
+	ben_int( val, 4 );
+#endif
+	ben_dict( dict, key, val );
+
 	raw = ben_enc( dict );
 
 	if( !file_write( _main->conf->file, (char *)raw->code, raw->size ) ) {
@@ -376,3 +380,11 @@ void conf_write( void ) {
 	ben_free( dict );
 }
 #endif
+
+int conf_verbosity( void ) {
+	return _main->conf->verbosity;
+}
+
+int conf_mode( void ) {
+	return _main->conf->mode;
+}

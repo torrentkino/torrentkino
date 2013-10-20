@@ -54,7 +54,7 @@ struct obj_main *_main = NULL;
 int status = RUMBLE;
 
 struct obj_main *main_init( int argc, char **argv ) {
-	struct obj_main *_main = (struct obj_main *) myalloc( sizeof(struct obj_main), "main_init" );
+	struct obj_main *_main = (struct obj_main *) myalloc( sizeof(struct obj_main) );
 
 	_main->argv = argv;
 	_main->argc = argc;
@@ -82,7 +82,7 @@ struct obj_main *main_init( int argc, char **argv ) {
 }
 
 void main_free( void ) {
-	myfree( _main, "main_free" );
+	myfree( _main );
 }
 
 int main( int argc, char **argv ) {

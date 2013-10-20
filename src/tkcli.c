@@ -23,132 +23,73 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 
 #include "tkcli.h"
-#include "malloc.h"
-#include "file.h"
-#include "ben.h"
 
 int torrentkino_lookup( const char *hostname, int size ) {
-	IP sa;
-	socklen_t salen = sizeof( IP );
 	UCHAR buffer[BUF_SIZE];
-	int sockfd = -1;
-	int n = 0;
-	struct timeval tv;
+	int n = 0, j = 0;
 	UCHAR *p = NULL;
-	int j = 0;
-	IP sin;
-	char ip_buf[INET6_ADDRSTRLEN+1];
+	BEN *conf = NULL;
+	struct sockaddr_in6 sin6;
+	struct sockaddr_in sin;
+	int pair_size = 0;
 	int port = 0;
+	int mode = 0;
 
 	/* Load port from config file */
-	port = torrentkino_port();
-
-	memset( &sa, '\0', salen );
-	memset( buffer, '\0', BUF_SIZE );
-
-	/* Setup UDP */
-	sockfd = socket( AF_INET6, SOCK_DGRAM, 0 );
-	if( sockfd < 0 ) {
-		return 0;
+	if( ( conf = _nss_tk_conf() ) == NULL ) {
+		fail( "Loading configuration failed" );
 	}
-
-	/* Set receive timeout */
-	tv.tv_sec = TIMEOUT;
-	tv.tv_usec = 0;
-	setsockopt( sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof( struct timeval ) );
-
-	/* Setup IPv6 */
-	sa.sin6_family = AF_INET6;
-	sa.sin6_port = htons( port );
-	if( !inet_pton( AF_INET6, "::1", &(sa.sin6_addr)) ) {
-		return 0;
+	port = _nss_tk_port( conf );
+	if( port == -1 ) {
+		fail( "Invalid port number" );
 	}
-
-	n = sendto( sockfd, hostname, size, 0, (struct sockaddr *)&sa, salen );
-	if( n != size ) {
-		return 0;
+	mode = _nss_tk_mode( conf );
+	if( mode == -1 ) {
+		fail( "Invalid IP version" );
 	}
+	ben_free( conf );
 
-	n = recvfrom( sockfd, buffer, BUF_OFF1, 0, (struct sockaddr *)&sa, &salen );
-	if( n % 18 != 0 ) {
-		return 0;
+	n = _nss_tk_connect( hostname, size, buffer, BUF_SIZE, port, mode );
+	if( n == 0 ) {
+		fail( "Talking to the daemon failed" );
+	}
+	
+	/* IPv6: 16+2 byte */
+	/* IPv4:  4+2 byte */
+	pair_size = ( mode == 6 ) ? 18 : 6;
+
+	if( n % pair_size != 0 ) {
+		fail( "Broken data from server" );
 	}
 
 	p = buffer;
-	for( j=0; j<n; j+=18 ) {
-		memset( &sin, '\0', sizeof(IP) );
-		sin.sin6_family = AF_INET6;
-
-		/* IP */
-		memcpy( &sin.sin6_addr, p, 16 );
-		p += 16;
-
-		/* Port */
-		memcpy( &sin.sin6_port, p, 2 );
-		p += 2;
-
-		printf("%s %i\n", inet_ntop( AF_INET6, &sin.sin6_addr, ip_buf,
-			INET6_ADDRSTRLEN), ntohs(sin.sin6_port) );
+	for( j=0; j<n; j+=pair_size ) {
+		if( mode == 6 ) {
+			p = _nss_tk_convert_to_sin6( &sin6, p );
+			torrenkino_print6( &sin6 );
+		} else {
+			p = _nss_tk_convert_to_sin( &sin, p );
+			torrenkino_print( &sin );
+		}
 	}
 
 	return 1;
 }
 
-int torrentkino_port( void ) {
-	char filename[BUF_SIZE];
-	int filesize = 0;
-	UCHAR *fbuf = NULL;
-	BEN *ben = NULL;
-	BEN *port = NULL;
-	int port_number = 0;
+void torrenkino_print6( struct sockaddr_in6 *sin ) {
+	char ip_buf[INET6_ADDRSTRLEN+1];
+	memset( ip_buf, '\0', INET6_ADDRSTRLEN+1);
+	printf("%s %i\n", 
+			inet_ntop( AF_INET6, &sin->sin6_addr, ip_buf, INET6_ADDRSTRLEN ),
+			ntohs( sin->sin6_port ) );
+}
 
-	if( ( getenv( "HOME")) == NULL ) {
-		fail("Looking up $HOME failed");
-	}
-
-	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), ".torrentkino.conf" );
-
-	if( !file_isreg( filename ) ) {
-		fail("%s not found", filename );
-	}
-
-	filesize = file_size( filename );
-	if( filesize <= 0 ) {
-		fail("Config file %s is empty", filename );
-	}
-
-	if( ( fbuf = (UCHAR *) file_load( filename, 0, filesize ) ) == NULL ) {
-		fail("Reading %s failed", filename );
-	}
-
-	if( !ben_validate( fbuf, filesize ) ) {
-		fail( "Broken config in %s", filename );
-	}
-
-	/* Parse request */
-	ben = ben_dec( fbuf, filesize );
-	if( ben == NULL ) {
-		fail( "Decoding %s failed", filename );
-	}
-	if( ben->t != BEN_DICT ) {
-		fail( "%s does not contain a dictionary", filename );
-	}
-
-	port = ben_searchDictStr( ben, "port" );
-	if( !ben_is_int( port ) ) {
-		fail( "%s does not contain a port number" );
-	}
-
-	if( port->v.i < 1 || port->v.i > 65535 ) {
-		fail( "%s contains an invalid port number" );
-	}
-
-	port_number = port->v.i;
-
-	ben_free( ben );
-	myfree( fbuf, "torrentkino_port" );
-
-	return port_number;
+void torrenkino_print( struct sockaddr_in *sin ) {
+	char ip_buf[INET_ADDRSTRLEN+1];
+	memset( ip_buf, '\0', INET_ADDRSTRLEN+1);
+	printf("%s %i\n", 
+			inet_ntop( AF_INET, &sin->sin_addr, ip_buf, INET_ADDRSTRLEN ), 
+			ntohs( sin->sin_port ) );
 }
 
 int main( int argc, char **argv ) {
@@ -166,6 +107,6 @@ int main( int argc, char **argv ) {
 	if( ! torrentkino_lookup( argv[1], strlen( argv[1] ) ) ) {
 		fail( "Looking up %s failed", argv[1]);
 	}
-	
+
 	return 0;
 }

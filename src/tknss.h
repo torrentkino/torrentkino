@@ -23,34 +23,36 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define _public_ __attribute__( ( visibility( "default")))
 #define _hidden_ __attribute__( ( visibility( "hidden")))
 
-enum nss_status _nss_torrentkino_gethostbyname_r( const char *hostname, struct hostent *host,
+#include "tksrc.h"
+
+enum nss_status _nss_tk_gethostbyname_r( const char *hostname, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop) _public_;
 
-enum nss_status _nss_torrentkino_gethostbyname2_r( const char *hostname, int af, struct hostent *host,
+enum nss_status _nss_tk_gethostbyname2_r( const char *hostname, int af, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop) _public_;
 
-enum nss_status _nss_torrentkino_gethostbyname3_r( const char *hostname, int af, struct hostent *host,
+enum nss_status _nss_tk_gethostbyname3_r( const char *hostname, int af, struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp) _public_;
 
-enum nss_status _nss_torrentkino_gethostbyname4_r( const char *hostname, struct gaih_addrtuple **pat,
+enum nss_status _nss_tk_gethostbyname4_r( const char *hostname, struct gaih_addrtuple **pat,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp) _public_;
 
-enum nss_status _nss_torrentkino_hostent( const char *hostname, int size, int af,
+enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
 		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp );
 
-enum nss_status _nss_torrentkino_gaih_tuple( const char *hostname, int size, struct
+enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 		gaih_addrtuple **pat, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp );
 
-int _nss_torrentkino_valid_tld( const char *hostname, int size );
-int _nss_torrentkino_valid_hostname( const char *hostname, int size );
+int _nss_tk_valid_tld( const char *hostname, int hostsize );
+int _nss_tk_valid_hostname( const char *hostname, int hostsize );
 
-int _nss_torrentkino_lookup( const char *hostname, int size, UCHAR *address, int port );
-int _nss_torrentkino_port( void );
+int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
+		int address_size, int port, int mode );
 
 #endif

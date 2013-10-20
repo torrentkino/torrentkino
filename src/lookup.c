@@ -38,7 +38,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "hex.h"
 
 LOOKUP *ldb_init( UCHAR *target, IP *from ) {
-	LOOKUP *l = (LOOKUP *) myalloc( sizeof(LOOKUP), "ldb_init" );
+	LOOKUP *l = (LOOKUP *) myalloc( sizeof(LOOKUP) );
 
 	memcpy( l->target, target, SHA1_SIZE );
 	
@@ -63,7 +63,7 @@ void ldb_free( LOOKUP *l ) {
 	hash_free( l->hash );
 	list_clear( l->list );
 	list_free( l->list );
-	myfree( l, "ldb_free" );
+	myfree( l );
 }
 
 void ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
@@ -76,7 +76,7 @@ void ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 		return;
 	}
 
-	new = (LNODE *) myalloc( sizeof( LNODE ), "ldb_put" );
+	new = (LNODE *) myalloc( sizeof( LNODE ) );
 	memcpy( new->id, node_id, SHA1_SIZE );
 	memcpy( &new->c_addr, from, sizeof( IP ) );
 	memset( new->token, '\0', TOKEN_SIZE_MAX );

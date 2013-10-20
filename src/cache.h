@@ -35,7 +35,7 @@ struct obj_cache {
 
 struct obj_cache_entry {
 	UCHAR target[SHA1_SIZE];
-	UCHAR nodes_compact_list[144]; /* 8*(16+2) */
+	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
 	int nodes_compact_size;
 	
 	time_t lifetime;

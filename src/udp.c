@@ -17,99 +17,94 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 #include <pthread.h>
-#include <signal.h>
 #include <sys/epoll.h>
-#include <sys/resource.h>
+#include <signal.h>
 #include <netdb.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
 
-#include "malloc.h"
-#include "thrd.h"
-#include "torrentkino.h"
-#include "str.h"
-#include "list.h"
-#include "log.h"
-#include "conf.h"
-#include "file.h"
-#include "hash.h"
 #include "udp.h"
-#include "unix.h"
-#include "token.h"
-#include "neighbourhood.h"
-#include "lookup.h"
-#include "transaction.h"
-#include "p2p.h"
-#include "bucket.h"
-#include "time.h"
-#include "worker.h"
 
-struct obj_udp *udp_init( void ) {
-	struct obj_udp *udp = (struct obj_udp *) myalloc( sizeof(struct obj_udp), "udp_init" );
+UDP *udp_init( void ) {
+	UDP *udp = ( UDP * ) myalloc( sizeof( UDP ) );
 
 	/* Init server structure */
-	udp->s_addrlen = sizeof(IP );
-	memset( (char *) &udp->s_addr, '\0', udp->s_addrlen );
+	udp->s_addrlen = sizeof( IP );
+	memset( ( char * ) &udp->s_addr, '\0', udp->s_addrlen );
 	udp->sockfd = -1;
 
-	/* Listen to multicast */
-	udp->multicast = 0;
+	/* Multicast listener state */
+	udp->multicast = FALSE;
 
 	return udp;
 }
 
 void udp_free( void ) {
-	myfree( _main->udp, "udp_free" );
+	myfree( _main->udp );
 }
 
 void udp_start( void ) {
+#ifdef IPV6
 	int optval = 1;
+#endif
 
-	if( ( _main->udp->sockfd = socket( PF_INET6, SOCK_DGRAM, 0)) < 0 ) {
+#ifdef IPV6
+	if( ( _main->udp->sockfd = socket( PF_INET6, SOCK_DGRAM, 0 ) ) < 0 ) {
 		fail( "Creating socket failed." );
 	}
-	_main->udp->s_addr.sin6_family = AF_INET6;
+	_main->udp->s_addr.sin6_family = IP_FAMILY;
 	_main->udp->s_addr.sin6_port = htons( _main->conf->port );
 	_main->udp->s_addr.sin6_addr = in6addr_any;
+#elif IPV4
+	if( ( _main->udp->sockfd = socket( PF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
+		fail( "Creating socket failed." );
+	}
+	_main->udp->s_addr.sin_family = IP_FAMILY;
+	_main->udp->s_addr.sin_port = htons( _main->conf->port );
+	_main->udp->s_addr.sin_addr.s_addr = htonl( INADDR_ANY );
+#endif
 
-	/* Listen to ff0e::1 */
-	udp_multicast();
+	/* Start multicast */
+	udp_multicast( UDP_JOIN_MCAST );
 
-	/* Listen to IPv6 only */
-	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(int)) == -1 ) {
+#ifdef IPV6
+	/* Disable IPv4 */
+	if( setsockopt( _main->udp->sockfd, 
+		IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int ) ) == -1 ) {
 		fail( "Setting IPV6_V6ONLY failed" );
 	}
+#endif
 
-	if( bind( _main->udp->sockfd,( struct sockaddr *) &_main->udp->s_addr, _main->udp->s_addrlen) ) {
+	if( bind( _main->udp->sockfd,
+		( struct sockaddr * ) &_main->udp->s_addr, _main->udp->s_addrlen ) ) {
 		fail( "bind() to socket failed." );
 	}
 
-	if( udp_nonblocking( _main->udp->sockfd) < 0 ) {
-		fail( "udp_nonblocking( _main->udp->sockfd) failed" );
+	if( udp_nonblocking( _main->udp->sockfd ) < 0 ) {
+		fail( "udp_nonblocking( _main->udp->sockfd ) failed" );
 	}
-	
+
 	/* Setup epoll */
 	udp_event();
 }
 
 void udp_stop( void ) {
+	
+	/* Stop multicast */
+	udp_multicast( UDP_LEAVE_MCAST );
+	
 	/* Close socket */
-	if( close( _main->udp->sockfd) != 0 ) {
+	if( close( _main->udp->sockfd ) != 0 ) {
 		fail( "close() failed." );
 	}
 
 	/* Close epoll */
-	if( close( _main->udp->epollfd) != 0 ) {
+	if( close( _main->udp->epollfd ) != 0 ) {
 		fail( "close() failed." );
 	}
 }
@@ -117,17 +112,17 @@ void udp_stop( void ) {
 void udp_event( void ) {
 	struct epoll_event ev;
 
-
 	_main->udp->epollfd = epoll_create( 23 );
 	if( _main->udp->epollfd == -1 ) {
 		fail( "epoll_create() failed" );
 	}
 
-	memset(&ev, '\0', sizeof( struct epoll_event ) );
+	memset( &ev, '\0', sizeof( struct epoll_event ) );
 	ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
 	ev.data.fd = _main->udp->sockfd;
-	
-	if( epoll_ctl( _main->udp->epollfd, EPOLL_CTL_ADD, _main->udp->sockfd, &ev) == -1 ) {
+
+	if( epoll_ctl( _main->udp->epollfd, EPOLL_CTL_ADD, _main->udp->sockfd,
+		&ev ) == -1 ) {
 		fail( "udp_event: epoll_ctl() failed" );
 	}
 }
@@ -136,16 +131,18 @@ void *udp_thread( void *arg ) {
 	struct epoll_event events[CONF_EPOLL_MAX_EVENTS];
 	int nfds;
 	int id = 0;
-	
+
 	mutex_block( _main->work->mutex );
 	id = _main->work->id++;
 	mutex_unblock( _main->work->mutex );
-	
-	info( NULL, 0, "UDP Thread[%i] - Max events: %i", id, CONF_EPOLL_MAX_EVENTS );
+
+	info( NULL, 0, "UDP Thread[%i] - Max events: %i", id,
+		CONF_EPOLL_MAX_EVENTS );
 
 	while( status == RUMBLE ) {
 
-		nfds = epoll_wait( _main->udp->epollfd, events, CONF_EPOLL_MAX_EVENTS, CONF_EPOLL_WAIT );
+		nfds = epoll_wait( _main->udp->epollfd, events,
+			CONF_EPOLL_MAX_EVENTS, CONF_EPOLL_WAIT );
 
 		/* Shutdown server */
 		if( status != RUMBLE ) {
@@ -154,7 +151,8 @@ void *udp_thread( void *arg ) {
 
 		if( nfds == -1 ) {
 			if( errno != EINTR ) {
-				fail( "udp_thread: epoll_wait() failed / %s", strerror( errno ) );
+				fail( "udp_thread: epoll_wait() failed / %s",
+					strerror( errno ) );
 			}
 		} else if( nfds == 0 ) {
 			/* Timeout wakeup */
@@ -170,7 +168,7 @@ void *udp_thread( void *arg ) {
 }
 
 void *udp_client( void *arg ) {
-	
+
 	if( nbhd_is_empty() ) {
 		p2p_bootstrap();
 		time_add_1_min_approx( &_main->p2p->time_restart );
@@ -183,7 +181,7 @@ void udp_worker( struct epoll_event *events, int nfds ) {
 	int i;
 
 	for( i=0; i<nfds; i++ ) {
-		if( ( events[i].events & EPOLLIN) == EPOLLIN ) {
+		if( ( events[i].events & EPOLLIN ) == EPOLLIN ) {
 			udp_input( events[i].data.fd );
 			udp_rearm( events[i].data.fd );
 		} else {
@@ -195,11 +193,11 @@ void udp_worker( struct epoll_event *events, int nfds ) {
 void udp_rearm( int sockfd ) {
 	struct epoll_event ev;
 
-	memset(&ev, '\0', sizeof( struct epoll_event ) );
+	memset( &ev, '\0', sizeof( struct epoll_event ) );
 	ev.events = EPOLLET | EPOLLIN | EPOLLONESHOT;
 	ev.data.fd = sockfd;
 
-	if( epoll_ctl( _main->udp->epollfd, EPOLL_CTL_MOD, sockfd, &ev) == -1 ) {
+	if( epoll_ctl( _main->udp->epollfd, EPOLL_CTL_MOD, sockfd, &ev ) == -1 ) {
 		fail( "udp_rearm: epoll_ctl() failed / %s", strerror( errno ) );
 	}
 }
@@ -210,7 +208,7 @@ int udp_nonblocking( int sock ) {
 		return -1;
 	}
 	opts = opts|O_NONBLOCK;
-	if( fcntl( sock,F_SETFL,opts) < 0 ) {
+	if( fcntl( sock,F_SETFL,opts ) < 0 ) {
 		return -1;
 	}
 
@@ -221,24 +219,24 @@ void udp_input( int sockfd ) {
 	UCHAR buffer[UDP_BUF+1];
 	ssize_t bytes = 0;
 	IP c_addr;
-	socklen_t c_addrlen = sizeof(IP );
+	socklen_t c_addrlen = sizeof( IP );
 
 	while( status == RUMBLE ) {
 		memset( &c_addr, '\0', c_addrlen );
 		memset( buffer, '\0', UDP_BUF+1 );
 
 		bytes = recvfrom( sockfd, buffer, UDP_BUF, 0, 
-			(struct sockaddr*)&c_addr, &c_addrlen );
+			( struct sockaddr* )&c_addr, &c_addrlen );
 
 		if( bytes < 0 ) {
 			if( errno != EAGAIN && errno != EWOULDBLOCK ) {
-				info( NULL, 0, "UDP error while recvfrom" );
+				info( &c_addr, 0, "UDP error while recvfrom" );
 			}
 			return;
 		}
 
 		if( bytes == 0 ) {
-			info( NULL, 0, "UDP error 0 bytes" );
+			info( &c_addr, 0, "UDP error 0 bytes" );
 			return;
 		}
 
@@ -256,23 +254,58 @@ void udp_cron( void ) {
 	mutex_unblock( _main->work->mutex );
 }
 
-void udp_multicast( void ) {
-	struct addrinfo *multicast = NULL;
-	struct addrinfo hints;
+#ifdef IPV6
+void udp_multicast( int mode ) {
 	struct ipv6_mreq mreq;
+	int action = ( mode == UDP_JOIN_MCAST ) ? IPV6_JOIN_GROUP : IPV6_LEAVE_GROUP;
+	IP sin;
 
-	/* Listen to ff0e::1 */
-	memset( &hints, '\0', sizeof(hints) );
-	if( getaddrinfo( "ff0e::1", _main->conf->bootstrap_port, &hints, &multicast) != 0 ) {
-		fail( "getaddrinfo failed" );
+	memset( &sin, '\0', sizeof( IP ) );
+	sin.sin6_family = IP_FAMILY;
+	sin.sin6_port = htons( atoi( _main->conf->bootstrap_port ) );
+	if( !inet_pton( IP_FAMILY, _main->conf->bootstrap_node, &(sin.sin6_addr)) ) {
+		return;
 	}
-	memset( &mreq, '\0', sizeof(mreq) );
-	memcpy( &mreq.ipv6mr_multiaddr, &((IP *) multicast->ai_addr)->sin6_addr, sizeof(mreq.ipv6mr_multiaddr) );
+
+	memset( &mreq, '\0', sizeof( mreq ) );
+	memcpy( &mreq.ipv6mr_multiaddr,	&sin.sin6_addr,
+		sizeof(	mreq.ipv6mr_multiaddr ) );
 	mreq.ipv6mr_interface = 0;
-	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq)) == 0 ) {
-		_main->udp->multicast = 1;
-	} else {
-		info( NULL, 0, "Trying to register multicast address failed: I will retry it later." );
+
+	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, action,
+		&mreq, sizeof( mreq ) ) != 0 ) {
+		info( NULL, 0, "Joining multicast group failed: %s",
+			strerror( errno ) );
+		return;
 	}
-	freeaddrinfo( multicast );
+
+	_main->udp->multicast = ( mode == UDP_JOIN_MCAST ) ? TRUE : FALSE;
 }
+#elif IPV4
+void udp_multicast( int mode ) {
+	struct ip_mreq mreq;
+	int action = ( mode == UDP_JOIN_MCAST ) ? IP_ADD_MEMBERSHIP : IP_DROP_MEMBERSHIP;
+	IP sin;
+
+	memset( &sin, '\0', sizeof( IP ) );
+	sin.sin_family = IP_FAMILY;
+	sin.sin_port = htons( atoi( _main->conf->bootstrap_port ) );
+	if( !inet_pton( IP_FAMILY, _main->conf->bootstrap_node, &(sin.sin_addr)) ) {
+		return;
+	}
+
+	memset( &mreq, '\0', sizeof( mreq ) );
+	memcpy( &mreq.imr_multiaddr, &sin.sin_addr,
+		sizeof( mreq.imr_multiaddr ) );
+	mreq.imr_interface.s_addr = INADDR_ANY;
+
+	if( setsockopt( _main->udp->sockfd, IPPROTO_IP, action,
+		&mreq, sizeof( mreq ) ) != 0 ) {
+		info( NULL, 0, "Joining multicast group failed: %s",
+			strerror( errno ) );
+		return;
+	}
+
+	_main->udp->multicast = ( mode == UDP_JOIN_MCAST ) ? TRUE : FALSE;
+}
+#endif

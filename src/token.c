@@ -39,7 +39,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "info_hash.h"
 
 struct obj_token *tkn_init( void ) {
-	struct obj_token *token = (struct obj_token *) myalloc( sizeof(struct obj_token), "tkn_init" );
+	struct obj_token *token = (struct obj_token *) myalloc( sizeof(struct obj_token) );
 	token->list = list_init();
 	token->hash = hash_init( 10 );
 	memset( token->null, '\0', TOKEN_SIZE );
@@ -50,14 +50,14 @@ void tkn_free( void ) {
 	list_clear( _main->token->list );
 	list_free( _main->token->list );
 	hash_free( _main->token->hash );
-	myfree( _main->token, "tkn_free" );
+	myfree( _main->token );
 }
 
 void tkn_put( void ) {
 	ITEM *item_tkn = NULL;
 	struct obj_tkn *tkn = NULL;
 
-	tkn = (struct obj_tkn *) myalloc( sizeof(struct obj_tkn), "tkn_put" );
+	tkn = (struct obj_tkn *) myalloc( sizeof(struct obj_tkn) );
 
 	/* ID */
 	tkn_create( tkn->id );
@@ -73,7 +73,7 @@ void tkn_del( ITEM *item_tkn ) {
 	struct obj_tkn *tkn = list_value( item_tkn );
 	hash_del( _main->token->hash, tkn->id, TOKEN_SIZE );
 	list_del( _main->token->list, item_tkn );
-	myfree( tkn, "tkn_del" );
+	myfree( tkn );
 }
 
 void tkn_expire( time_t now ) {

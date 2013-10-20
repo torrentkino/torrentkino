@@ -1,5 +1,5 @@
 /*
-Copyright 2006 Aiko Barz
+Copyright 2010 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,13 +17,21 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MALLOC_H
-#define MALLOC_H
+#ifndef TK_SHARE_H
+#define TK_SHARE_H
 
-#include "main.h"
+#include "ben.h"
+#include "malloc.h"
+#include "file.h"
 
-void *myalloc( long int size );
-void *myrealloc( void *arg, long int size );
-void myfree( void *arg );
+BEN *_nss_tk_conf( void );
+int _nss_tk_port( BEN *conf );
+int _nss_tk_mode( BEN *conf );
 
-#endif /* MALLOC_H */
+int _nss_tk_connect( const char *hostname, int hostsize, 
+	UCHAR *reply, int reply_size, int port, int mode );
+
+UCHAR *_nss_tk_convert_to_sin6( struct sockaddr_in6 *sin, UCHAR *p );
+UCHAR *_nss_tk_convert_to_sin( struct sockaddr_in *sin, UCHAR *p );
+
+#endif /* TK_SHARE_H */

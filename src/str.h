@@ -21,7 +21,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define STR_H
 
 #include "main.h"
-#include "conf.h"
 #include "fail.h"
 
 int str_isValidUTF8( char *string );

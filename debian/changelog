@@ -1,3 +1,10 @@
+torrentkino (0.11) unstable; urgency=low
+
+  * IPV4 support including NSS and multicast
+  * Leave multicast group at the end
+  * Only send an announce success when actually being successful. (Limits)
+
+ -- Aiko Barz <aiko@chroot.de>  Sun, 20 Oct 2013 23:06:00 +0100
 torrentkino (0.10) unstable; urgency=low
 
   * Renamed masala to torrentkino.

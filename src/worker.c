@@ -47,7 +47,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 struct obj_work *work_init( void ) {
-	struct obj_work *work = (struct obj_work *) myalloc( sizeof(struct obj_work), "work_init" );
+	struct obj_work *work = (struct obj_work *) myalloc( sizeof(struct obj_work) );
 	work->mutex = mutex_init();
 	work->threads = NULL;
 	work->id = 0;
@@ -67,7 +67,7 @@ void work_free( void ) {
 #ifdef TUMBLEWEED
 	mutex_destroy( _main->work->tcp_node );
 #endif
-	myfree( _main->work, "work_free" );
+	myfree( _main->work );
 }
 
 void work_start( void ) {
@@ -83,9 +83,9 @@ void work_start( void ) {
 
 #ifdef TUMBLEWEED
 	_main->work->threads = (pthread_t **) myalloc( 
-		_main->work->number_of_threads * sizeof(pthread_t *), "work_start" );
+		_main->work->number_of_threads * sizeof(pthread_t *) );
 	while( i < _main->work->number_of_threads ) {
-		_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t), "work_start" );
+		_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t) );
 		if( pthread_create( _main->work->threads[i], &_main->work->attr, tcp_thread, NULL ) != 0 ) {
 			fail( "pthread_create()" );
 		}
@@ -95,9 +95,9 @@ void work_start( void ) {
 
 #ifdef TORRENTKINO
 	_main->work->threads = (pthread_t **) myalloc( 
-		_main->work->number_of_threads * sizeof(pthread_t *), "work_start" );
+		_main->work->number_of_threads * sizeof(pthread_t *) );
 	while( i < _main->work->number_of_threads - 1 ) {
-		_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t), "work_start" );
+		_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t) );
 		if( pthread_create( _main->work->threads[i], &_main->work->attr, udp_thread, NULL ) != 0 ) {
 			fail( "pthread_create()" );
 		}
@@ -105,7 +105,7 @@ void work_start( void ) {
 	}
 
 	/* Send 1st request while the UDP worker is starting */
-	_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t), "work_start" );
+	_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t) );
 	if( pthread_create( _main->work->threads[i], &_main->work->attr, udp_client, NULL ) != 0 ) {
 		fail( "pthread_create()" );
 	}
@@ -122,7 +122,7 @@ void work_stop( void ) {
 		if( pthread_join( *_main->work->threads[i], NULL) != 0 ) {
 			fail( "pthread_join() failed" );
 		}
-		myfree( _main->work->threads[i], "work_stop" );
+		myfree( _main->work->threads[i] );
 	}
-	myfree( _main->work->threads, "work_stop" );
+	myfree( _main->work->threads );
 }

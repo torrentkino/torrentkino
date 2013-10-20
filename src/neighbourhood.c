@@ -56,7 +56,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 
 NBHD *nbhd_init( void ) {
-	NBHD *nbhd = (NBHD *) myalloc( sizeof(NBHD), "nbhd_init" );
+	NBHD *nbhd = (NBHD *) myalloc( sizeof(NBHD) );
 	nbhd->bucket = bckt_init();
 	nbhd->hash = hash_init( 4096 );
 	return nbhd;
@@ -65,7 +65,7 @@ NBHD *nbhd_init( void ) {
 void nbhd_free( void ) {
 	bckt_free( _main->nbhd->bucket );
 	hash_free( _main->nbhd->hash );
-	myfree( _main->nbhd, "nbhd_free" );
+	myfree( _main->nbhd );
 }
 
 void nbhd_put( UCHAR *id, IP *sa ) {

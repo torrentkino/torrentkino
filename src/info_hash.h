@@ -53,7 +53,7 @@ typedef struct obj_inode INODE;
 
 struct obj_idb *idb_init( void );
 void idb_free( void );
-void idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa );
+int idb_put( UCHAR *target_id, int port, UCHAR *node_id, IP *sa );
 void idb_clean( void );
 void idb_expire( time_t now );
 int idb_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id );

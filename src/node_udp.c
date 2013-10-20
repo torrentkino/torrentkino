@@ -56,7 +56,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 
 UDP_NODE *node_init( UCHAR *node_id, IP *sa ) {
-	UDP_NODE *n = (UDP_NODE *) myalloc( sizeof(UDP_NODE), "node_init" );
+	UDP_NODE *n = (UDP_NODE *) myalloc( sizeof(UDP_NODE) );
 		
 	/* ID */
 	memcpy( n->id, node_id, SHA1_SIZE );
@@ -73,7 +73,7 @@ UDP_NODE *node_init( UCHAR *node_id, IP *sa ) {
 }
 
 void node_free( UDP_NODE *n ) {
-	myfree( n, "node_free" );
+	myfree( n );
 }
 
 void node_update( UDP_NODE *n, IP *sa ) {
@@ -102,12 +102,23 @@ int node_equal( const UCHAR *node_a, const UCHAR *node_b ) {
 }
 
 int node_localhost( IP *from ) {
+#ifdef IPV6
 	const UCHAR localhost[] = 
 		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+#elif IPV4
+	const UCHAR localhost[] = 
+		{ 0x7f, 0, 0, 1 };
+#endif
 
-	if( memcmp(from->sin6_addr.s6_addr, localhost, 16) == 0 ) {
+#ifdef IPV6
+	if( memcmp( &from->sin6_addr.s6_addr, localhost, IP_SIZE ) == 0 ) {
 		return TRUE;
 	}
+#elif IPV4
+	if( memcmp( &from->sin_addr.s_addr, localhost, IP_SIZE ) == 0 ) {
+		return TRUE;
+	}
+#endif
 
 	return FALSE;
 }
@@ -130,12 +141,14 @@ int node_teredo( IP *from ) {
  * been reserved for link-local unicast addressing.[2] The actual link local
  * addresses are assigned with the prefix fe80::/64. */
 int node_linklocal( IP *from ) {
+#ifdef IPV6
 	const UCHAR linklocal[] = 
 		{ 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	if( memcmp(from->sin6_addr.s6_addr, linklocal, 8) == 0 ) {
 		return TRUE;
 	}
+#endif
 
 	return FALSE;
 }

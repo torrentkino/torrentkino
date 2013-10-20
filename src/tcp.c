@@ -51,25 +51,25 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "worker.h"
 
 struct obj_tcp *tcp_init( void ) {
-	struct obj_tcp *tcp = (struct obj_tcp *) myalloc( sizeof(struct obj_tcp), "tcp_init" );
+	struct obj_tcp *tcp = ( struct obj_tcp * ) myalloc( sizeof( struct obj_tcp ) );
 
 	/* Init server structure */
 	tcp->s_addrlen = sizeof( IP );
-	memset( (char *) &tcp->s_addr, '\0', tcp->s_addrlen );
+	memset( ( char * ) &tcp->s_addr, '\0', tcp->s_addrlen );
 	tcp->sockfd = -1;
-	tcp->optval = 1;
 
 	return tcp;
 }
 
 void tcp_free( void ) {
-	myfree( _main->tcp, "tcp_free" );
+	myfree( _main->tcp );
 }
 
 void tcp_start( void ) {
 	int listen_queue_length = SOMAXCONN * 8;
+	int optval = 1;
 
-	if( (_main->tcp->sockfd = socket( PF_INET6, SOCK_STREAM, 0)) < 0 ) {
+	if( ( _main->tcp->sockfd = socket( PF_INET6, SOCK_STREAM, 0 ) ) < 0 ) {
 		fail( "Creating socket failed." );
 	}
 	
@@ -77,26 +77,27 @@ void tcp_start( void ) {
 	_main->tcp->s_addr.sin6_port = htons( _main->conf->port );
 	_main->tcp->s_addr.sin6_addr = in6addr_any;
 	
-	if( setsockopt( _main->tcp->sockfd, SOL_SOCKET, SO_REUSEADDR, &_main->tcp->optval, sizeof(int)) == -1 ) {
+	if( setsockopt( _main->tcp->sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof( int ) ) == -1 ) {
 		fail( "Setting SO_REUSEADDR failed" );
 	}
 
-	if( _main->conf->ipv6_only == TRUE ) {
+	/* IP version */
+#if 0
 		info( NULL, 0, "IPv4 disabled" );
-		if( setsockopt( _main->tcp->sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &_main->tcp->optval, sizeof(int)) == -1 ) {
+		if( setsockopt( _main->tcp->sockfd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int ) ) == -1 ) {
 			fail( "Setting IPV6_V6ONLY failed" );
 		}
-	}
+#endif
 
-	if( bind( _main->tcp->sockfd, (struct sockaddr *) &_main->tcp->s_addr, _main->tcp->s_addrlen) ) {
+	if( bind( _main->tcp->sockfd, ( struct sockaddr * ) &_main->tcp->s_addr, _main->tcp->s_addrlen ) ) {
 		fail( "bind() to socket failed." );
 	}
 
-	if( tcp_nonblocking( _main->tcp->sockfd) < 0 ) {
-		fail( "tcp_nonblocking( _main->tcp->sockfd) failed" );
+	if( tcp_nonblocking( _main->tcp->sockfd ) < 0 ) {
+		fail( "tcp_nonblocking( _main->tcp->sockfd ) failed" );
 	}
 	
-	if( listen( _main->tcp->sockfd, listen_queue_length) ) {
+	if( listen( _main->tcp->sockfd, listen_queue_length ) ) {
 		fail( "listen() to socket failed." );
 	} else {
 		info( NULL, 0, "Listen queue length: %i", listen_queue_length );
@@ -108,16 +109,19 @@ void tcp_start( void ) {
 
 void tcp_stop( void ) {
 	/* Shutdown socket */
-	if( shutdown( _main->tcp->sockfd, SHUT_RDWR) != 0 )
+	if( shutdown( _main->tcp->sockfd, SHUT_RDWR ) != 0 ) {
 		fail( "shutdown() failed." );
+	}
 
 	/* Close socket */
-	if( close( _main->tcp->sockfd) != 0 )
+	if( close( _main->tcp->sockfd ) != 0 ) {
 		fail( "close() failed." );
+	}
 
 	/* Close epoll */
-	if( close( _main->tcp->epollfd) != 0 )
+	if( close( _main->tcp->epollfd ) != 0 ) {
 		fail( "close() failed." );
+	}
 }
 
 void tcp_event( void ) {
@@ -128,10 +132,10 @@ void tcp_event( void ) {
 		fail( "epoll_create() failed" );
 	}
 
-	memset(&ev, '\0', sizeof( struct epoll_event ) );
+	memset( &ev, '\0', sizeof( struct epoll_event ) );
 	ev.events = EPOLLIN | EPOLLET;
 	ev.data.fd = _main->tcp->sockfd;
-	if( epoll_ctl( _main->tcp->epollfd, EPOLL_CTL_ADD, _main->tcp->sockfd, &ev) == -1 ) {
+	if( epoll_ctl( _main->tcp->epollfd, EPOLL_CTL_ADD, _main->tcp->sockfd, &ev ) == -1 ) {
 		fail( "tcp_event: epoll_ctl() failed" );
 	}
 }
@@ -226,7 +230,7 @@ void tcp_rearm( ITEM *listItem, int mode ) {
 	TCP_NODE *n = list_value( listItem );
 	struct epoll_event ev;
 
-	memset(&ev, '\0', sizeof( struct epoll_event ) );
+	memset( &ev, '\0', sizeof( struct epoll_event ) );
 
 	if( mode == TCP_INPUT ) {
 		ev.events = EPOLLET | EPOLLIN | EPOLLONESHOT;
@@ -236,7 +240,7 @@ void tcp_rearm( ITEM *listItem, int mode ) {
 	
 	ev.data.ptr = listItem;
 
-	if( epoll_ctl( _main->tcp->epollfd, EPOLL_CTL_MOD, n->connfd, &ev) == -1 ) {
+	if( epoll_ctl( _main->tcp->epollfd, EPOLL_CTL_MOD, n->connfd, &ev ) == -1 ) {
 		info( NULL, 500, strerror( errno ) );
 		fail( "tcp_rearm: epoll_ctl() failed" );
 	}
@@ -248,7 +252,7 @@ int tcp_nonblocking( int sock ) {
 		return -1;
 	}
 	opts = opts|O_NONBLOCK;
-	if( fcntl( sock,F_SETFL,opts) < 0 ) {
+	if( fcntl( sock,F_SETFL,opts ) < 0 ) {
 		return -1;
 	}
 
@@ -265,20 +269,20 @@ void tcp_newconn( void ) {
 
 	for( ;; ) {
 		/* Prepare incoming connection */
-		memset( (char *) &c_addr, '\0', c_addrlen );
+		memset( ( char * ) &c_addr, '\0', c_addrlen );
 
 		/* Accept */
-		connfd = accept( _main->tcp->sockfd, (struct sockaddr *) &c_addr, &c_addrlen );
+		connfd = accept( _main->tcp->sockfd, ( struct sockaddr * ) &c_addr, &c_addrlen );
 		if( connfd < 0 ) {
 			if( errno == EAGAIN || errno == EWOULDBLOCK ) {
 				break;
 			} else {
-				fail( strerror( errno) );
+				fail( strerror( errno ) );
 			}
 		}
 
 		/* New connection: Create node object */
-		if( (listItem = node_put()) == NULL ) {
+		if( ( listItem = node_put() ) == NULL ) {
 			info( NULL, 500, "The linked list reached its limits" );
 			node_disconnect( connfd );
 			break;
@@ -291,15 +295,15 @@ void tcp_newconn( void ) {
 		n->c_addrlen = c_addrlen;
 
 		/* Non blocking */
-		if( tcp_nonblocking( n->connfd) < 0 ) {
+		if( tcp_nonblocking( n->connfd ) < 0 ) {
 			fail( "tcp_nonblocking() failed" );
 		}
 
 		ev.events = EPOLLET | EPOLLIN | EPOLLONESHOT;
 		ev.data.ptr = listItem;
-		if( epoll_ctl( _main->tcp->epollfd, EPOLL_CTL_ADD, n->connfd, &ev) == -1 ) {
+		if( epoll_ctl( _main->tcp->epollfd, EPOLL_CTL_ADD, n->connfd, &ev ) == -1 ) {
 			info( NULL, 500, strerror( errno ) );
-			fail( "tcp_newconn: epoll_ctl() failed" );
+			fail( "tcp_newconn: epoll_ctl( ) failed" );
 		}
 	}
 }

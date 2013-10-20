@@ -37,5 +37,5 @@ void rand_urandom( void *buffer, size_t size ) {
 
 	memcpy( buffer, random, size );
 
-	myfree( random, "rand_urandom" );
+	myfree( random );
 }
