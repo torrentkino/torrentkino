@@ -1,7 +1,8 @@
-torrentkino/torrentkino
+torrentkino4/torrentkino4
+torrentkino6/torrentkino6
 tumbleweed/tumbleweed
 tkcli/tk
-tknss/libnss_torrentkino.so.2
+tknss/libnss_tk.so.2
 debian/torrentkino/
 debian/torrentkino.debhelper.log
 debian/substvars
