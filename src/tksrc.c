@@ -34,10 +34,15 @@ BEN *_nss_tk_conf( void ) {
 		goto end;
 	}
 
-	snprintf( filename, BUF_SIZE, "%s/%s", getenv( "HOME" ), CONF_FILE );
-
+	/* 1st: $HOME/.torrentkino.conf */
+	snprintf( filename, BUF_SIZE, "%s/.%s", getenv( "HOME" ), CONF_FILE );
 	if( !file_isreg( filename ) ) {
-		goto end;
+
+		/* 2nd: /etc/torrentkino.conf */
+		snprintf( filename, BUF_SIZE, "/etc/%s", CONF_FILE );
+		if( !file_isreg( filename ) ) {
+			goto end;
+		}
 	}
 
 	filesize = file_size( filename );
@@ -146,6 +151,10 @@ int _nss_tk_connect( const char *hostname, int hostsize,
 
 	n = recvfrom( sockfd, buffer, bufsize-1, 0,
 			(struct sockaddr *)&sa6, &sin_size );
+
+	if( n < 0 ) {
+		return 0;
+	}
 
 	return n;
 }

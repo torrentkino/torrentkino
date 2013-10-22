@@ -35,6 +35,8 @@ struct obj_lookup {
 	/* Caller */
 	IP c_addr;
 	int send_reply;
+
+	int size;
 };
 typedef struct obj_lookup LOOKUP;
 
@@ -49,7 +51,7 @@ typedef struct obj_lnode LNODE;
 LOOKUP *ldb_init( UCHAR *target, IP *from );
 void ldb_free( LOOKUP *l );
 
-void ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );
+ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );
 
 LNODE *ldb_find( LOOKUP *l, UCHAR *node_id );
 void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from );

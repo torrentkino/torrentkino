@@ -7,7 +7,7 @@
 \fBtorrentkino\fR \- P2P resolver
 .
 .SH "SYNOPSIS"
-\fBtorrentkino\fR [\-d] [\-q] [\-h hostname] [\-r realm] [\-p port] [\-x server] [\-y port] [\-u username]
+\fBtorrentkino\fR [\-d] [\-q] [\-h hostname] [\-r realm] [\-p port] [\-x server] [\-y port]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -32,7 +32,11 @@ Torrentkino gets attached to the \fIhosts\fR line\. The torrentkino daemon is on
 .
 .TP
 \fB$HOME/\.torrentkino\.conf\fR
-This file gets written by the Torrentkino daemon and contains the server port number\. The NSS and CLI program read this file to get knowledge about the current daemon port\.
+This file gets written by the Torrentkino daemon and contains the server port number and some other hints\. These hints get used by \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program\.
+.
+.TP
+\fB/etc/torrentkino\.conf\fR
+This file gets written by the Torrentkino daemon when started as root\. \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program use this file if \fB$HOME/\.torrentkino\.conf\fR does not exist\.
 .
 .SH "OPTIONS"
 .
@@ -63,10 +67,6 @@ Use server as a bootstrap server\. The server can be an IPv6 address, a FQHN lik
 .TP
 \fB\-y\fR \fIport\fR
 The bootstrap server will be addressed at this port\. (Default: UDP/6881)
-.
-.TP
-\fB\-u\fR \fIusername\fR
-When starting as root, use \-u to change the UID\.
 .
 .TP
 \fB\-d\fR

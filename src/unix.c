@@ -35,14 +35,14 @@ void unix_signal( struct sigaction *sig_stop, struct sigaction *sig_time ) {
 	/* STRG+C aka SIGINT => Stop the program */
 	sig_stop->sa_handler = unix_sig_stop;
 	sig_stop->sa_flags = 0;
-	if( ( sigemptyset( &sig_stop->sa_mask ) == -1) ||( sigaction( SIGINT, sig_stop, NULL ) != 0) ) {
+	if( ( sigemptyset( &sig_stop->sa_mask ) == -1 ) ||( sigaction( SIGINT, sig_stop, NULL ) != 0 ) ) {
 		fail( "Failed to set SIGINT to handle Ctrl-C" );
 	}
 
 	/* ALARM */
 	sig_time->sa_handler = unix_sig_time;
 	sig_time->sa_flags = 0;
-	if( ( sigemptyset( &sig_time->sa_mask ) == -1) ||( sigaction( SIGALRM, sig_time, NULL ) != 0) ) {
+	if( ( sigemptyset( &sig_time->sa_mask ) == -1 ) ||( sigaction( SIGALRM, sig_time, NULL ) != 0 ) ) {
 		fail( "Failed to set SIGALRM to handle Timeouts" );
 	}
 
@@ -74,7 +74,7 @@ void unix_fork( void ) {
 
 	/* Become session leader */
 	setsid();
-	
+
 	/* Clear out the file mode creation mask */
 	umask( 0 );
 }
@@ -82,8 +82,8 @@ void unix_fork( void ) {
 void unix_limits( int cores, int max_events ) {
 	struct rlimit rl;
 	int guess = 2 * max_events * cores + 50;
-	int limit = (guess < 4096) ? 4096 : guess; /* RLIM_INFINITY; */
-	
+	int limit = (guess < 4096 ) ? 4096 : guess; /* RLIM_INFINITY; */
+
 	if( getuid() != 0 ) {
 		return;
 	}
@@ -91,14 +91,14 @@ void unix_limits( int cores, int max_events ) {
 	rl.rlim_cur = limit;
 	rl.rlim_max = limit;
 
-	if( setrlimit( RLIMIT_NOFILE, &rl) == -1 ) {
-		fail( strerror( errno) );
+	if( setrlimit( RLIMIT_NOFILE, &rl ) == -1 ) {
+		fail( strerror( errno ) );
 	}
 
 	info( NULL, 0, "Max open files: %i", limit );
 }
 
-void unix_dropuid0( char *username ) {
+void unix_dropuid0( void ) {
 	struct passwd *pw = NULL;
 	
 	if( getuid() != 0 ) {
@@ -106,28 +106,28 @@ void unix_dropuid0( char *username ) {
 	}
 
 	/* Process is running as root, drop privileges */
-	if( ( pw = getpwnam( username ) ) == NULL ) {
-		fail( "Dropping uid 0 failed. Use \"-u\" to set a valid username." );
+	if( ( pw = getpwnam( CONF_USERNAME ) ) == NULL ) {
+		fail( "Dropping uid 0 failed." );
 	}
-	if( setenv( "HOME", pw->pw_dir, 1) != 0 ) {
+	if( setenv( "HOME", pw->pw_dir, 1 ) != 0 ) {
 		fail( "setenv: Setting new $HOME failed." );
 	}
-	if( setgid( pw->pw_gid) != 0 ) {
+	if( setgid( pw->pw_gid ) != 0 ) {
 		fail( "setgid: Unable to drop group privileges" );
 	}
-	if( setuid( pw->pw_uid) != 0 ) {
+	if( setuid( pw->pw_uid ) != 0 ) {
 		fail( "setuid: Unable to drop user privileges" );
 	}
 
 	/* Test permissions */
-	if( setuid( 0) != -1 ) {
+	if( setuid( 0 ) != -1 ) {
 		fail( "ERROR: Managed to regain root privileges?" );
 	}
-	if( setgid( 0) != -1 ) {
+	if( setgid( 0 ) != -1 ) {
 		fail( "ERROR: Managed to regain root privileges?" );
 	}
 
-	info( NULL, 0, "uid: %i, gid: %i( -u)", pw->pw_uid, pw->pw_gid );
+	info( NULL, 0, "uid: %i, gid: %i", pw->pw_uid, pw->pw_gid );
 }
 
 #if 0

@@ -37,21 +37,21 @@ int torrentkino_lookup( const char *hostname, int size ) {
 
 	/* Load port from config file */
 	if( ( conf = _nss_tk_conf() ) == NULL ) {
-		fail( "Loading configuration failed" );
+		return FALSE;
 	}
 	port = _nss_tk_port( conf );
 	if( port == -1 ) {
-		fail( "Invalid port number" );
+		return FALSE;
 	}
 	mode = _nss_tk_mode( conf );
 	if( mode == -1 ) {
-		fail( "Invalid IP version" );
+		return FALSE;
 	}
 	ben_free( conf );
 
 	n = _nss_tk_connect( hostname, size, buffer, BUF_SIZE, port, mode );
 	if( n == 0 ) {
-		fail( "Talking to the daemon failed" );
+		return FALSE;
 	}
 	
 	/* IPv6: 16+2 byte */
@@ -59,7 +59,7 @@ int torrentkino_lookup( const char *hostname, int size ) {
 	pair_size = ( mode == 6 ) ? 18 : 6;
 
 	if( n % pair_size != 0 ) {
-		fail( "Broken data from server" );
+		return FALSE;
 	}
 
 	p = buffer;
@@ -73,7 +73,7 @@ int torrentkino_lookup( const char *hostname, int size ) {
 		}
 	}
 
-	return 1;
+	return TRUE;
 }
 
 void torrenkino_print6( struct sockaddr_in6 *sin ) {

@@ -37,8 +37,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 
 struct obj_conf {
-	char username[BUF_SIZE];
 	char home[BUF_SIZE];
+	char file[BUF_SIZE];
 	int cores;
 	int verbosity;
 	int mode;
@@ -54,15 +54,10 @@ struct obj_conf {
 	int announce_port;
 	char realm[BUF_SIZE];
 	int bool_realm;
-	char file[BUF_SIZE];
 #ifdef POLARSSL
 	char key[BUF_SIZE];
 	int bool_encryption;
 #endif
-#endif
-
-#ifdef TUMBLEWEED
-	char index_name[BUF_SIZE];
 #endif
 };
 

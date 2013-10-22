@@ -314,11 +314,11 @@ void p2p_cron_announce_start( void ) {
 		/* IP + Port */
 		p = p2p_merge_sin( &sin, p );
 
-		/* Query node */
-		send_get_peers_request( &sin, target, tdb_tid( ti ) );
-
 		/* Remember queried node */
 		ldb_put( l, id, &sin );
+
+		/* Query node */
+		send_get_peers_request( &sin, target, tdb_tid( ti ) );
 	}
 }
 
@@ -879,7 +879,11 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 			continue;
 		}
 
-		ldb_put( l, id, (IP *)&sin );
+		/* Only send a request to this node if it is one of the top matching
+		 * nodes. */
+		if( ldb_put( l, id, (IP *)&sin ) >= 8 ) {
+			continue;
+		}
 		
 		/* Query node */
 		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
@@ -1123,11 +1127,11 @@ int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
 		/* IP + Port */
 		p = p2p_merge_sin( &sin, p );
 
-		/* Query node */
-		send_get_peers_request( &sin, target, tdb_tid( ti ) );
-
 		/* Remember queried node */
 		ldb_put( l, id, &sin );
+
+		/* Query node */
+		send_get_peers_request( &sin, target, tdb_tid( ti ) );
 	}
 
 	return TRUE;

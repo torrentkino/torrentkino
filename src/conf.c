@@ -23,6 +23,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <unistd.h>
 
 #ifdef TUMBLEWEED
 #include "tumbleweed.h"
@@ -79,14 +80,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		conf->port = CONF_PORT;
 	}
 
-	/* Username */
-	value = ben_searchDictStr( opts, "-u" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->username, BUF_SIZE, "%s", value->v.s->s );
-	} else {
-		strncpy( conf->username, CONF_USERNAME, BUF_OFF1 );
-	}
-
 	/* Cores */
 	conf->cores = ( unix_cpus() > 2 ) ? unix_cpus() : CONF_CORES;
 	if( conf->cores < 1 || conf->cores > 128 ) {
@@ -100,12 +93,12 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	/* HTML index */
 	value = ben_searchDictStr( opts, "-i" );
 	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->index_name, BUF_SIZE, "%s", (char *)value->v.s->s );
+		snprintf( conf->file, BUF_SIZE, "%s", (char *)value->v.s->s );
 	} else {
-		snprintf( conf->index_name, BUF_SIZE, "%s", CONF_INDEX_NAME );
+		snprintf( conf->file, BUF_SIZE, "%s", CONF_INDEX_NAME );
 	}
-	if( !str_isValidFilename( conf->index_name ) ) {
-		fail( "Index %s looks suspicious", conf->index_name );
+	if( !str_isValidFilename( conf->file ) ) {
+		fail( "Index %s looks suspicious", conf->file );
 	}
 #endif
 
@@ -138,7 +131,11 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		fail( "Invalid announce port number. (-a)" );
 	}
 
-	snprintf( conf->file, BUF_SIZE, "%s/%s", conf->home, CONF_FILE );
+	if( getuid() == 0 ) {
+		snprintf( conf->file, BUF_SIZE, "%s/%s", conf->home, CONF_FILE );
+	} else {
+		snprintf( conf->file, BUF_SIZE, "%s/.%s", conf->home, CONF_FILE );
+	}
 
 	/* Node ID */
 	value = ben_searchDictStr( opts, "-n" );
@@ -197,31 +194,35 @@ void conf_home( struct obj_conf *conf, BEN *opts ) {
 	BEN *value = NULL;
 #endif
 
-	if( ( getenv( "HOME" ) ) == NULL ) {
-		fail("Reading environment variable $HOME failed");
-	}
-
 #ifdef TORRENTKINO
-	snprintf( conf->home, BUF_SIZE, "%s", getenv( "HOME") );
+	if( getenv( "HOME" ) == NULL || getuid() == 0 ) {
+		strncpy( conf->home, "/etc", BUF_OFF1 );
+	} else {
+		snprintf( conf->home,  BUF_SIZE, "%s", getenv( "HOME") );
+	}
 #endif
 
 #ifdef TUMBLEWEED
 	value = ben_searchDictStr( opts, "-w" );
 	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		char *p0 = NULL, *p1 = NULL;
+		char *p = NULL;
 
-		p0 = (char *)value->v.s->s;;
+		p = (char *)value->v.s->s;;
 
 		/* Absolute path or relative path */
-		if( *p0 == '/' ) {
-			snprintf( conf->home, BUF_SIZE, "%s", p0 );
-		} else if( ( p1 = getenv( "PWD" ) ) != NULL ) {
-			snprintf( conf->home, BUF_SIZE, "%s/%s", p1, p0 );
+		if( *p == '/' ) {
+			snprintf( conf->home, BUF_SIZE, "%s", p );
+		} else if ( getenv( "PWD" ) != NULL ) {
+			snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "PWD" ), p );
+		} else {
+			strncpy( conf->home, "/var/www", BUF_OFF1 );
+		}
+	} else {
+		if( getenv( "HOME" ) == NULL || getuid() == 0 ) {
+			strncpy( conf->home, "/var/www", BUF_OFF1 );
 		} else {
 			snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "HOME"), "Public" );
 		}
-	} else {
-		snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "HOME"), "Public" );
 	}
 #endif
 
@@ -305,7 +306,14 @@ void conf_print( void ) {
 
 #ifdef TUMBLEWEED
 	info( NULL, 0, "Workdir: %s (-w)", _main->conf->home );
-	info( NULL, 0, "Index file: %s (-i)", _main->conf->index_name );
+#elif TORRENTKINO
+	info( NULL, 0, "Workdir: %s", _main->conf->home );
+#endif
+
+#ifdef TUMBLEWEED
+	info( NULL, 0, "Index file: %s (-i)", _main->conf->file );
+#elif TORRENTKINO
+	info( NULL, 0, "Config file: %s", _main->conf->file );
 #endif
 
 #ifdef TUMBLEWEED

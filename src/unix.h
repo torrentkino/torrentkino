@@ -30,7 +30,7 @@ void unix_sig_time( int signo );
 void unix_set_time( int seconds );
 void unix_fork( void );
 void unix_limits( int cores, int max_events );
-void unix_dropuid0( char *username );
+void unix_dropuid0( void );
 int unix_cpus( void );
 /*
 void unix_environment( void );

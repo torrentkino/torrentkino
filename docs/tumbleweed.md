@@ -3,7 +3,7 @@ tumbleweed(1) -- Instant webserver
 
 ## SYNOPSIS
 
-`tumbleweed` [-d] [-q] [-6] [-w workdir] [-p port] [-i index] [-u username]
+`tumbleweed` [-d] [-q] [-6] [-w workdir] [-p port] [-i index]
 
 ## DESCRIPTION
 
@@ -23,9 +23,6 @@ Keep-alive and Range Requests as seen in the wild.
 
   * `-i` *index*:
 	Serve this file if the requested entity is a directory. (Default: index.html)
-
-  * `-u` *username*:
-    When starting as root, use -u to change the UID.
 
   * `-d`:
 	Start as a daemon and run in background. The output will be send to syslog.

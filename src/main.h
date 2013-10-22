@@ -43,12 +43,13 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #define CONF_HOSTFILE "/etc/hostname"
 
-#define CONF_FILE ".torrentkino.conf"
+#define CONF_FILE "torrentkino.conf"
 
 #define CONF_EPOLL_MAX_EVENTS 32
 
+#define CONF_USERNAME "nobody"
+
 #ifdef TUMBLEWEED
-#define CONF_USERNAME "tumbleweed"
 #define CONF_EPOLL_WAIT 1000
 #define CONF_SRVNAME "tumbleweed"
 #define CONF_PORT 8080
@@ -57,7 +58,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #if TORRENTKINO
-#define CONF_USERNAME "torrentkino"
 #define CONF_EPOLL_WAIT 2000
 #define CONF_SRVNAME "torrentkino"
 #define CONF_PORT 6881

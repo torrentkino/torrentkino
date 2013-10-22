@@ -151,7 +151,7 @@ int main( int argc, char **argv ) {
 #endif
 
 	/* Drop privileges */
-	unix_dropuid0( _main->conf->username );
+	unix_dropuid0();
 
 	/* Start worker threads */
 	work_start();

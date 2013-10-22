@@ -332,7 +332,8 @@ void http_code( TCP_NODE *n ) {
 	} else if( file_isdir( n->filename) ) {
 
 		/* There is a index.html file within that directory? */
-		snprintf( n->filename, BUF_SIZE, "%s%s/%s", _main->conf->home, n->entity_url, _main->conf->index_name );
+		snprintf( n->filename, BUF_SIZE, "%s%s/%s",
+				_main->conf->home, n->entity_url, _main->conf->file );
 		
 		if( file_isreg( n->filename) ) {
 			n->code = 200;

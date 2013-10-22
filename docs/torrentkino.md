@@ -3,7 +3,7 @@ torrentkino(1) -- P2P resolver
 
 ## SYNOPSIS
 
-`torrentkino` [-d] [-q] [-h hostname] [-r realm] [-p port] [-x server] [-y port] [-u username]
+`torrentkino` [-d] [-q] [-h hostname] [-r realm] [-p port] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -37,8 +37,13 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
 
   * **$HOME/.torrentkino.conf**:
     This file gets written by the Torrentkino daemon and contains the server port
-	number. The NSS and CLI program read this file to get knowledge about the
-	current daemon port.
+	number and some other hints. These hints get used by **libnss_tk.so.2** and
+	the **tk** cli program.
+  
+  * **/etc/torrentkino.conf**:
+	This file gets written by the Torrentkino daemon when started as root.
+	**libnss_tk.so.2** and the **tk** cli program use this file if
+	**$HOME/.torrentkino.conf** does not exist.
 
 ## OPTIONS
 
@@ -70,9 +75,6 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
 
   * `-y` *port*:
 	The bootstrap server will be addressed at this port. (Default: UDP/6881)
-
-  * `-u` *username*:
-    When starting as root, use -u to change the UID.
 
   * `-d`:
 	Start as a daemon and run in background. The output will be send to syslog.

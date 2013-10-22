@@ -66,14 +66,17 @@ void ldb_free( LOOKUP *l ) {
 	myfree( l );
 }
 
-void ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
+ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 	ITEM *i = NULL;
 	LNODE *new = NULL;
 	LNODE *n = NULL;
+	ULONG index = 0;
 
-	/* Found: Huh? */
-	if( ldb_find( l, node_id ) != NULL ) {
-		return;
+	/* Wow. Something is broken or this Kademlia cloud is huge. */
+	if( l->size >= 32767 ) {
+		info( from, 0, "ldb_put(): Too many nodes without end in sight." );
+		ldb_free( l );
+		return 32767;
 	}
 
 	new = (LNODE *) myalloc( sizeof( LNODE ) );
@@ -91,15 +94,18 @@ void ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 		if( ldb_compare( node_id, n->id, l->target ) < 0 ) {
 			list_ins( l->list, i, new );
 			hash_put( l->hash, new->id, SHA1_SIZE, new );
-			return;
+			return index;
 		}
 
 		i = list_next( i );
+		index++;
 	}
 
 	/* Last resort. Append the node, so that it does not get a query again. */
 	list_put( l->list, new );
 	hash_put( l->hash, new->id, SHA1_SIZE, new );
+
+	return index;
 }
 
 LNODE *ldb_find( LOOKUP *l, UCHAR *node_id ) {
