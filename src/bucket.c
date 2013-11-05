@@ -364,8 +364,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 	ITEM *item = NULL;
 	BUCK *b = NULL;
 	UDP_NODE *n = NULL;
-	unsigned long int j = 0;
-	IP *sin = NULL;
+	ULONG j = 0;
 	int size = 0;
 
 	/* Find matching bucket */
@@ -386,20 +385,11 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 			continue;
 		}
 
-		/* Network data */
-		sin = (IP*)&n->c_addr;
-
-		/* Node ID */
+		/* Copy Node ID */
 		memcpy( p, n->id, SHA1_SIZE ); p += SHA1_SIZE;
 
-		/* IP + Port */
-#ifdef IPV6
-		memcpy( p, (UCHAR *)&sin->sin6_addr, IP_SIZE ); p += IP_SIZE;
-		memcpy( p, (UCHAR *)&sin->sin6_port, 2 ); p += 2;
-#elif IPV4
-		memcpy( p, (UCHAR *)&sin->sin_addr, IP_SIZE ); p += IP_SIZE;
-		memcpy( p, (UCHAR *)&sin->sin_port, 2 ); p += 2;
-#endif
+		/* Copy IP + Port */
+		p = ip_sin_to_bytes( &n->c_addr, p );
 
 		size += IP_SIZE_META_TRIPLE;
 

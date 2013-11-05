@@ -68,8 +68,8 @@ void ldb_free( LOOKUP *l ) {
 
 ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 	ITEM *i = NULL;
-	LNODE *new = NULL;
-	LNODE *n = NULL;
+	NODE_L *new = NULL;
+	NODE_L *n = NULL;
 	ULONG index = 0;
 
 	/* Wow. Something is broken or this Kademlia cloud is huge. */
@@ -79,7 +79,7 @@ ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 		return 32767;
 	}
 
-	new = (LNODE *) myalloc( sizeof( LNODE ) );
+	new = (NODE_L *) myalloc( sizeof( NODE_L ) );
 	memcpy( new->id, node_id, SHA1_SIZE );
 	memcpy( &new->c_addr, from, sizeof( IP ) );
 	memset( new->token, '\0', TOKEN_SIZE_MAX );
@@ -91,7 +91,7 @@ ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 		n = list_value( i );
 
 		/* Look, whose node_id fits better to the target */
-		if( ldb_compare( node_id, n->id, l->target ) < 0 ) {
+		if( str_sha1_compare( node_id, n->id, l->target ) < 0 ) {
 			list_ins( l->list, i, new );
 			hash_put( l->hash, new->id, SHA1_SIZE, new );
 			return index;
@@ -108,12 +108,12 @@ ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 	return index;
 }
 
-LNODE *ldb_find( LOOKUP *l, UCHAR *node_id ) {
+NODE_L *ldb_find( LOOKUP *l, UCHAR *node_id ) {
 	return hash_get( l->hash, node_id, SHA1_SIZE );
 }
 
 void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from ) {
-	LNODE *n = NULL;
+	NODE_L *n = NULL;
 
 	if( ( n = hash_get( l->hash, node_id, SHA1_SIZE ) ) == NULL ) {
 		return;
@@ -122,25 +122,4 @@ void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from ) {
 	memcpy( &n->c_addr, from, sizeof( IP ) );
 	memcpy( &n->token, token->v.s->s, token->v.s->i );
 	n->token_size = token->v.s->i;
-}
-
-int ldb_compare(UCHAR *id1, UCHAR *id2, UCHAR *target) {
-	UCHAR xor1;
-	UCHAR xor2;
-	int i = 0;
-
-	for( i=0; i<SHA1_SIZE; i++ ) {
-		if( id1[i] == id2[i] ) {
-			continue;
-		}
-		xor1 = id1[i] ^ target[i];
-		xor2 = id2[i] ^ target[i];
-		if( xor1 < xor2 ) {
-			return -1;
-		} else {
-			return 1;
-		}
-	}
-
-	return 0;
 }

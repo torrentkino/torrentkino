@@ -1,3 +1,13 @@
+torrentkino (0.14) wheezy; urgency=low
+
+  * Improved info_hash storage
+
+ -- Aiko Barz <aiko@chroot.de>  Fri, 01 Oct 2013 21:35:00 +0100
+torrentkino (0.13) wheezy; urgency=low
+
+  * URL handler for the cli command
+
+ -- Aiko Barz <aiko@chroot.de>  Tue, 24 Oct 2013 21:03:00 +0100
 torrentkino (0.12) wheezy; urgency=low
 
   * Faster lookups in large DHTs

@@ -1,5 +1,5 @@
 /*
-Copyright 2010 Aiko Barz
+Copyright 2011 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,39 +17,17 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef NODE_IP_H
+#define NODE_IP_H
 
 #include "main.h"
 
-struct obj_main {
-	char **argv;
-	int argc;
+int ip_is_localhost( IP *from );
+int ip_is_linklocal( IP *from );
 
-	struct obj_conf	*conf;
-	struct obj_work	*work;
+UCHAR *ip_bytes_to_sin( IP *sin, UCHAR *p );
+UCHAR *ip_sin_to_bytes( IP *sin, UCHAR *p );
 
-#ifdef TORRENTKINO
-	struct obj_transaction *transaction;
-	struct obj_cache *cache;
-	struct obj_token *token;
-	struct obj_nbhd *nbhd;
-	struct obj_udp *udp;
-	struct obj_p2p *p2p;
-	struct obj_val *value;
-#endif
-	
-#ifdef TUMBLEWEED
-	struct obj_list *node;
-	struct obj_mdb *mime;
-	struct obj_tcp *tcp;
-#endif
+void ip_merge_port_to_sin( IP *sin, int port );
 
-};
-
-extern struct obj_main *_main;
-
-struct obj_main *main_init( int argc, char **argv );
-void main_free( void );
-
-#endif
+#endif /* NODE_IP_H */

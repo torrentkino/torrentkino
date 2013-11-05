@@ -81,7 +81,6 @@ typedef long int LONG;
 #define IP_SIZE_META_PAIR8 144
 #define IP_SIZE_META_TRIPLE 38
 #define IP_SIZE_META_TRIPLE8 304
-#define IP_FAMILY AF_INET6
 #define IP_ADDRLEN INET6_ADDRSTRLEN
 typedef struct sockaddr_in6 IP;
 typedef struct in6_addr IN_ADDR;
@@ -91,7 +90,6 @@ typedef struct in6_addr IN_ADDR;
 #define IP_SIZE_META_PAIR8 48
 #define IP_SIZE_META_TRIPLE 26
 #define IP_SIZE_META_TRIPLE8 208
-#define IP_FAMILY AF_INET
 #define IP_ADDRLEN INET_ADDRSTRLEN
 typedef struct sockaddr_in IP;
 typedef struct in_addr IN_ADDR;

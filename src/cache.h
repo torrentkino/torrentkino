@@ -20,41 +20,43 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef CACHE_H
 #define CACHE_H
 
-#define CACHE_SIZE 100
+#include <string.h>
+#include <netdb.h>
+#include <signal.h>
 
-#include "random.h"
-#include "log.h"
+#include "torrentkino.h"
+#include "p2p.h"
 #include "time.h"
 #include "hash.h"
-#include "ben.h"
+
+#define CACHE_SIZE 100
 
 struct obj_cache {
 	LIST *list;
 	HASH *hash;
 };
+typedef struct obj_cache CACHE;
 
-struct obj_cache_entry {
+typedef struct {
 	UCHAR target[SHA1_SIZE];
-	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
-	int nodes_compact_size;
-	
+	UCHAR nodes[IP_SIZE_META_PAIR8];
+	int size;
 	time_t lifetime;
-	time_t renew;
-};
-typedef struct obj_cache_entry CACHE;
+	time_t refresh;
+} TARGET_C;
 
-struct obj_cache *cache_init( void );
+CACHE *cache_init( void );
 void cache_free( void );
 
-void cache_put( UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size );
-void cache_del( ITEM *item );
+void cache_put( UCHAR *target, UCHAR *nodes, int size );
+void cache_del( ITEM *i );
 
 void cache_expire( time_t now );
 void cache_renew( time_t now );
 
-void cache_update( CACHE *cache, UCHAR *target, UCHAR *nodes_compact_list, int nodes_compact_size );
-CACHE *cache_find( UCHAR *target );
+void cache_update( TARGET_C *tc, UCHAR *target, UCHAR *nodes, int size );
+TARGET_C *cache_find( UCHAR *target );
 
-int cache_compact_list( UCHAR *nodes_compact_list, UCHAR *target );
+int cache_compact_list( UCHAR *nodes, UCHAR *target );
 
 #endif

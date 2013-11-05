@@ -268,3 +268,24 @@ char *str_append( char *buf1, long int size1, char *buf2, long int size2 ) {
 	return buf1;
 }
 */
+
+int str_sha1_compare(UCHAR *id1, UCHAR *id2, UCHAR *target) {
+	UCHAR xor1;
+	UCHAR xor2;
+	int i = 0;
+
+	for( i=0; i<SHA1_SIZE; i++ ) {
+		if( id1[i] == id2[i] ) {
+			continue;
+		}
+		xor1 = id1[i] ^ target[i];
+		xor2 = id2[i] ^ target[i];
+		if( xor1 < xor2 ) {
+			return -1;
+		} else {
+			return 1;
+		}
+	}
+
+	return 0;
+}

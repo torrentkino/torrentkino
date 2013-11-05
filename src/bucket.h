@@ -20,7 +20,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef BUCKET_H
 #define BUCKET_H
 
-#include "main.h"
+#include "ip.h"
 #include "ben.h"
 #include "hex.h"
 #include "node_udp.h"

@@ -101,58 +101,6 @@ int node_equal( const UCHAR *node_a, const UCHAR *node_b ) {
 	return 0;
 }
 
-int node_localhost( IP *from ) {
-#ifdef IPV6
-	const UCHAR localhost[] = 
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-#elif IPV4
-	const UCHAR localhost[] = 
-		{ 0x7f, 0, 0, 1 };
-#endif
-
-#ifdef IPV6
-	if( memcmp( &from->sin6_addr.s6_addr, localhost, IP_SIZE ) == 0 ) {
-		return TRUE;
-	}
-#elif IPV4
-	if( memcmp( &from->sin_addr.s_addr, localhost, IP_SIZE ) == 0 ) {
-		return TRUE;
-	}
-#endif
-
-	return FALSE;
-}
-
-/*
-int node_teredo( IP *from ) {
-	const UCHAR teredo[] = 
-		{ 0x20, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-	if( memcmp(from->sin6_addr.s6_addr, teredo, 4) == 0 ) {
-		info( from, 0, "Teredo access denied (2001:0::/32) from" );
-		return TRUE;
-	}
-
-	return FALSE;
-}
-*/
-
-/* In the Internet Protocol Version 6 (IPv6), the address block fe80::/10 has
- * been reserved for link-local unicast addressing.[2] The actual link local
- * addresses are assigned with the prefix fe80::/64. */
-int node_linklocal( IP *from ) {
-#ifdef IPV6
-	const UCHAR linklocal[] = 
-		{ 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-	if( memcmp(from->sin6_addr.s6_addr, linklocal, 8) == 0 ) {
-		return TRUE;
-	}
-#endif
-
-	return FALSE;
-}
-
 int node_ok( UDP_NODE *n ) {
 	return ( n->pinged <= 1 ) ? TRUE : FALSE;
 }

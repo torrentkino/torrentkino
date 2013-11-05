@@ -20,6 +20,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef P2P_H
 #define P2P_H
 
+#include "ip.h"
 #include "ben.h"
 #include "transaction.h"
 #include "token.h"
@@ -94,6 +95,5 @@ int p2p_packet_from_myself( UCHAR *node_id );
 int p2p_is_hash( BEN *node );
 int p2p_is_ip( BEN *node );
 int p2p_is_port( BEN *node );
-UCHAR *p2p_merge_sin( IP *sin, UCHAR *p );
 
 #endif

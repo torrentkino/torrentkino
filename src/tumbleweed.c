@@ -67,7 +67,7 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->cache = NULL;
 	_main->token = NULL;
 	_main->nbhd = NULL;
-	_main->idb = NULL;
+	_main->value = NULL;
 	_main->p2p = NULL;
 	_main->udp = NULL;
 #endif
@@ -95,7 +95,7 @@ int main( int argc, char **argv ) {
 
 #ifdef TORRENTKINO
 	_main->nbhd = nbhd_init();
-	_main->idb = idb_init();
+	_main->value = idb_init();
 	_main->transaction = tdb_init();
 	_main->token = tkn_init();
 	_main->p2p = p2p_init();

@@ -57,14 +57,14 @@ void udp_start( void ) {
 	if( ( _main->udp->sockfd = socket( PF_INET6, SOCK_DGRAM, 0 ) ) < 0 ) {
 		fail( "Creating socket failed." );
 	}
-	_main->udp->s_addr.sin6_family = IP_FAMILY;
+	_main->udp->s_addr.sin6_family = AF_INET6;
 	_main->udp->s_addr.sin6_port = htons( _main->conf->port );
 	_main->udp->s_addr.sin6_addr = in6addr_any;
 #elif IPV4
 	if( ( _main->udp->sockfd = socket( PF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
 		fail( "Creating socket failed." );
 	}
-	_main->udp->s_addr.sin_family = IP_FAMILY;
+	_main->udp->s_addr.sin_family = AF_INET;
 	_main->udp->s_addr.sin_port = htons( _main->conf->port );
 	_main->udp->s_addr.sin_addr.s_addr = htonl( INADDR_ANY );
 #endif
@@ -261,9 +261,9 @@ void udp_multicast( int mode ) {
 	IP sin;
 
 	memset( &sin, '\0', sizeof( IP ) );
-	sin.sin6_family = IP_FAMILY;
+	sin.sin6_family = AF_INET6;
 	sin.sin6_port = htons( atoi( _main->conf->bootstrap_port ) );
-	if( !inet_pton( IP_FAMILY, _main->conf->bootstrap_node, &(sin.sin6_addr)) ) {
+	if( !inet_pton( AF_INET6, _main->conf->bootstrap_node, &(sin.sin6_addr)) ) {
 		return;
 	}
 
@@ -288,9 +288,9 @@ void udp_multicast( int mode ) {
 	IP sin;
 
 	memset( &sin, '\0', sizeof( IP ) );
-	sin.sin_family = IP_FAMILY;
+	sin.sin_family = AF_INET;
 	sin.sin_port = htons( atoi( _main->conf->bootstrap_port ) );
-	if( !inet_pton( IP_FAMILY, _main->conf->bootstrap_node, &(sin.sin_addr)) ) {
+	if( !inet_pton( AF_INET, _main->conf->bootstrap_node, &(sin.sin_addr)) ) {
 		return;
 	}
 

@@ -49,8 +49,6 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 		gaih_addrtuple **pat, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp );
 
-int _nss_tk_valid_tld( const char *hostname, int hostsize );
-int _nss_tk_valid_hostname( const char *hostname, int hostsize );
 
 int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
 		int address_size, int port, int mode );

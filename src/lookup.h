@@ -24,8 +24,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "malloc.h"
 #include "neighbourhood.h"
 
-struct obj_lookup {
-
+typedef struct {
 	/* What are we looking for */
     UCHAR target[SHA1_SIZE];
 
@@ -37,23 +36,20 @@ struct obj_lookup {
 	int send_reply;
 
 	int size;
-};
-typedef struct obj_lookup LOOKUP;
+} LOOKUP;
 
-struct obj_lnode {
+typedef struct {
 	UCHAR id[SHA1_SIZE];
 	IP c_addr;
 	UCHAR token[TOKEN_SIZE_MAX];
 	int token_size;
-};
-typedef struct obj_lnode LNODE;
+} NODE_L;
 
 LOOKUP *ldb_init( UCHAR *target, IP *from );
 void ldb_free( LOOKUP *l );
 
 ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );
 
-LNODE *ldb_find( LOOKUP *l, UCHAR *node_id );
+NODE_L *ldb_find( LOOKUP *l, UCHAR *node_id );
 void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from );
-int ldb_compare(UCHAR *id1, UCHAR *id2, UCHAR *target );
 #endif

@@ -40,4 +40,6 @@ void str_prettySize( char *buffer, int size, unsigned long filesize );
 
 /* char *str_append( char *buf1, long int size1, char *buf2, long int size2 ); */
 
+int str_sha1_compare(UCHAR *id1, UCHAR *id2, UCHAR *target);
+
 #endif

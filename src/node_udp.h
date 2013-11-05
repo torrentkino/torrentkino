@@ -37,9 +37,6 @@ void node_update( UDP_NODE *n, IP *sa );
 
 int node_me( UCHAR *node_id );
 int node_equal( const UCHAR *node_a, const UCHAR *node_b );
-int node_localhost( IP *from );
-/* int node_teredo( IP *from ); */
-int node_linklocal( IP *from );
 
 int node_ok( UDP_NODE *n );
 int node_bad( UDP_NODE *n );

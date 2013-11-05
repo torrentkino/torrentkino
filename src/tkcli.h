@@ -24,10 +24,11 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 #include "tksrc.h"
 
-int str_isValidHostname( const char *hostname, int size );
-int torrentkino_lookup( const char *hostname, int size );
-void torrenkino_print6( struct sockaddr_in6 *sin );
-void torrenkino_print( struct sockaddr_in *sin );
-
+int torrentkino_lookup( const char *handler, const char *hostname,
+		const char *path );
+void torrenkino_print6( struct sockaddr_in6 *sin, const char *handler,
+		const char *path );
+void torrenkino_print( struct sockaddr_in *sin, const char *handler,
+		const char *path );
 
 #endif

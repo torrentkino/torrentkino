@@ -34,4 +34,7 @@ int _nss_tk_connect( const char *hostname, int hostsize,
 UCHAR *_nss_tk_convert_to_sin6( struct sockaddr_in6 *sin, UCHAR *p );
 UCHAR *_nss_tk_convert_to_sin( struct sockaddr_in *sin, UCHAR *p );
 
+int _nss_tk_valid_tld( const char *hostname, int hostsize );
+int _nss_tk_valid_hostname( const char *hostname, int hostsize );
+
 #endif /* TK_SHARE_H */
