@@ -74,14 +74,26 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	if( value != NULL && ben_str_size( value ) >= 1 ) {
 		conf->port = atoi( (char *)value->v.s->s );
 	} else {
-		conf->port = CONF_PORT;
+#ifdef TUMBLEWEED
+		if( getuid() == 0 ) {
+			conf->port = PORT_WWW_PRIV;
+		} else {
+			conf->port = PORT_WWW_USER;
+		}
+#elif TORRENTKINO
+		conf->port = PORT_DHT_DEFAULT;
+#endif
 	}
 	if( conf->port < CONF_PORTMIN || conf->port > CONF_PORTMAX ) {
-		conf->port = CONF_PORT;
+		fail( "Invalid port number (-p)" );
 	}
 
 	/* Cores */
-	conf->cores = ( unix_cpus() > 2 ) ? unix_cpus() : CONF_CORES;
+#ifdef TUMBLEWEED
+	conf->cores = ( unix_cpus() > 2 ) ? unix_cpus() : 2;
+#elif TORRENTKINO
+	conf->cores = unix_cpus();
+#endif
 	if( conf->cores < 1 || conf->cores > 128 ) {
 		fail( "Invalid number of CPU cores" );
 	}
@@ -125,7 +137,11 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	if( value != NULL && ben_str_size( value ) >= 1 ) {
 		conf->announce_port = atoi( (char *)value->v.s->s );
 	} else {
-		conf->announce_port = CONF_ANNOUNCED_PORT;
+		if( getuid() == 0 ) {
+			conf->announce_port = PORT_WWW_PRIV;
+		} else {
+			conf->announce_port = PORT_WWW_USER;
+		}
 	}
 	if( conf->announce_port < CONF_PORTMIN || conf->announce_port > CONF_PORTMAX ) {
 		fail( "Invalid announce port number. (-a)" );
@@ -158,13 +174,13 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	/* Bootstrap port */
 	value = ben_searchDictStr( opts, "-y" );
 	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%s",
-			value->v.s->s );
+		if( str_isSafePort( (char *)value->v.s->s ) != -1 ) {
+			conf->bootstrap_port = atoi( (char *)value->v.s->s );
+		} else {
+			conf->bootstrap_port = PORT_DHT_DEFAULT;
+		}
 	} else {
-		snprintf( conf->bootstrap_port, CONF_PORT_SIZE+1, "%i", CONF_PORT );
-	}
-	if( str_isSafePort( conf->bootstrap_port) < 0 ) {
-		fail( "Invalid bootstrap port number. (-y)" );
+		conf->bootstrap_port = PORT_DHT_DEFAULT;
 	}
 
 #ifdef POLARSSL
@@ -332,7 +348,7 @@ void conf_print( void ) {
 	info( NULL, 0, "Host ID: %s", hex );
 
 	info( NULL, 0, "Bootstrap Node: %s (-x)", _main->conf->bootstrap_node );
-	info( NULL, 0, "Bootstrap Port: UDP/%s (-y)", _main->conf->bootstrap_port );
+	info( NULL, 0, "Bootstrap Port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	info( NULL, 0, "Announce Port: %i (-a)", _main->conf->announce_port );
 
 	/* Realm */

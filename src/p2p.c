@@ -96,6 +96,9 @@ void p2p_bootstrap( void ) {
 	int rc = 0;
 	int i = 0;
 	ITEM *ti = NULL;
+	char port[6];
+
+	snprintf( port, 6, "%i", _main->conf->bootstrap_port );
 
 	/* Compute address of bootstrap node */
 	memset( &hints, '\0', sizeof(struct addrinfo) );
@@ -106,7 +109,7 @@ void p2p_bootstrap( void ) {
 #elif IPV4
 	hints.ai_family = AF_INET;
 #endif
-	rc = getaddrinfo( _main->conf->bootstrap_node, _main->conf->bootstrap_port,
+	rc = getaddrinfo( _main->conf->bootstrap_node, port,
 		&hints, &addrinfo );
 	if( rc != 0 ) {
 		info( NULL, 0, "getaddrinfo: %s", gai_strerror( rc ) );

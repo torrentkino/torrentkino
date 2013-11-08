@@ -262,8 +262,8 @@ void udp_multicast( int mode ) {
 
 	memset( &sin, '\0', sizeof( IP ) );
 	sin.sin6_family = AF_INET6;
-	sin.sin6_port = htons( atoi( _main->conf->bootstrap_port ) );
-	if( !inet_pton( AF_INET6, _main->conf->bootstrap_node, &(sin.sin6_addr)) ) {
+	sin.sin6_port = htons( _main->conf->bootstrap_port );
+	if( !inet_pton( AF_INET6, CONF_MULTICAST, &( sin.sin6_addr ) ) ) {
 		return;
 	}
 
@@ -289,8 +289,8 @@ void udp_multicast( int mode ) {
 
 	memset( &sin, '\0', sizeof( IP ) );
 	sin.sin_family = AF_INET;
-	sin.sin_port = htons( atoi( _main->conf->bootstrap_port ) );
-	if( !inet_pton( AF_INET, _main->conf->bootstrap_node, &(sin.sin_addr)) ) {
+	sin.sin_port = htons( _main->conf->bootstrap_port );
+	if( !inet_pton( AF_INET, CONF_MULTICAST, &( sin.sin_addr ) ) ) {
 		return;
 	}
 

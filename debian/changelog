@@ -1,3 +1,13 @@
+torrentkino (0.15) wheezy; urgency=low
+
+  * New Tumbleweed default: Run on port TCP/80 instead of TCP/8080 if started by root
+  * New Torrentkino default: Announce port 80 instead of 8080 if started by root
+  * Torrentkino: 1 core => 1 thread. Tumbleweed: 1 core => 2 threads.
+  * Multicast cleanup
+  * Bootstrap port cleanup
+  * IP code cleanup
+
+ -- Aiko Barz <aiko@chroot.de>  Wed, 06 Oct 2013 22:21:00 +0100
 torrentkino (0.14) wheezy; urgency=low
 
   * Improved info_hash storage

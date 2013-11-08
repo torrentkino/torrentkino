@@ -50,7 +50,7 @@ struct obj_conf {
 	UCHAR host_id[SHA1_SIZE];
 	UCHAR null_id[SHA1_SIZE];
 	char bootstrap_node[BUF_SIZE];
-	char bootstrap_port[CONF_PORT_SIZE+1];
+	int bootstrap_port;
 	int announce_port;
 	char realm[BUF_SIZE];
 	int bool_realm;
