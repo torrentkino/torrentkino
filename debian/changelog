@@ -1,3 +1,8 @@
+torrentkino (0.16) wheezy; urgency=low
+
+  * More complex cache with aggregation of multiple answers
+ 
+ -- Aiko Barz <aiko@chroot.de>  Sat, 09 Nov 2013 18:42:00 +0100
 torrentkino (0.15) wheezy; urgency=low
 
   * New Tumbleweed default: Run on port TCP/80 instead of TCP/8080 if started by root

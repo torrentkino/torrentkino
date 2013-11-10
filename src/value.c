@@ -26,7 +26,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 VALUE *val_init( void ) {
 	VALUE *value = ( VALUE * ) myalloc( sizeof( VALUE ) );
 	value->list = list_init();
-	value->hash = hash_init( VAL_SIZE_MAX + 1 );
+	value->hash = hash_init( VALUE_SIZE_MAX + 1 );
 	return value;
 }
 
@@ -59,7 +59,7 @@ void val_put( UCHAR *target_id, UCHAR *node_id, int port, IP *from ) {
 	}
 
 	/* Insert node into the target list */
-	tgt_update( target, node_id, from, port );
+	tgt_v_update( target, node_id, from, port );
 }
 
 TARGET_V *val_ins_sort( UCHAR *target_id ) {
@@ -74,7 +74,7 @@ TARGET_V *val_ins_sort( UCHAR *target_id ) {
 		old = list_value( i );
 
 		if( str_sha1_compare( target_id, old->target, _main->conf->node_id ) < 0 ) {
-			new = tgt_init( target_id );
+			new = tgt_v_init( target_id );
 			list_ins( _main->value->list, i, new );
 			hash_put( _main->value->hash, new->target, SHA1_SIZE, new );
 
@@ -88,8 +88,8 @@ TARGET_V *val_ins_sort( UCHAR *target_id ) {
 	/* Last resort:
 	 * Only add a new target if it has not be done before and if it will
 	 * persist. */
-	if( done == FALSE && list_size( _main->value->list ) < VAL_SIZE_MAX ) {
-		new = tgt_init( target_id );
+	if( done == FALSE && list_size( _main->value->list ) < VALUE_SIZE_MAX ) {
+		new = tgt_v_init( target_id );
 		list_put( _main->value->list, new );
 		hash_put( _main->value->hash, new->target, SHA1_SIZE, new );
 
@@ -97,7 +97,7 @@ TARGET_V *val_ins_sort( UCHAR *target_id ) {
 	}
 
 	/* Limit reached after list_ins(). Delete the last target. */
-	if( list_size( _main->value->list ) > VAL_SIZE_MAX ) {
+	if( list_size( _main->value->list ) > VALUE_SIZE_MAX ) {
 		val_del( list_stop( _main->value->list ) );
 	}
 
@@ -113,7 +113,7 @@ void val_del( ITEM *i ) {
 	TARGET_V *target = list_value( i );
 	hash_del( _main->value->hash, target->target, SHA1_SIZE );
 	list_del( _main->value->list, i );
-	tgt_free( target );
+	tgt_v_free( target );
 }
 
 void val_expire( time_t now ) {
@@ -127,7 +127,7 @@ void val_expire( time_t now ) {
 		target = list_value( i );
 
 		/* Look at the nodes within the target */
-		tgt_expire( target, now );
+		tgt_v_expire( target, now );
 
 		/* The target contains no more nodes */
 		/* Or the target does not match well enough */
@@ -145,6 +145,10 @@ void val_print( void ) {
 	TARGET_V *target = NULL;
 	char hex[HEX_LEN];
 
+	if( conf_verbosity() != CONF_VERBOSE ) {
+		return;
+	}
+
 	info( NULL, 0, "Values:" );
 	i = list_start( _main->value->list );
 	while( i != NULL ) {
@@ -153,7 +157,7 @@ void val_print( void ) {
 		hex_hash_encode( hex, target->target );
 		info( NULL, 0, " Target: %s", hex );
 
-		tgt_print( target );
+		tgt_v_print( target );
 
 		i = list_next( i );
 	}
@@ -198,24 +202,24 @@ TARGET_V *val_find( UCHAR *target_id ) {
 	return hash_get( _main->value->hash, target_id, SHA1_SIZE );
 }
 
-TARGET_V *tgt_init( UCHAR *target_id ) {
+TARGET_V *tgt_v_init( UCHAR *target_id ) {
 	TARGET_V *target = ( TARGET_V * ) myalloc( sizeof( TARGET_V ) );
 
 	memcpy( target->target, target_id, SHA1_SIZE );
 	target->list = list_init();
-	target->hash = hash_init( TGT_SIZE_MAX + 1 );
+	target->hash = hash_init( TGT_V_SIZE_MAX + 1 );
 
 	return target;
 }
 
-void tgt_free( TARGET_V *target ) {
+void tgt_v_free( TARGET_V *target ) {
 	list_clear( target->list );
 	list_free( target->list );
 	hash_free( target->hash );
 	myfree( target );
 }
 
-void tgt_put( TARGET_V *target, UCHAR *node_id, IP *from, int port ) {
+void tgt_v_put( TARGET_V *target, UCHAR *node_id, IP *from, int port ) {
 	NODE_V *node = NULL;
 	ITEM *i = NULL;
 	ITEM *s = NULL;
@@ -226,20 +230,20 @@ void tgt_put( TARGET_V *target, UCHAR *node_id, IP *from, int port ) {
 	hash_put( target->hash, node->id, SHA1_SIZE, i );
 
 	/* Limit reached. Delete last node */
-	if( list_size( target->list ) > TGT_SIZE_MAX ) {
+	if( list_size( target->list ) > TGT_V_SIZE_MAX ) {
 		s = list_stop( target->list );
-		tgt_del( target, s );
+		tgt_v_del( target, s );
 	}
 }
 
-void tgt_del( TARGET_V *target, ITEM *i ) {
+void tgt_v_del( TARGET_V *target, ITEM *i ) {
 	NODE_V *node_v = list_value( i );
 	hash_del( target->hash, node_v->id, SHA1_SIZE );
 	list_del( target->list, i );
 	node_v_free( node_v );
 }
 
-void tgt_expire( TARGET_V *target, time_t now ) {
+void tgt_v_expire( TARGET_V *target, time_t now ) {
 	ITEM *i = NULL;
 	ITEM *n = NULL;
 	NODE_V *node = NULL;
@@ -251,14 +255,14 @@ void tgt_expire( TARGET_V *target, time_t now ) {
 
 		/* Delete info_hash after 30 minutes without announcement. */
 		if( now > node->eol ) {
-			tgt_del( target, i );
+			tgt_v_del( target, i );
 		}
 
 		i = n;
 	}
 }
 
-void tgt_print( TARGET_V *target ) {
+void tgt_v_print( TARGET_V *target ) {
 	ITEM *i = NULL;
 	NODE_V *node = NULL;
 	IP sin;
@@ -274,18 +278,18 @@ void tgt_print( TARGET_V *target ) {
 	}
 }
 
-ITEM *tgt_find( TARGET_V *target, UCHAR *node_id ) {
+ITEM *tgt_v_find( TARGET_V *target, UCHAR *node_id ) {
 	return hash_get( target->hash, node_id, SHA1_SIZE );
 }
 
-void tgt_update( TARGET_V *target, UCHAR *node_id, IP *from, int port ) {
+void tgt_v_update( TARGET_V *target, UCHAR *node_id, IP *from, int port ) {
 	NODE_V *node = NULL;
 	ITEM *i = NULL;
 
-	if ( ( i = tgt_find( target, node_id ) ) == NULL ) {
+	if ( ( i = tgt_v_find( target, node_id ) ) == NULL ) {
 
 		/* New node */
-		tgt_put( target, node_id, from, port );
+		tgt_v_put( target, node_id, from, port );
 
 	} else {
 

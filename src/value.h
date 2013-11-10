@@ -30,8 +30,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "sha1.h"
 #include "torrentkino.h"
 
-#define VAL_SIZE_MAX 50
-#define TGT_SIZE_MAX 10
+#define VALUE_SIZE_MAX 50
+#define TGT_V_SIZE_MAX 10
 
 struct obj_val {
 	LIST *list;
@@ -62,14 +62,14 @@ void val_print( void );
 int val_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id );
 TARGET_V *val_find( UCHAR *target_id );
 
-TARGET_V *tgt_init( UCHAR *target_id );
-void tgt_free( TARGET_V *target );
-void tgt_put( TARGET_V *target, UCHAR *node_id, IP *from, int port );
-void tgt_del( TARGET_V *target, ITEM *i );
-void tgt_expire( TARGET_V *target, time_t now );
-void tgt_print( TARGET_V *target );
-ITEM *tgt_find( TARGET_V *target, UCHAR *pair );
-void tgt_update( TARGET_V *target, UCHAR *node_id, IP *from, int port );
+TARGET_V *tgt_v_init( UCHAR *target_id );
+void tgt_v_free( TARGET_V *target );
+void tgt_v_put( TARGET_V *target, UCHAR *node_id, IP *from, int port );
+void tgt_v_del( TARGET_V *target, ITEM *i );
+void tgt_v_expire( TARGET_V *target, time_t now );
+void tgt_v_print( TARGET_V *target );
+ITEM *tgt_v_find( TARGET_V *target, UCHAR *pair );
+void tgt_v_update( TARGET_V *target, UCHAR *node_id, IP *from, int port );
 
 NODE_V *node_v_init( UCHAR *node_id, IP *from, int port );
 void node_v_free( NODE_V *node_v );
