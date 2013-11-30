@@ -106,7 +106,7 @@ ITEM *ben_free_item( BEN *node, ITEM *item ) {
 		return NULL;
 	if( node->t == BEN_LIST && node->v.l == NULL )
 		return NULL;
-	
+
 	/* Remove key in case of BEN_DICT */
 	if( node->t == BEN_DICT ) {
 		tuple_free( item->val );
@@ -117,7 +117,7 @@ ITEM *ben_free_item( BEN *node, ITEM *item ) {
 		myfree( item->val );
 		item->val = NULL;
 	}
-	
+
 	return list_del( node->v.d, item );
 }
 
@@ -133,7 +133,7 @@ void raw_free( RAW *raw ) {
 	myfree( raw->code );
 	myfree( raw );
 }
- 
+
 
 TUPLE *tuple_init( BEN *key, BEN *val ) {
 	TUPLE *tuple = (TUPLE *) myalloc( sizeof(TUPLE) );
@@ -165,7 +165,7 @@ void ben_dict( BEN *node, BEN *key, BEN *val ) {
 		fail( "ben_dict( 6 )" );
 
 	tuple = tuple_init( key, val );
-	
+
 	if( list_put( node->v.d, tuple) == NULL )
 		fail( "ben_dict( 7 )" );
 }
@@ -206,7 +206,7 @@ void ben_int( BEN *node, long int i ) {
 		fail( "ben_int( 1 )" );
 	if( node->t != BEN_INT)
 		fail( "ben_int( 2 )" );
-	
+
 	node->v.i = i;
 }
 
@@ -222,7 +222,7 @@ long int ben_enc_size( BEN *node ) {
 	switch( node->t ) {
 		case BEN_DICT:
 			size += 2; /* de */
-			
+
 			if( node->v.d == NULL )
 				return size;
 
@@ -237,9 +237,9 @@ long int ben_enc_size( BEN *node ) {
 					size += ben_enc_size( tuple->key );
 					size += ben_enc_size( tuple->val );
 				}
-				
+
 				item = list_next( item );
-				
+
 			} while( item != NULL );
 
 			break;
@@ -259,7 +259,7 @@ long int ben_enc_size( BEN *node ) {
 					size += ben_enc_size( item->val );
 				}
 				item = list_next( item );
-				
+
 			} while( item != NULL );
 
 			break;
@@ -309,11 +309,11 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 	if( node == NULL || p == NULL ) {
 		return NULL;
 	}
-		
+
 	switch( node->t ) {
 		case BEN_DICT:
 			*p++ = 'd';
- 
+
 			if( node->v.d != NULL && node->v.d->item != NULL ) {
 				item = list_start( node->v.d );
 				do {
@@ -322,30 +322,30 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 					if( tuple->key != NULL && tuple->val != NULL ) {
 						if( ( p = ben_enc_rec( tuple->key, p)) == NULL )
 							return NULL;
-						
+
 						if( ( p = ben_enc_rec( tuple->val, p)) == NULL )
 							return NULL;
 					}
-					
+
 					item = list_next( item );
-					
+
 				} while( item != NULL );
 			}
-			
+
 			*p++ = 'e';
 			break;
 
 		case BEN_LIST:
 			*p++ = 'l';
-			
+
 			if( node->v.l != NULL && node->v.l->item != NULL ) {
 				item = list_start( node->v.l );
 				do {
 					if( ( p = ben_enc_rec( item->val, p)) == NULL )
 						return NULL;
-					
+
 					item = list_next( item );
-					
+
 				} while( item != NULL );
 			}
 
@@ -416,7 +416,7 @@ BEN *ben_dec_r( RAW *raw ) {
 			node = ben_dec_s( raw );
 			break;
 	}
-	
+
 	return node;
 }
 
@@ -424,7 +424,7 @@ BEN *ben_dec_d( RAW *raw ) {
 	BEN *dict = ben_init( BEN_DICT );
 	BEN *val = NULL;
 	BEN *key = NULL;
-	
+
 	raw->p++;
 	while( *raw->p != 'e' ) {
 		key = ben_dec_s( raw );
@@ -439,14 +439,14 @@ BEN *ben_dec_d( RAW *raw ) {
 BEN *ben_dec_l( RAW *raw ) {
 	BEN *list = ben_init( BEN_LIST );
 	BEN *val = NULL;
-	
+
 	raw->p++;
 	while( *raw->p != 'e' ) {
 		val = ben_dec_r( raw );
 		ben_list( list, val );
 	}
 	++raw->p;
-	
+
 	return list;
 }
 
@@ -478,16 +478,16 @@ BEN *ben_dec_s( RAW *raw ) {
 				memcpy( buf,start,i );
 				l = atol( (char *)buf );
 				myfree( buf );
-	
+
 				raw->p += 1;
 				ben_str( node, raw->p, l );
 				raw->p += l;
-				
+
 				run = 0;
 				break;
 		}
 	}
-   
+
 	return node;
 }
 
@@ -536,7 +536,7 @@ BEN *ben_dec_i( RAW *raw ) {
 	result = prefix * result;
 
 	ben_int( node, result );
-	
+
 	return node;
 }
 
@@ -600,7 +600,7 @@ int ben_validate_r( RAW *raw ) {
 int ben_validate_d( RAW *raw ) {
 	if( ( long int)( ++raw->p - raw->code) >= raw->size )
 		return 0;
-	
+
 	while( *raw->p != 'e' ) {
 		if( !ben_validate_s( raw) )
 			return 0;
@@ -612,14 +612,14 @@ int ben_validate_d( RAW *raw ) {
 
 	if( ( long int)( ++raw->p - raw->code) > raw->size )
 		return 0;
-	
+
 	return 1;
 }
 
 int ben_validate_l( RAW *raw ) {
 	if( ( long int)( ++raw->p - raw->code) >= raw->size )
 		return 0;
-	
+
 	while( *raw->p != 'e' ) {
 		if( !ben_validate_r( raw) )
 			return 0;
@@ -629,7 +629,7 @@ int ben_validate_l( RAW *raw ) {
 
 	if( ( long int)( ++raw->p - raw->code) > raw->size )
 		return 0;
-	
+
 	return 1;
 }
 
@@ -641,7 +641,7 @@ int ben_validate_s( RAW *raw ) {
 
 	if( ( long int)( raw->p - raw->code) >= raw->size )
 		return 0;
-	
+
 	while( ( long int)( raw->p - raw->code) < raw->size && run == 1 ) {
 		switch( *raw->p ) {
 			case '0':
@@ -681,7 +681,7 @@ int ben_validate_s( RAW *raw ) {
 
 	if( ( long int)( raw->p - raw->code) > raw->size )
 		return 0;
-	
+
 	return 1;
 }
 
@@ -694,11 +694,11 @@ int ben_validate_i( RAW *raw ) {
 
 	if( ( long int)( ++raw->p - raw->code) >= raw->size )
 		return 0;
-	
+
 	start = raw->p;
 	if( *raw->p == '-' ) {
 		start = ++raw->p;
-		
+
 		if( ( long int)( raw->p - raw->code) >= raw->size )
 			return 0;
 	}
@@ -740,7 +740,7 @@ int ben_validate_i( RAW *raw ) {
 
 	if( (long int)( raw->p - raw->code) > raw->size )
 		return 0;
-   
+
 	return 1;
 }
 
@@ -760,7 +760,7 @@ int ben_is_list( BEN *node ) {
 	if( node == NULL ) {
 		return 0;
 	}
-	
+
 	if( node->t != BEN_LIST ) {
 		return 0;
 	}
@@ -796,7 +796,7 @@ BEN *ben_searchDictKey( BEN *node, BEN *key ) {
 	ITEM *item = NULL;
 	BEN *thiskey = NULL;
 	TUPLE *tuple = NULL;
-	
+
 	/* Tests */
 	if( node == NULL )
 		return NULL;
@@ -820,7 +820,7 @@ BEN *ben_searchDictKey( BEN *node, BEN *key ) {
 			return tuple->val;
 		}
 		item = list_next( item );
-		
+
 	} while( item != NULL );
 
 	return NULL;
@@ -833,6 +833,79 @@ BEN *ben_searchDictStr( BEN *node, const char *buffer ) {
 	result = ben_searchDictKey( node, key );
 	ben_free( key );
 	return result;
+}
+
+long int ben_str_size( BEN *node ) {
+	if( ! ben_is_str( node ) ) {
+		return 0;
+	}
+
+	return node->v.s->i;
+}
+
+#if 0
+void ben_sort( BEN *node ) {
+	ITEM *item = NULL;
+	ITEM *next = NULL;
+	BEN *key1 = NULL;
+	BEN *key2 = NULL;
+	TUPLE *tuple_this = NULL;
+	TUPLE *tuple_next = NULL;
+	long int switchcounter = 0;
+	int result = 0;
+
+	if( node == NULL ) {
+		fail( "ben_sort( 1 )" );
+	}
+	if( node->t != BEN_DICT ) {
+		fail( "ben_sort( 2 )" );
+	}
+	if( node->v.d == NULL ) {
+		return;
+	}
+	if( node->v.d->counter < 2 ) {
+		return;
+	}
+
+	item = node->v.d->start;
+
+	while( 1 ) {
+		next = list_next( item );
+
+		/* Reached the end */
+		if( next == node->v.d->start ) {
+			if( switchcounter == 0 ) {
+				/* The list is sorted now */
+				break;
+			}
+
+			/* Reset switchcounter ... */
+			switchcounter = 0;
+
+			/* ... and start again */
+			item = node->v.d->start;
+			next = list_next( item );
+		}
+
+		tuple_this = list_value( item );
+		tuple_next = list_value( next );
+		key1 = tuple_this->key;
+		key2 = tuple_next->key;
+
+		result = ben_str_compare( key1, key2 );
+		if( result > 0 ) {
+			list_swap( node->v.d, item, next );
+			switchcounter++;
+
+			/* Continue moving up until start is reached */
+			if( next != node->v.d->start ) {
+				item = list_prev( next );
+			}
+		} else {
+			/* Move down */
+			item = next;
+		}
+	}
 }
 
 int ben_str_compare( BEN *key1, BEN *key2 ) {
@@ -867,78 +940,7 @@ int ben_str_compare( BEN *key1, BEN *key2 ) {
 	/* Equal */
 	return 0;
 }
-
-long int ben_str_size( BEN *node ) {
-	if( ! ben_is_str( node ) ) {
-		return 0;
-	}
-
-	return node->v.s->i;
-}
-
-//void ben_sort( BEN *node ) {
-//	ITEM *item = NULL;
-//	ITEM *next = NULL;
-//	BEN *key1 = NULL;
-//	BEN *key2 = NULL;
-//	TUPLE *tuple_this = NULL;
-//	TUPLE *tuple_next = NULL;
-//	long int switchcounter = 0;
-//	int result = 0;
-//	
-//	if( node == NULL ) {
-//		fail( "ben_sort( 1 )" );
-//	}
-//	if( node->t != BEN_DICT ) {
-//		fail( "ben_sort( 2 )" );
-//	}
-//	if( node->v.d == NULL ) {
-//		return;
-//	}
-//	if( node->v.d->counter < 2 ) {
-//		return;
-//	}
-//
-//	item = node->v.d->start;
-//
-//	while( 1 ) {
-//		next = list_next( item );
-//
-//		/* Reached the end */
-//		if( next == node->v.d->start ) {
-//			if( switchcounter == 0 ) {
-//				/* The list is sorted now */
-//				break;
-//			}
-//
-//			/* Reset switchcounter ... */
-//			switchcounter = 0;
-//
-//			/* ... and start again */
-//			item = node->v.d->start;
-//			next = list_next( item );
-//		}
-//
-//		tuple_this = list_value( item );
-//		tuple_next = list_value( next );
-//		key1 = tuple_this->key;
-//		key2 = tuple_next->key;
-//
-//		result = ben_str_compare( key1, key2 );
-//		if( result > 0 ) {
-//			list_swap( node->v.d, item, next );
-//			switchcounter++;
-//			
-//			/* Continue moving up until start is reached */
-//			if( next != node->v.d->start ) {
-//				item = list_prev( next );
-//			}
-//		} else {
-//			/* Move down */
-//			item = next;
-//		}
-//	}
-//}
+#endif
 
 STR *str_init( UCHAR *buf, long int size ) {
 	STR *str = (STR *) myalloc( sizeof(STR) );
@@ -946,7 +948,7 @@ STR *str_init( UCHAR *buf, long int size ) {
 	if( buf == NULL ) {
 		fail( "str_init() with NULL argument" );
 	}
-	
+
 	if( size < 0 ) {
 		fail( "str_init() with zero size" );
 	}
@@ -954,7 +956,7 @@ STR *str_init( UCHAR *buf, long int size ) {
 	str->s = myalloc( (size+1) * sizeof(UCHAR) );
 	memcpy( str->s, buf, size );
 	str->i = size;
-	
+
 	return str;
 }
 

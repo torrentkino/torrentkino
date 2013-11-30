@@ -39,6 +39,46 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define BEN_INT_MAXSIZE 9223372036854775807
 #endif
 
+#ifdef NSS
+#define ben_init _nss_tk_ben_init
+#define ben_free _nss_tk_ben_free
+#define ben_free_r _nss_tk_ben_free_r
+#define ben_free_item _nss_tk_ben_free_item
+#define raw_init _nss_tk_raw_init
+#define raw_free _nss_tk_raw_free
+#define ben_dict _nss_tk_ben_dict
+#define ben_list _nss_tk_ben_list
+#define ben_str _nss_tk_ben_str
+#define ben_int _nss_tk_ben_int
+#define tuple_init _nss_tk_tuple_init
+#define tuple_free _nss_tk_tuple_free
+#define ben_enc _nss_tk_ben_enc
+#define ben_enc_rec _nss_tk_ben_enc_rec
+#define ben_enc_size _nss_tk_ben_enc_size
+#define ben_validate _nss_tk_ben_validate
+#define ben_validate_r _nss_tk_ben_validate_r
+#define ben_validate_d _nss_tk_ben_validate_d
+#define ben_validate_l _nss_tk_ben_validate_l
+#define ben_validate_i _nss_tk_ben_validate_i
+#define ben_validate_s _nss_tk_ben_validate_s
+#define ben_dec _nss_tk_ben_dec
+#define ben_dec_r _nss_tk_ben_dec_r
+#define ben_dec_d _nss_tk_ben_dec_d
+#define ben_dec_l _nss_tk_ben_dec_l
+#define ben_dec_i _nss_tk_ben_dec_i
+#define ben_dec_s _nss_tk_ben_dec_s
+#define ben_is_dict _nss_tk_ben_is_dict
+#define ben_is_list _nss_tk_ben_is_list
+#define ben_is_str _nss_tk_ben_is_str
+#define ben_is_int _nss_tk_ben_is_int
+#define ben_searchDictKey _nss_tk_ben_searchDictKey
+#define ben_searchDictStr _nss_tk_ben_searchDictStr
+#define ben_compare _nss_tk_ben_compare
+#define ben_str_size _nss_tk_ben_str_size
+#define str_init _nss_tk_str_init
+#define str_free _nss_tk_str_free
+#endif
+
 typedef struct {
 	UCHAR *s;
 	long int i;
@@ -54,7 +94,6 @@ typedef struct {
 		LIST *l;
 	} v;
 } BEN;
-//typedef struct obj_ben BEN;
 
 typedef struct {
 	BEN *key;
@@ -114,7 +153,5 @@ long int ben_str_size( BEN *node );
 
 STR *str_init( UCHAR *buf, long int size );
 void str_free( STR *str );
-
-//void ben_sort( BEN *node );
 
 #endif

@@ -23,6 +23,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 #include "malloc.h"
 #include "file.h"
+#include "str.h"
 
 BEN *_nss_tk_conf( void );
 int _nss_tk_port( BEN *conf );
@@ -31,10 +32,7 @@ int _nss_tk_mode( BEN *conf );
 int _nss_tk_connect( const char *hostname, int hostsize, 
 	UCHAR *reply, int reply_size, int port, int mode );
 
-UCHAR *_nss_tk_convert_to_sin6( struct sockaddr_in6 *sin, UCHAR *p );
-UCHAR *_nss_tk_convert_to_sin( struct sockaddr_in *sin, UCHAR *p );
-
-int _nss_tk_valid_tld( const char *hostname, int hostsize );
-int _nss_tk_valid_hostname( const char *hostname, int hostsize );
+UCHAR *_nss_tk_bytes_to_sin6( struct sockaddr_in6 *sin, UCHAR *p );
+UCHAR *_nss_tk_bytes_to_sin( struct sockaddr_in *sin, UCHAR *p );
 
 #endif /* TK_SHARE_H */

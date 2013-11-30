@@ -71,10 +71,10 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 		}
 
 		if( mode == 6 ) {
-			p = _nss_tk_convert_to_sin6( &sin6, p );
+			p = _nss_tk_bytes_to_sin6( &sin6, p );
 			torrenkino_print6( &sin6, handler, path );
 		} else {
-			p = _nss_tk_convert_to_sin( &sin, p );
+			p = _nss_tk_bytes_to_sin( &sin, p );
 			torrenkino_print( &sin, handler, path );
 		}
 
@@ -138,11 +138,11 @@ int main( int argc, char **argv ) {
 
 	torrentkino_url( argv[1], &hostname, &handler, &path );
 
-	if( !_nss_tk_valid_hostname( hostname, strlen( hostname ) ) ) {
+	if( !str_valid_hostname( hostname, strlen( hostname ) ) ) {
 		fail( "%s is not a valid hostname", hostname );
 	}
 
-	if( !_nss_tk_valid_tld( hostname, strlen( hostname ) ) ) {
+	if( !str_valid_tld( hostname, strlen( hostname ) ) ) {
 		fail( "%s must end with .p2p", hostname );
 	}
 

@@ -159,7 +159,7 @@ int _nss_tk_connect( const char *hostname, int hostsize,
 	return n;
 }
 
-UCHAR *_nss_tk_convert_to_sin6( struct sockaddr_in6 *sin, UCHAR *p ) {
+UCHAR *_nss_tk_bytes_to_sin6( struct sockaddr_in6 *sin, UCHAR *p ) {
 	socklen_t sin_size = sizeof( struct sockaddr_in6 );
 	memset( sin, '\0', sin_size );
 	sin->sin6_family = AF_INET6;
@@ -168,60 +168,11 @@ UCHAR *_nss_tk_convert_to_sin6( struct sockaddr_in6 *sin, UCHAR *p ) {
 	return p;
 }
 
-UCHAR *_nss_tk_convert_to_sin( struct sockaddr_in *sin, UCHAR *p ) {
+UCHAR *_nss_tk_bytes_to_sin( struct sockaddr_in *sin, UCHAR *p ) {
 	socklen_t sin_size = sizeof( struct sockaddr_in );
 	memset( sin, '\0', sin_size );
 	sin->sin_family = AF_INET;
 	memcpy( &sin->sin_addr, p, 4 ); p += 4;
 	memcpy( &sin->sin_port, p, 2 ); p += 2;
 	return p;
-}
-
-int _nss_tk_valid_hostname( const char *hostname, int hostsize ) {
-
-	int i = 0;
-	
-	for( i=0; i<hostsize; i++ ) {
-		if( hostname[i] >= '0' && hostname[i] <= '9' ) {
-			continue;
-		} else if( hostname[i] >= 'A' && hostname[i] <= 'Z' ) {
-			continue;
-		} else if( hostname[i] >= 'a' && hostname[i] <= 'z' ) {
-			continue;
-		} else if( hostname[i] == '-' ) {
-			continue;
-		} else if( hostname[i] == '_' ) {
-			continue;
-		} else if( hostname[i] == '.' ) {
-			continue;
-		} else {
-			return 0;
-		}
-	}
-
-	return 1;
-}
-
-int _nss_tk_valid_tld( const char *hostname, int hostsize ) {
-
-	const char *p0 = NULL;
-	const char *p1 = NULL;
-
-	/* "x.p2p" */
-	if( hostsize < 5 ) {
-		return 0;
-	}
-
-	/* Jump to the last '.' */
-	p0 = hostname;
-	while( ( p1 = strchr( p0, '.')) != NULL ) {
-		p0 = p1+1;
-	}
-
-	/* TLD must be ".p2p" */
-	if( strcmp( p0,"p2p") != 0 ) {
-		return 0;
-	}
-
-	return 1;
 }

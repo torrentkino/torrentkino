@@ -22,6 +22,12 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 
+#ifdef NSS
+#define myalloc _nss_tk_myalloc
+#define myfree _nss_tk_myfree
+#define myrealloc _nss_tk_myrealloc
+#endif
+
 void *myalloc( long int size );
 void *myrealloc( void *arg, long int size );
 void myfree( void *arg );

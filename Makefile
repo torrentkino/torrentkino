@@ -1,6 +1,6 @@
 SUBDIRS = torrentkino6 torrentkino4 tknss tkcli tumbleweed
 
-.PHONY : all clean install manpage $(SUBDIRS)
+.PHONY : all clean install manpage debian ubuntu $(SUBDIRS)
 
 all: $(SUBDIRS)
 
@@ -13,10 +13,13 @@ install:
 	done
 
 manpage:
-	ronn < docs/torrentkino.md > debian/docs/torrentkino6.1
-	ronn < docs/torrentkino.md > debian/docs/torrentkino4.1
-	ronn < docs/torrentkino.md > debian/docs/tk.1
-	ronn < docs/tumbleweed.md > debian/docs/tumbleweed.1
+	./bin/manpage.sh
+
+debian:
+	./bin/debian.sh
+
+ubuntu:
+	./bin/debian.sh
 
 clean:
 	for dir in $(SUBDIRS); do \

@@ -22,6 +22,23 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "malloc.h"
 
+#ifdef NSS
+#define list_add _nss_tk_list_add
+#define list_clear _nss_tk_list_clear
+#define list_del _nss_tk_list_del
+#define list_free _nss_tk_list_free
+#define list_init _nss_tk_list_init
+#define list_ins _nss_tk_list_ins
+#define list_next _nss_tk_list_next
+#define list_prev _nss_tk_list_prev
+#define list_put _nss_tk_list_put
+#define list_rotate _nss_tk_list_rotate
+#define list_size _nss_tk_list_size
+#define list_start _nss_tk_list_start
+#define list_stop _nss_tk_list_stop
+#define list_value _nss_tk_list_value
+#endif
+
 struct obj_list {	
 	struct obj_item *item;
 	ULONG size;

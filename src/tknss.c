@@ -87,13 +87,13 @@ enum nss_status _nss_tk_hostent( const char *hostname, int size, int af,
 	int in_addr_size = 0;
 
 	/* Check */
-	if( !_nss_tk_valid_hostname( hostname, size ) ) {
+	if( !_nss_tk_str_valid_hostname( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_tk_valid_tld( hostname, size ) ) {
+	if( !_nss_tk_str_valid_tld( hostname, size ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
@@ -199,13 +199,13 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 	int mode = 0;
 
 	/* Check */
-	if( !_nss_tk_valid_hostname( hostname, hostsize ) ) {
+	if( !_nss_tk_str_valid_hostname( hostname, hostsize ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_tk_valid_tld( hostname, hostsize ) ) {
+	if( !_nss_tk_str_valid_tld( hostname, hostsize ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;

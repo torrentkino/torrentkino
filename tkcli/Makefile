@@ -5,7 +5,7 @@ CFLAGS += -Wall -Wwrite-strings -pedantic
 CFLAGS += -DTORRENTKINO
 #CFLAGS += -g -DDEBUG
 export LDFLAGS =
-OBJS=tkcli.o tksrc.o malloc.o file.o ben.o list.o fail.o
+OBJS=tkcli.o tksrc.o malloc.o file.o ben.o list.o fail.o str.o
 
 .PHONY: all clean install
 

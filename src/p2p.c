@@ -1039,7 +1039,7 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 	int result = FALSE;
 
 	/* Validate hostname */
-	if ( !str_isValidHostname( (char *)hostname, size ) ) {
+	if ( !str_valid_hostname( (char *)hostname, size ) ) {
 		info( NULL, 0, "LOOKUP %s (Invalid hostname)", hostname );
 		return;
 	}

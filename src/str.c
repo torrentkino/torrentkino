@@ -123,11 +123,11 @@ int str_isValidFilename( char *string ) {
 	return 1;
 }
 
-int str_isValidHostname( const char *hostname, int size ) {
+int str_valid_hostname( const char *hostname, int hostsize ) {
 
 	int i = 0;
 	
-	for( i=0; i<size; i++ ) {
+	for( i=0; i<hostsize; i++ ) {
 		if( hostname[i] >= '0' && hostname[i] <= '9' ) {
 			continue;
 		} else if( hostname[i] >= 'A' && hostname[i] <= 'Z' ) {
@@ -143,6 +143,30 @@ int str_isValidHostname( const char *hostname, int size ) {
 		} else {
 			return 0;
 		}
+	}
+
+	return 1;
+}
+
+int str_valid_tld( const char *hostname, int hostsize ) {
+
+	const char *p0 = NULL;
+	char *p1 = NULL;
+
+	/* "x.p2p" */
+	if( hostsize < 5 ) {
+		return 0;
+	}
+
+	/* Jump to the last '.' */
+	p0 = hostname;
+	while( ( p1 = strchr( p0, '.')) != NULL ) {
+		p0 = p1+1;
+	}
+
+	/* TLD must be ".p2p" */
+	if( strcmp( p0,"p2p") != 0 ) {
+		return 0;
 	}
 
 	return 1;

@@ -23,6 +23,18 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "malloc.h"
 
+#ifdef NSS
+#define file_append _nss_tk_file_append
+#define file_isdir _nss_tk_file_isdir
+#define file_islink _nss_tk_file_islink
+#define file_isreg _nss_tk_file_isreg
+#define file_load _nss_tk_file_load
+#define file_mkdir _nss_tk_file_mkdir
+#define file_mod _nss_tk_file_mod
+#define file_size _nss_tk_file_size
+#define file_write _nss_tk_file_write
+#endif
+
 int file_isdir( const char *dirname );
 int file_isreg( const char *filename );
 int file_islink( const char *filename );

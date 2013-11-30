@@ -306,6 +306,12 @@ void conf_print( void ) {
 	char hex[HEX_LEN];
 #endif
 
+	if ( getenv( "PWD" ) == NULL || getenv( "HOME" ) == NULL ) {
+		info( NULL, 0, "# Hint: Reading environment variables failed. sudo?");
+		info( NULL, 0, "# This is not a problem. But in some cases it might be useful" );
+		info( NULL, 0, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
+	}
+
 	info( NULL, 0, "Threads: %i", _main->conf->cores );
 	
 	if( _main->conf->mode == CONF_CONSOLE ) {

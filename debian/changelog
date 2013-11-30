@@ -1,8 +1,14 @@
+torrentkino (0.17) wheezy; urgency=low
+
+  * sudo -E hint while starting
+  * Prevent NSS name space pollution
+ 
+ -- Aiko Barz <aiko@torrentkino.de>  Sat, 23 Nov 2013 23:24:00 +0100
 torrentkino (0.16) wheezy; urgency=low
 
   * More complex cache with aggregation of multiple answers
  
- -- Aiko Barz <aiko@chroot.de>  Sat, 09 Nov 2013 18:42:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Sat, 09 Nov 2013 18:42:00 +0100
 torrentkino (0.15) wheezy; urgency=low
 
   * New Tumbleweed default: Run on port TCP/80 instead of TCP/8080 if started by root
@@ -12,29 +18,29 @@ torrentkino (0.15) wheezy; urgency=low
   * Bootstrap port cleanup
   * IP code cleanup
 
- -- Aiko Barz <aiko@chroot.de>  Wed, 06 Oct 2013 22:21:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Wed, 06 Oct 2013 22:21:00 +0100
 torrentkino (0.14) wheezy; urgency=low
 
   * Improved info_hash storage
 
- -- Aiko Barz <aiko@chroot.de>  Fri, 01 Oct 2013 21:35:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Fri, 01 Oct 2013 21:35:00 +0100
 torrentkino (0.13) wheezy; urgency=low
 
   * URL handler for the cli command
 
- -- Aiko Barz <aiko@chroot.de>  Tue, 24 Oct 2013 21:03:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Tue, 24 Oct 2013 21:03:00 +0100
 torrentkino (0.12) wheezy; urgency=low
 
   * Faster lookups in large DHTs
 
- -- Aiko Barz <aiko@chroot.de>  Tue, 22 Oct 2013 20:23:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Tue, 22 Oct 2013 20:23:00 +0100
 torrentkino (0.11) wheezy; urgency=low
 
   * IPV4 support including NSS and multicast
   * Leave multicast group at the end
   * Only send an announce success when actually being successful. (Limits)
 
- -- Aiko Barz <aiko@chroot.de>  Sun, 20 Oct 2013 23:06:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Sun, 20 Oct 2013 23:06:00 +0100
 torrentkino (0.10) wheezy; urgency=low
 
   * Renamed masala to torrentkino.
@@ -46,13 +52,13 @@ torrentkino (0.10) wheezy; urgency=low
   * Use info_hash database for lookups too for 2 node only swarms.
   * Better startup timings for 2 node only swarms.
 
- -- Aiko Barz <aiko@chroot.de>  Mon, 10 Oct 2013 23:32:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Mon, 10 Oct 2013 23:32:00 +0100
 torrentkino (0.9) wheezy; urgency=low
 
   * Use a sorted list for get_peers searches instead of bucket containers to save some bytes.
   * By default, be verbose in the console and quiet while running as a daemon.
 
- -- Aiko Barz <aiko@chroot.de>  Mon, 16 Sep 2013 23:25:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Mon, 16 Sep 2013 23:25:00 +0100
 torrentkino (0.8) wheezy; urgency=low
 
   * Limit the number of info_hashes, that can be stored.
@@ -60,34 +66,34 @@ torrentkino (0.8) wheezy; urgency=low
   * Return NULL bytes as the token if the info_hash DB grows beyond all limits.
   * Rotate VALUEs after each request for a fair IP distribution.
 
- -- Aiko Barz <aiko@chroot.de>  Wed, 28 Aug 2013 22:22:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Wed, 28 Aug 2013 22:22:00 +0100
 torrentkino (0.7) wheezy; urgency=low
 
   * Query cache.
   * Write hint file, that contains the server port. Needed by CLI+NSS.
 
- -- Aiko Barz <aiko@chroot.de>  Sun, 11 Aug 2013 14:22:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Sun, 11 Aug 2013 14:22:00 +0100
 torrentkino (0.6) wheezy; urgency=low
 
   * Bittorrent compatibility
 
- -- Aiko Barz <aiko@chroot.de>  Mon, 08 Jul 2013 20:30:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Mon, 08 Jul 2013 20:30:00 +0100
 torrentkino (0.5) wheezy; urgency=low
 
   * Do not use lookup keys within FIND requests to save some bytes.
 
- -- Aiko Barz <aiko@chroot.de>  Tue, 02 Apr 2013 19:42:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Tue, 02 Apr 2013 19:42:00 +0100
 torrentkino (0.4) wheezy; urgency=low
 
   * Minor protocol changes
   * Logging changes
 
- -- Aiko Barz <aiko@chroot.de>  Fri, 15 Mar 2013 21:30:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Fri, 15 Mar 2013 21:30:00 +0100
 torrentkino (0.3) wheezy; urgency=low
 
   * Realm support
 
- -- Aiko Barz <aiko@chroot.de>  Tue, 12 Mar 2013 20:50:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Tue, 12 Mar 2013 20:50:00 +0100
 torrentkino (0.2) wheezy; urgency=low
 
   * Removed polarssl from the NSS module
@@ -95,9 +101,9 @@ torrentkino (0.2) wheezy; urgency=low
   * Allow recursive requests only from localhost
   * Database expiry run
 
- -- Aiko Barz <aiko@chroot.de>  Thu, 07 Mar 2013 23:10:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Thu, 07 Mar 2013 23:10:00 +0100
 torrentkino (0.1) wheezy; urgency=low
 
   * torrentkino: Initial release
 
- -- Aiko Barz <aiko@chroot.de>  Thu, 25 Oct 2012 22:49:00 +0100
+ -- Aiko Barz <aiko@torrentkino.de>  Thu, 25 Oct 2012 22:49:00 +0100

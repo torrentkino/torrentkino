@@ -23,12 +23,27 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "fail.h"
 
+#ifdef NSS
+#define str_count _nss_tk_str_count
+#define str_gmttime _nss_tk_str_gmttime
+#define str_GMTtime _nss_tk_str_GMTtime
+#define str_isNumber _nss_tk_str_isNumber
+#define str_isSafePort _nss_tk_str_isSafePort
+#define str_isValidFilename _nss_tk_str_isValidFilename
+#define str_valid_hostname _nss_tk_str_valid_hostname
+#define str_valid_tld _nss_tk_str_valid_tld
+#define str_isValidUTF8 _nss_tk_str_isValidUTF8
+#define str_prettySize _nss_tk_str_prettySize
+#define str_sha1_compare _nss_tk_str_sha1_compare
+#endif
+
 int str_isValidUTF8( char *string );
 int str_isNumber( char *string );
 int str_isSafePort( char *string );
 /* int str_isHex( char *string ); */
 int str_isValidFilename( char *string );
-int str_isValidHostname( const char *hostname, int size );
+int str_valid_hostname( const char *hostname, int hostsize );
+int str_valid_tld( const char *hostname, int hostsize );
 
 /*void str_htmlDisarmInput( char *string );*/
 

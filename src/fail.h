@@ -22,6 +22,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 
+#ifdef NSS
+#define fail _nss_tk_fail
+#endif
+
 void fail( const char *format, ... );
 
 #endif
