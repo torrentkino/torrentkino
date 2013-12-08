@@ -77,12 +77,15 @@ ITEM *node_put( void ) {
 	memset( n->filename, '\0', BUF_SIZE );
 	n->filesize = 0;
 	n->f_offset = 0;
+
+#ifdef RANGE
 	n->f_stop = 0;
 	n->content_length = 0;
 
 	/* HTTP Range */
 	n->range_start = 0;
 	n->range_stop = 0;
+#endif
 
 	/* HTTP Keep-Alive */
 	memset( n->keepalive, '\0', BUF_SIZE );
@@ -172,10 +175,12 @@ void node_clearSendBuf( TCP_NODE *n ) {
 	memset( n->entity_url, '\0', BUF_SIZE );
 	n->filesize = 0;
 	n->f_offset = 0;
+#ifdef RANGE
 	n->f_stop = 0;
 	n->content_length = 0;
 	n->range_start = 0;
 	n->range_stop = 0;
+#endif
 	n->code = 0;
 	n->type = HTTP_UNKNOWN;
 	n->proto = HTTP_1_0;

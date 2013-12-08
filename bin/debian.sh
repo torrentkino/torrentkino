@@ -40,7 +40,6 @@ sudo dpkg -i $DEB
 
 cat <<EOF
 ###
-### Finish
+### Done
 ###
 EOF
-dpkg -l | grep torrentkino

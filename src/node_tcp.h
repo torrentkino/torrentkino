@@ -57,12 +57,14 @@ typedef struct {
 	char filename[BUF_SIZE];
 	size_t filesize;
 	off_t f_offset;
+#ifdef RANGE
 	off_t f_stop;
 	size_t content_length;
 
 	/* HTTP Range */
 	off_t range_start;
 	off_t range_stop;
+#endif
 
 	/* HTTP Keep-Alive */
 	char keepalive[BUF_SIZE];

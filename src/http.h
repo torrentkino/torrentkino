@@ -42,4 +42,6 @@ void http_send( TCP_NODE *n );
 void http_404( TCP_NODE *n );
 void http_304( TCP_NODE *n );
 void http_200( TCP_NODE *n );
+#ifdef RANGE
 void http_206( TCP_NODE *n );
+#endif

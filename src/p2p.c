@@ -33,6 +33,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <netdb.h>
 #include <sys/epoll.h>
+#include <limits.h>
 
 #include "malloc.h"
 #include "thrd.h"
@@ -66,8 +67,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "cache.h"
 #include "worker.h"
 
-struct obj_p2p *p2p_init( void ) {
-	struct obj_p2p *p2p = (struct obj_p2p *) myalloc( sizeof(struct obj_p2p) );
+P2P *p2p_init( void ) {
+	P2P *p2p = (P2P *) myalloc( sizeof(P2P) );
 
 	p2p->time_maintainance = 0;
 	p2p->time_multicast = 0;
@@ -139,13 +140,13 @@ void p2p_cron( void ) {
 	gettimeofday( &_main->p2p->time_now, NULL );
 
 	if( nbhd_is_empty() ) {
-		
+
 		/* Bootstrap PING */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_restart ) {
 			p2p_bootstrap();
 			time_add_1_min_approx( &_main->p2p->time_restart );
 		}
-	
+
 	} else {
 
 		/* Expire objects. Run once a minute. */
@@ -164,7 +165,7 @@ void p2p_cron( void ) {
 			nbhd_split( _main->conf->node_id, TRUE );
 			time_add_5_sec_approx( &_main->p2p->time_split );
 		}
-	
+
 		/* Find nodes every ~5 minutes. Run once a minute. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_find ) {
 			p2p_cron_find_myself();
@@ -349,7 +350,7 @@ void p2p_cron_announce_engage( ITEM *ti ) {
 			send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
 			j++;
 		}
-		
+
 		item = list_next( item );
 	}
 }
@@ -498,7 +499,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		default:
 			info( NULL, 0, "Unknown message type" );
 	}
-	
+
 	mutex_unblock( _main->work->mutex );
 
 	ben_free( packet );
@@ -574,7 +575,7 @@ void p2p_request( BEN *packet, IP *from ) {
 		p2p_announce_get_request( a, id->v.s->s, t, from );
 		return;
 	}
-	
+
 	info( NULL, 0, "Unknown query type" );
 }
 
@@ -597,7 +598,7 @@ void p2p_reply( BEN *packet, IP *from ) {
 		info( NULL, 0, "Node ID missing or broken" );
 		return;
 	}
-	
+
 	/* Do not talk to myself */
 	if( p2p_packet_from_myself( id->v.s->s ) ) {
 		return;
@@ -650,7 +651,7 @@ void p2p_reply( BEN *packet, IP *from ) {
 
 int p2p_packet_from_myself( UCHAR *node_id ) {
 	if( node_me( node_id ) ) {
-		
+
 		/* Received packet from myself: 
 		 * You may see multicast requests from yourself
 		 * if the neighbourhood is empty.
@@ -731,7 +732,7 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 		if( node_me( id ) ) {
 			continue;
 		}
-	
+
 		/* Ignore link-local address */
 		if( ip_is_linklocal( &sin ) ) {
 			continue;
@@ -820,7 +821,7 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 			return;
 		}
 	}
-	
+
 	if( nodes != NULL ) {
 		if( !ben_is_str( nodes ) || ben_str_size( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
 			info( NULL, 0, "nodes key missing or broken" );
@@ -878,7 +879,7 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 		if( ip_is_linklocal( &sin ) ) {
 			continue;
 		}
-	
+
 		nbhd_put( id, &sin );
 
 		/* Do not send requests twice */
@@ -891,7 +892,7 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 		if( ldb_put( l, id, (IP *)&sin ) >= 8 ) {
 			continue;
 		}
-		
+
 		/* Query node */
 		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
 	}

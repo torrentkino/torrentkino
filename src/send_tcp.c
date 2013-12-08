@@ -144,9 +144,13 @@ void send_file( TCP_NODE *n ) {
 		}
 	
 		/* The SIGPIPE gets catched in sig.c */
+#ifdef RANGE
 		bytes_sent = sendfile( n->connfd, fh, &n->f_offset, n->content_length );
-	
-		if( close( fh) != 0 ) {
+#else
+		bytes_sent = sendfile( n->connfd, fh, &n->f_offset, n->filesize );
+#endif
+
+		if( close( fh ) != 0 ) {
 			info( NULL, 500, "Failed to close %s", n->filename );
 			fail( strerror( errno) );
 		}
@@ -163,8 +167,11 @@ void send_file( TCP_NODE *n ) {
 		}
 		
 		/* Done */
+#ifdef RANGE
 		if( n->f_offset >= n->f_stop ) {
-			/* Clean up */
+#else
+		if( n->f_offset >= n->filesize ) {
+#endif
 			node_status( n, NODE_MODE_SEND_STOP );
 			return;
 		}

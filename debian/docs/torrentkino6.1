@@ -1,10 +1,10 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TORRENTKINO" "1" "November 2013" "" ""
+.TH "TORRENTKINO" "1" "December 2013" "" ""
 .
 .SH "NAME"
-\fBtorrentkino\fR \- P2P resolver
+\fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
 \fBtorrentkino\fR [\-d] [\-q] [\-h hostname] [\-r realm] [\-p port] [\-x server] [\-y port]
@@ -28,15 +28,15 @@ Torrentkino uses a hostname cache for fast lookups within big swarms\. A queried
 .
 .TP
 \fB/etc/nsswitch\.conf\fR
-Torrentkino gets attached to the \fIhosts\fR line\. The torrentkino daemon is only used for hostnames with \fI\.p2p\fR at the end\.
+Add \fBtk\fR to the \fIhosts:\fR line and your OS will forward \fI\.p2p\fR requests to the Torrentkino DHT daemon\.
 .
 .TP
 \fB$HOME/\.torrentkino\.conf\fR
-This file gets written by the Torrentkino daemon and contains the server port number and some other hints\. These hints get used by \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program\.
+This file gets written by the Torrentkino daemon and contains the server port number and some other hints\. Those hints are used by \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program\.
 .
 .TP
 \fB/etc/torrentkino\.conf\fR
-This file gets written by the Torrentkino daemon when started as root\. \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program use this file if \fB$HOME/\.torrentkino\.conf\fR does not exist\.
+This file gets written by the Torrentkino daemon when started by root for example at boot time or by using sudo\. It works like the file above\. \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program will look for \fB$HOME/\.torrentkino\.conf\fR first\.
 .
 .SH "OPTIONS"
 .
@@ -87,16 +87,13 @@ Announce the hostname \fIowncloud\.p2p\fR within the realm TooManySecrets to an 
 .
 .nf
 
-$ torrentkino \-h owncloud\.p2p \-r TooManySecrets \-x dht\.wifi\.pps\.jussieu\.fr
+$ torrentkino6 \-h owncloud\.p2p \-r TooManySecrets \-x dht\.wifi\.pps\.jussieu\.fr
 $ getent hosts owncloud\.p2p
 $ tk owncloud\.p2p
 .
 .fi
 .
 .IP "" 0
-.
-.SH "BUGS"
-Lack of IPv6 support by the providers\.
 .
 .SH "SEE ALSO"
 nsswitch\.conf(5)

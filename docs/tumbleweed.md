@@ -9,9 +9,8 @@ tumbleweed(1) -- Instant webserver
 
 **tumbleweed** is a simple webserver for static content with a low memory footprint
 for the Linux OS. It uses the Linux EPOLL event system, does non-blocking IO,
-supports Zero-Copy and uses all the cores you have. It is actually quite fast.
-Though only a few HTTP features are supported such as HTTP Pipelining,
-Keep-alive and Range Requests as seen in the wild.
+supports Zero-Copy and uses all the cores you have. It is actually really fast.
+It has only a limited HTTP feature set though.
 
 ## OPTIONS
 

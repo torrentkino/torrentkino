@@ -48,8 +48,9 @@ struct obj_p2p {
 	time_t time_ping;
 	time_t time_find;
 };
+typedef struct obj_p2p P2P;
 
-struct obj_p2p *p2p_init( void );
+P2P *p2p_init( void );
 void p2p_free( void );
 
 void p2p_bootstrap( void );

@@ -364,11 +364,11 @@ void http_keepalive( TCP_NODE *n, HASH *head ) {
 void http_lastmodified( TCP_NODE *n, HASH *head ) {
 	char entity_time[BUF_SIZE];
 
-	if( n->code != 200 || !file_isreg( n->filename) ) {
+	if( n->code != 200 || !file_isreg( n->filename ) ) {
 		return;
 	}
 
-	str_gmttime( entity_time, BUF_SIZE, file_mod( n->filename) );
+	str_gmttime( entity_time, BUF_SIZE, file_mod( n->filename ) );
 
 	snprintf( n->lastmodified, BUF_SIZE, "Last-Modified: %s\r\n", entity_time );
 
@@ -386,12 +386,14 @@ void http_gate( TCP_NODE *n, HASH *head ) {
 			http_200( n );
 			info( &n->c_addr, n->code, n->entity_url );
 			break;
+#ifdef RANGE
 		case 206:
 			http_206( n );
 			info( &n->c_addr, n->code,
 				"%s [%s]", n->entity_url,
 				(char *)hash_get(head, (UCHAR *)"Range", 5));
 			break;
+#endif
 		case 304:
 			http_304( n );
 			info( &n->c_addr, n->code, n->entity_url );
@@ -415,9 +417,11 @@ void http_send( TCP_NODE *n ) {
 }
 
 void http_size( TCP_NODE *n, HASH *head ) {
+#ifdef RANGE
 	char *p_start = NULL;
 	char *p_stop = NULL;
 	char range[BUF_SIZE];
+#endif
 
  	/* Not a valid file */
 	if ((n->code != 200 && n->code != 304) || !file_isreg(n->filename)) {
@@ -426,6 +430,8 @@ void http_size( TCP_NODE *n, HASH *head ) {
  
  	/* Normal case: content_length == filesize == f_stop */
 	n->filesize = file_size(n->filename);
+
+#ifdef RANGE
 	n->f_stop = n->filesize;
 	n->content_length = n->filesize;
 
@@ -490,6 +496,7 @@ void http_size( TCP_NODE *n, HASH *head ) {
 
 	/* Success */
 	n->code = 206;
+#endif
 }
 
 void http_404( TCP_NODE *n ) {
@@ -576,9 +583,10 @@ void http_200( TCP_NODE *n ) {
 	"%s"
 	"%s"
 	"\r\n",
-	protocol, datebuf, CONF_SRVNAME, n->content_length, mimetype, n->lastmodified, n->keepalive );
+	protocol, datebuf, CONF_SRVNAME, n->filesize, mimetype, n->lastmodified, n->keepalive );
 }
 
+#ifdef RANGE
 void http_206( TCP_NODE *n ) {
 	char datebuf[BUF_SIZE];
 	const char *mimetype = NULL;
@@ -617,3 +625,4 @@ void http_206( TCP_NODE *n ) {
 #endif
 	mimetype, n->lastmodified, n->keepalive);
 }
+#endif

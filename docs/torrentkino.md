@@ -1,4 +1,4 @@
-torrentkino(1) -- P2P resolver
+torrentkino(1) -- Kademlia DHT
 ==============================
 
 ## SYNOPSIS
@@ -32,18 +32,19 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
 ## FILES
 
   * **/etc/nsswitch.conf**:
-	Torrentkino gets attached to the *hosts* line. The torrentkino daemon is only used
-	for hostnames with *.p2p* at the end.
+	Add **tk** to the *hosts:* line and your OS will forward *.p2p* requests to
+	the Torrentkino DHT daemon.
 
   * **$HOME/.torrentkino.conf**:
     This file gets written by the Torrentkino daemon and contains the server port
-	number and some other hints. These hints get used by **libnss_tk.so.2** and
+	number and some other hints. Those hints are used by **libnss_tk.so.2** and
 	the **tk** cli program.
   
   * **/etc/torrentkino.conf**:
-	This file gets written by the Torrentkino daemon when started as root.
-	**libnss_tk.so.2** and the **tk** cli program use this file if
-	**$HOME/.torrentkino.conf** does not exist.
+	This file gets written by the Torrentkino daemon when started by root for
+	example at boot time or by using sudo. It works like the file above.
+	**libnss_tk.so.2** and the **tk** cli program will look for 
+	**$HOME/.torrentkino.conf** first.
 
 ## OPTIONS
 
@@ -95,13 +96,9 @@ Announce the hostname *owncloud.p2p* within the realm TooManySecrets to an IPv6
 Bittorrent bootstrap server. That bootstrap server is maintained by the creator
 of the Transmission DHT stack:
 
-	$ torrentkino -h owncloud.p2p -r TooManySecrets -x dht.wifi.pps.jussieu.fr
+	$ torrentkino6 -h owncloud.p2p -r TooManySecrets -x dht.wifi.pps.jussieu.fr
 	$ getent hosts owncloud.p2p
 	$ tk owncloud.p2p
-
-## BUGS
-
-Lack of IPv6 support by the providers.
 
 ## SEE ALSO
 

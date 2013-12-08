@@ -70,7 +70,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #endif
 
+#define SEND_LIMIT_PER_SECOND 5
+
 typedef unsigned long int ULONG;
+typedef unsigned int UINT;
 typedef unsigned char UCHAR;
 typedef long int LONG;
 

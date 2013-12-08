@@ -1,6 +1,6 @@
 SUBDIRS = torrentkino6 torrentkino4 tknss tkcli tumbleweed
 
-.PHONY : all clean install manpage debian ubuntu $(SUBDIRS)
+.PHONY : all clean install docs debian ubuntu $(SUBDIRS)
 
 all: $(SUBDIRS)
 
@@ -12,7 +12,7 @@ install:
 		$(MAKE) install -C $$dir; \
 	done
 
-manpage:
+docs:
 	./bin/manpage.sh
 
 debian:

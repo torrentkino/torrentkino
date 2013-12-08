@@ -397,11 +397,14 @@ void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 */
 
 void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
-	BEN *dict = ben_init( BEN_DICT );
+	BEN *dict = NULL;
 	BEN *key = NULL;
 	BEN *val = NULL;
 	RAW *raw = NULL;
-	BEN *arg = ben_init( BEN_DICT );
+	BEN *arg = NULL;
+
+	dict = ben_init( BEN_DICT );
+	arg = ben_init( BEN_DICT );
 
 	/* Node ID */
 	key = ben_init( BEN_STR );
@@ -476,14 +479,19 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 */
 
 void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
-	BEN *dict = ben_init( BEN_DICT );
-	BEN *list = ben_init( BEN_LIST );
-	BEN *arg = ben_init( BEN_DICT );
+	BEN *dict = NULL;
+	BEN *list = NULL;
+	BEN *arg = NULL;
 	BEN *key = NULL;
 	BEN *val = NULL;
 	RAW *raw = NULL;
 	UCHAR *p = nodes_compact_list;
 	int j = 0;
+
+	dict = ben_init( BEN_DICT );
+	list = ben_init( BEN_LIST );
+	arg = ben_init( BEN_DICT );
+
 
 	/* Values list */
 	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_PAIR ) {
