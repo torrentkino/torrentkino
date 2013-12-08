@@ -88,7 +88,7 @@ ITEM *node_put( void ) {
 #endif
 
 	/* HTTP Keep-Alive */
-	memset( n->keepalive, '\0', BUF_SIZE );
+	n->keepalive = FALSE;
 	n->keepalive_counter = CONF_KEEPALIVE;
 
 	/* HTTP Last-Modified */
@@ -170,7 +170,6 @@ void node_clearSendBuf( TCP_NODE *n ) {
 	n->send_offset = 0;
 
 	memset( n->filename, '\0', BUF_SIZE );
-	memset( n->keepalive, '\0', BUF_SIZE );
 	memset( n->lastmodified, '\0', BUF_SIZE );
 	memset( n->entity_url, '\0', BUF_SIZE );
 	n->filesize = 0;
@@ -181,6 +180,7 @@ void node_clearSendBuf( TCP_NODE *n ) {
 	n->range_start = 0;
 	n->range_stop = 0;
 #endif
+	n->keepalive = FALSE;
 	n->code = 0;
 	n->type = HTTP_UNKNOWN;
 	n->proto = HTTP_1_0;

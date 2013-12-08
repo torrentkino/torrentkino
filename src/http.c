@@ -329,13 +329,13 @@ void http_code( TCP_NODE *n ) {
 		/* The requested entity is a file */
 		n->code = 200;
 	
-	} else if( file_isdir( n->filename) ) {
+	} else if( file_isdir( n->filename ) ) {
 
 		/* There is a index.html file within that directory? */
 		snprintf( n->filename, BUF_SIZE, "%s%s/%s",
 				_main->conf->home, n->entity_url, _main->conf->file );
 		
-		if( file_isreg( n->filename) ) {
+		if( file_isreg( n->filename ) ) {
 			n->code = 200;
 		} else {
 			n->code = 404;
@@ -349,7 +349,7 @@ void http_code( TCP_NODE *n ) {
 
 void http_keepalive( TCP_NODE *n, HASH *head ) {
 
-	if( ! hash_exists( head, (UCHAR *)"Connection",  10) ) {
+	if( ! hash_exists( head, (UCHAR *)"Connection",  10 ) ) {
 		return;
 	}
 
@@ -357,8 +357,7 @@ void http_keepalive( TCP_NODE *n, HASH *head ) {
 		return;
 	}
 
-	snprintf( n->keepalive, BUF_SIZE, "Connection: %s\r\n",
-		(char *)hash_get( head, (UCHAR *)"Connection", 10) );
+	n->keepalive = TRUE;
 }
 
 void http_lastmodified( TCP_NODE *n, HASH *head ) {
@@ -513,17 +512,18 @@ void http_404( TCP_NODE *n ) {
 	"</body>"
 	"</html>";
 	int size = strlen( buffer );
-	char protocol[9] = "HTTP/1.1";
-	
-	if( n->proto == HTTP_1_0 ) {
-		strncpy( protocol, "HTTP/1.0", 8 );
+	char protocol = ( n->proto == HTTP_1_1 ) ? '1' : '0';
+	char keepalive[] = "Connection: keep-alive\r\n";
+
+	if( n->keepalive == FALSE ) {
+		keepalive[0] = '\0';
 	}
-	
+
 	/* Compute GMT time */
 	str_GMTtime( datebuf, BUF_SIZE );
 
 	snprintf( n->send_buf, BUF_SIZE,
-	"%s 404 Not found\r\n"
+	"HTTP/1.%c 404 Not found\r\n"
 	"Date: %s\r\n"
 	"Server: %s\r\n"
 	"Content-Length: %i\r\n"
@@ -531,36 +531,38 @@ void http_404( TCP_NODE *n ) {
 	"%s"
 	"\r\n"
 	"%s",
-	protocol, datebuf, CONF_SRVNAME, size, n->keepalive, buffer );
+	protocol, datebuf, CONF_SRVNAME, size, keepalive, buffer );
 }
 
 void http_304( TCP_NODE *n ) {
 	char datebuf[BUF_SIZE];
-	char protocol[9] = "HTTP/1.1";
-	
-	if( n->proto == HTTP_1_0 ) {
-		strncpy( protocol, "HTTP/1.0", 8 );
+	char protocol = ( n->proto == HTTP_1_1 ) ? '1' : '0';
+	char keepalive[] = "Connection: keep-alive\r\n";
+
+	if( n->keepalive == FALSE ) {
+		keepalive[0] = '\0';
 	}
 	
 	/* Compute GMT time */
 	str_GMTtime( datebuf, BUF_SIZE );
 
 	snprintf( n->send_buf, BUF_SIZE,
-	"%s 304 Not Modified\r\n"
+	"HTTP/1.%c 304 Not Modified\r\n"
 	"Date: %s\r\n"
 	"Server: %s\r\n"
 	"%s"
 	"\r\n",
-	protocol, datebuf, CONF_SRVNAME, n->keepalive );
+	protocol, datebuf, CONF_SRVNAME, keepalive );
 }
 
 void http_200( TCP_NODE *n ) {
 	char datebuf[BUF_SIZE];
 	const char *mimetype = NULL;
-	char protocol[9] = "HTTP/1.1";
-	
-	if( n->proto == HTTP_1_0 ) {
-		strncpy( protocol, "HTTP/1.0", 8 );
+	char protocol = ( n->proto == HTTP_1_1 ) ? '1' : '0';
+	char keepalive[] = "Connection: keep-alive\r\n";
+
+	if( n->keepalive == FALSE ) {
+		keepalive[0] = '\0';
 	}
 	
 	/* Compute GMT time */
@@ -571,7 +573,7 @@ void http_200( TCP_NODE *n ) {
 
 	/* Compute answer */
 	snprintf( n->send_buf, BUF_SIZE,
-	"%s 200 OK\r\n"
+	"HTTP/1.%c 200 OK\r\n"
 	"Date: %s\r\n"
 	"Server: %s\r\n"
 #ifdef __amd64__
@@ -583,24 +585,25 @@ void http_200( TCP_NODE *n ) {
 	"%s"
 	"%s"
 	"\r\n",
-	protocol, datebuf, CONF_SRVNAME, n->filesize, mimetype, n->lastmodified, n->keepalive );
+	protocol, datebuf, CONF_SRVNAME, n->filesize, mimetype, n->lastmodified, keepalive );
 }
 
 #ifdef RANGE
 void http_206( TCP_NODE *n ) {
 	char datebuf[BUF_SIZE];
 	const char *mimetype = NULL;
-	char protocol[9] = "HTTP/1.1";
-	
-	if (n->proto == HTTP_1_0) {
-		strncpy(protocol, "HTTP/1.0", 8);
+	char protocol = ( n->proto == HTTP_1_1 ) ? '1' : '0';
+	char keepalive[] = "Connection: keep-alive\r\n";
+
+	if( n->keepalive == FALSE ) {
+		keepalive[0] = '\0';
 	}
 
 	str_GMTtime(datebuf, BUF_SIZE);
 	mimetype = mime_find(n->filename);
 
 	snprintf(n->send_buf, BUF_SIZE,
-	"%s 206 OK\r\n"
+	"HTTP/1.%c 206 OK\r\n"
 	"Date: %s\r\n"
 	"Server: %s\r\n"
 #ifdef __amd64__
@@ -623,6 +626,6 @@ void http_206( TCP_NODE *n ) {
 	n->content_length,
 	(unsigned int)n->range_start, (unsigned int)n->range_stop, n->filesize,
 #endif
-	mimetype, n->lastmodified, n->keepalive);
+	mimetype, n->lastmodified, keepalive);
 }
 #endif

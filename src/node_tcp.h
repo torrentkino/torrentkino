@@ -67,7 +67,7 @@ typedef struct {
 #endif
 
 	/* HTTP Keep-Alive */
-	char keepalive[BUF_SIZE];
+	int keepalive;
 	int keepalive_counter;
 
 	/* HTTP Last-Modified */
