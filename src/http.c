@@ -361,18 +361,14 @@ void http_keepalive( TCP_NODE *n, HASH *head ) {
 }
 
 void http_lastmodified( TCP_NODE *n, HASH *head ) {
-	char entity_time[BUF_SIZE];
-
 	if( n->code != 200 || !file_isreg( n->filename ) ) {
 		return;
 	}
 
-	str_gmttime( entity_time, BUF_SIZE, file_mod( n->filename ) );
-
-	snprintf( n->lastmodified, BUF_SIZE, "Last-Modified: %s\r\n", entity_time );
+	str_gmttime( n->lastmodified, DATE_SIZE, file_mod( n->filename ) );
 
 	if( hash_exists( head, (UCHAR *)"If-Modified-Since",  17) ) {
-		if( strcmp( entity_time, (char *)hash_get( head, (UCHAR *)"If-Modified-Since", 17)) == 0 ) {
+		if( strcmp( n->lastmodified, (char *)hash_get( head, (UCHAR *)"If-Modified-Since", 17)) == 0 ) {
 			n->code = 304;
 		}
 	}
@@ -499,7 +495,7 @@ void http_size( TCP_NODE *n, HASH *head ) {
 }
 
 void http_404( TCP_NODE *n ) {
-	char datebuf[BUF_SIZE];
+	char datebuf[DATE_SIZE];
 	char buffer[BUF_SIZE] = 
 	"<!DOCTYPE html>"
 	"<html lang=\"en\" xml:lang=\"en\">"
@@ -520,7 +516,7 @@ void http_404( TCP_NODE *n ) {
 	}
 
 	/* Compute GMT time */
-	str_GMTtime( datebuf, BUF_SIZE );
+	str_GMTtime( datebuf, DATE_SIZE );
 
 	snprintf( n->send_buf, BUF_SIZE,
 	"HTTP/1.%c 404 Not found\r\n"
@@ -535,7 +531,7 @@ void http_404( TCP_NODE *n ) {
 }
 
 void http_304( TCP_NODE *n ) {
-	char datebuf[BUF_SIZE];
+	char datebuf[DATE_SIZE];
 	char protocol = ( n->proto == HTTP_1_1 ) ? '1' : '0';
 	char keepalive[] = "Connection: keep-alive\r\n";
 
@@ -544,7 +540,7 @@ void http_304( TCP_NODE *n ) {
 	}
 	
 	/* Compute GMT time */
-	str_GMTtime( datebuf, BUF_SIZE );
+	str_GMTtime( datebuf, DATE_SIZE );
 
 	snprintf( n->send_buf, BUF_SIZE,
 	"HTTP/1.%c 304 Not Modified\r\n"
@@ -556,7 +552,7 @@ void http_304( TCP_NODE *n ) {
 }
 
 void http_200( TCP_NODE *n ) {
-	char datebuf[BUF_SIZE];
+	char datebuf[DATE_SIZE];
 	const char *mimetype = NULL;
 	char protocol = ( n->proto == HTTP_1_1 ) ? '1' : '0';
 	char keepalive[] = "Connection: keep-alive\r\n";
@@ -566,7 +562,7 @@ void http_200( TCP_NODE *n ) {
 	}
 	
 	/* Compute GMT time */
-	str_GMTtime( datebuf, BUF_SIZE );
+	str_GMTtime( datebuf, DATE_SIZE );
 
 	/* Compute mime type */
 	mimetype = mime_find( n->filename );
@@ -582,7 +578,7 @@ void http_200( TCP_NODE *n ) {
 	"Content-Length: %u\r\n"
 #endif
 	"Content-Type: %s\r\n"
-	"%s"
+	"Last-Modified: %s\r\n"
 	"%s"
 	"\r\n",
 	protocol, datebuf, CONF_SRVNAME, n->filesize, mimetype, n->lastmodified, keepalive );
@@ -590,7 +586,7 @@ void http_200( TCP_NODE *n ) {
 
 #ifdef RANGE
 void http_206( TCP_NODE *n ) {
-	char datebuf[BUF_SIZE];
+	char datebuf[DATE_SIZE];
 	const char *mimetype = NULL;
 	char protocol = ( n->proto == HTTP_1_1 ) ? '1' : '0';
 	char keepalive[] = "Connection: keep-alive\r\n";
@@ -599,7 +595,7 @@ void http_206( TCP_NODE *n ) {
 		keepalive[0] = '\0';
 	}
 
-	str_GMTtime(datebuf, BUF_SIZE);
+	str_GMTtime(datebuf, DATE_SIZE);
 	mimetype = mime_find(n->filename);
 
 	snprintf(n->send_buf, BUF_SIZE,
@@ -615,7 +611,7 @@ void http_206( TCP_NODE *n ) {
 #endif
 	"Content-Type: %s\r\n"
 	"Accept-Ranges: bytes\r\n"
-	"%s"
+	"Last-Modified: %s\r\n"
 	"%s"
 	"\r\n",
 	protocol, datebuf, CONF_SRVNAME,

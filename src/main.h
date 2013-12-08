@@ -22,7 +22,9 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #define BUF_SIZE 1024
 #define BUF_OFF1 1023
+#define DATE_SIZE 32
 #define SHA1_SIZE 20
+
 #define TIMEOUT 10
 
 #define TRUE 1

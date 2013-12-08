@@ -92,7 +92,7 @@ ITEM *node_put( void ) {
 	n->keepalive_counter = CONF_KEEPALIVE;
 
 	/* HTTP Last-Modified */
-	memset( n->lastmodified, '\0', BUF_SIZE );
+	memset( n->lastmodified, '\0', DATE_SIZE );
 
 	/* HTTP code */
 	n->code = 0;
@@ -170,7 +170,7 @@ void node_clearSendBuf( TCP_NODE *n ) {
 	n->send_offset = 0;
 
 	memset( n->filename, '\0', BUF_SIZE );
-	memset( n->lastmodified, '\0', BUF_SIZE );
+	memset( n->lastmodified, '\0', DATE_SIZE );
 	memset( n->entity_url, '\0', BUF_SIZE );
 	n->filesize = 0;
 	n->f_offset = 0;

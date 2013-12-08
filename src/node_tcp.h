@@ -71,7 +71,7 @@ typedef struct {
 	int keepalive_counter;
 
 	/* HTTP Last-Modified */
-	char lastmodified[BUF_SIZE];
+	char lastmodified[DATE_SIZE];
 
 	/* HTTP code */
 	int code;
