@@ -32,8 +32,8 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
 ## FILES
 
   * **/etc/nsswitch.conf**:
-	Add **tk** to the *hosts:* line and your OS will forward *.p2p* requests to
-	the Torrentkino DHT daemon.
+	Add **tk** to the *hosts* line and your Linux OS will forward *.p2p*
+	requests to the Torrentkino DHT daemon.
 
   * **$HOME/.torrentkino.conf**:
     This file gets written by the Torrentkino daemon and contains the server port
@@ -88,17 +88,35 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
 	encrypted message is encapsulated in bencode too. You effectively
 	isolate your nodes from the rest of the world this way. This method is not
 	compatible to the Bittorrent network and only works between torrentkino
-	daemons. (Needs to be compiled with PolarSSL support. See Makefile.)
+	daemons. (Torrentkino needs to be compiled with PolarSSL support. See Makefile.)
 
 ## EXAMPLES
 
-Announce the hostname *owncloud.p2p* within the realm TooManySecrets to an IPv6
-Bittorrent bootstrap server. That bootstrap server is maintained by the creator
-of the Transmission DHT stack:
+Announce the hostname *owncloud.p2p* within the realm *TooManySecrets* to a global
+Bittorrent swarm.
 
 	$ torrentkino6 -h owncloud.p2p -r TooManySecrets -x dht.wifi.pps.jussieu.fr
 	$ getent hosts owncloud.p2p
 	$ tk owncloud.p2p
+	$ tk http://owncloud.p2p/index.html
+
+	$ torrentkino4 -h owncloud.p2p -r TooManySecrets -x router.utorrent.com
+	$ getent hosts owncloud.p2p
+	$ tk owncloud.p2p
+	$ tk http://owncloud.p2p/index.html
+
+## INSTALLATION
+
+There is a simple installation helper for Debian/Ubuntu. Just run one of the
+following commands to create a installable package.
+
+	$ make debian
+	$ make ubuntu
+
+Otherwise, you may use
+
+	$ make
+	$ sudo make install
 
 ## SEE ALSO
 

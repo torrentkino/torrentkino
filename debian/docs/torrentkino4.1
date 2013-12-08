@@ -28,7 +28,7 @@ Torrentkino uses a hostname cache for fast lookups within big swarms\. A queried
 .
 .TP
 \fB/etc/nsswitch\.conf\fR
-Add \fBtk\fR to the \fIhosts:\fR line and your OS will forward \fI\.p2p\fR requests to the Torrentkino DHT daemon\.
+Add \fBtk\fR to the \fIhosts\fR line and your Linux OS will forward \fI\.p2p\fR requests to the Torrentkino DHT daemon\.
 .
 .TP
 \fB$HOME/\.torrentkino\.conf\fR
@@ -78,10 +78,10 @@ Verbose\.
 .
 .TP
 \fB\-k\fR \fIpassword\fR
-Setting a password results in encrypting each packet with AES256\. The encrypted message is encapsulated in bencode too\. You effectively isolate your nodes from the rest of the world this way\. This method is not compatible to the Bittorrent network and only works between torrentkino daemons\. (Needs to be compiled with PolarSSL support\. See Makefile\.)
+Setting a password results in encrypting each packet with AES256\. The encrypted message is encapsulated in bencode too\. You effectively isolate your nodes from the rest of the world this way\. This method is not compatible to the Bittorrent network and only works between torrentkino daemons\. (Torrentkino needs to be compiled with PolarSSL support\. See Makefile\.)
 .
 .SH "EXAMPLES"
-Announce the hostname \fIowncloud\.p2p\fR within the realm TooManySecrets to an IPv6 Bittorrent bootstrap server\. That bootstrap server is maintained by the creator of the Transmission DHT stack:
+Announce the hostname \fIowncloud\.p2p\fR within the realm \fITooManySecrets\fR to a global Bittorrent swarm\.
 .
 .IP "" 4
 .
@@ -90,6 +90,40 @@ Announce the hostname \fIowncloud\.p2p\fR within the realm TooManySecrets to an 
 $ torrentkino6 \-h owncloud\.p2p \-r TooManySecrets \-x dht\.wifi\.pps\.jussieu\.fr
 $ getent hosts owncloud\.p2p
 $ tk owncloud\.p2p
+$ tk http://owncloud\.p2p/index\.html
+
+$ torrentkino4 \-h owncloud\.p2p \-r TooManySecrets \-x router\.utorrent\.com
+$ getent hosts owncloud\.p2p
+$ tk owncloud\.p2p
+$ tk http://owncloud\.p2p/index\.html
+.
+.fi
+.
+.IP "" 0
+.
+.SH "INSTALLATION"
+There is a simple installation helper for Debian/Ubuntu\. Just run one of the following commands to create a installable package\.
+.
+.IP "" 4
+.
+.nf
+
+$ make debian
+$ make ubuntu
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Otherwise, you may use
+.
+.IP "" 4
+.
+.nf
+
+$ make
+$ sudo make install
 .
 .fi
 .
