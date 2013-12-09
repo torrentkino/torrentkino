@@ -120,4 +120,4 @@ Otherwise, you may use
 
 ## SEE ALSO
 
-nsswitch.conf(5)
+nsswitch.conf(5), tumbleweed(1)

@@ -79,7 +79,7 @@ end:
 int _nss_tk_port( BEN *conf ) {
 	BEN *port = NULL;
 
-	port = ben_searchDictStr( conf, "port" );
+	port = ben_dict_search_str( conf, "port" );
 	if( !ben_is_int( port ) ) {
 		return -1;
 	}
@@ -94,7 +94,7 @@ int _nss_tk_port( BEN *conf ) {
 int _nss_tk_mode( BEN *conf ) {
 	BEN *ip_version;
 
-	ip_version = ben_searchDictStr( conf, "ip_version" );
+	ip_version = ben_dict_search_str( conf, "ip_version" );
 	if( !ben_is_int( ip_version ) ) {
 		return -1;
 	}

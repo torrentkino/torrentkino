@@ -120,6 +120,6 @@ void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from ) {
 	}
 
 	memcpy( &n->c_addr, from, sizeof( IP ) );
-	memcpy( &n->token, token->v.s->s, token->v.s->i );
-	n->token_size = token->v.s->i;
+	memcpy( &n->token, ben_str_s( token ), ben_str_i( token ) );
+	n->token_size = ben_str_i( token );
 }

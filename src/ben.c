@@ -792,7 +792,7 @@ int ben_is_int( BEN *node ) {
 	return 1;
 }
 
-BEN *ben_searchDictKey( BEN *node, BEN *key ) {
+BEN *ben_dict_search_key( BEN *node, BEN *key ) {
 	ITEM *item = NULL;
 	BEN *thiskey = NULL;
 	TUPLE *tuple = NULL;
@@ -826,20 +826,20 @@ BEN *ben_searchDictKey( BEN *node, BEN *key ) {
 	return NULL;
 }
 
-BEN *ben_searchDictStr( BEN *node, const char *buffer ) {
+BEN *ben_dict_search_str( BEN *node, const char *buffer ) {
 	BEN *result = NULL;
 	BEN *key = ben_init( BEN_STR );
-	ben_str( key,( UCHAR *)buffer, strlen( buffer) );
-	result = ben_searchDictKey( node, key );
+	ben_str( key, (UCHAR *)buffer, strlen( buffer ) );
+	result = ben_dict_search_key( node, key );
 	ben_free( key );
 	return result;
 }
 
-long int ben_str_size( BEN *node ) {
-	if( ! ben_is_str( node ) ) {
-		return 0;
-	}
+UCHAR *ben_str_s( BEN *node ) {
+	return node->v.s->s;
+}
 
+long int ben_str_i( BEN *node ) {
 	return node->v.s->i;
 }
 

@@ -41,3 +41,7 @@ Serve *~/Public* at port *8080*:
 ## BUGS
 
 Not being fully blown with funky features.
+
+## SEE ALSO
+
+torrentkino(1)

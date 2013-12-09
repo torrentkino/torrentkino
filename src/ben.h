@@ -71,10 +71,11 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define ben_is_list _nss_tk_ben_is_list
 #define ben_is_str _nss_tk_ben_is_str
 #define ben_is_int _nss_tk_ben_is_int
-#define ben_searchDictKey _nss_tk_ben_searchDictKey
-#define ben_searchDictStr _nss_tk_ben_searchDictStr
+#define ben_dict_search_key _nss_tk_ben_dict_search_key
+#define ben_dict_search_str _nss_tk_ben_dict_search_str
 #define ben_compare _nss_tk_ben_compare
-#define ben_str_size _nss_tk_ben_str_size
+#define ben_str_s _nss_tk_ben_str_s
+#define ben_str_i _nss_tk_ben_str_i
 #define str_init _nss_tk_str_init
 #define str_free _nss_tk_str_free
 #endif
@@ -145,11 +146,13 @@ int ben_is_list( BEN *node );
 int ben_is_str( BEN *node );
 int ben_is_int( BEN *node );
 
-BEN *ben_searchDictKey( BEN *node, BEN *key );
-BEN *ben_searchDictStr( BEN *node, const char *buffer );
+BEN *ben_dict_search_key( BEN *node, BEN *key );
+BEN *ben_dict_search_str( BEN *node, const char *buffer );
 
 int ben_compare( BEN *key1, BEN *key2 );
-long int ben_str_size( BEN *node );
+
+UCHAR *ben_str_s( BEN *node );
+long int ben_str_i( BEN *node );
 
 STR *str_init( UCHAR *buf, long int size );
 void str_free( STR *str );

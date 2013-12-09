@@ -413,24 +413,24 @@ void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from ) {
 	}
 
 	/* Salt */
-	salt = ben_searchDictStr( packet, "s" );
-	if( !ben_is_str( salt ) || ben_str_size( salt ) != AES_IV_SIZE ) {
+	salt = ben_dict_search_str( packet, "s" );
+	if( !ben_is_str( salt ) || ben_str_i( salt ) != AES_IV_SIZE ) {
 		info( from, 0, "Salt missing or broken:" );
 		ben_free( packet );
 		return;
 	}
 
 	/* Encrypted AES message */
-	aes = ben_searchDictStr( packet, "a" );
-	if( !ben_is_str( aes ) || ben_str_size( aes ) <= 2 ) {
+	aes = ben_dict_search_str( packet, "a" );
+	if( !ben_is_str( aes ) || ben_str_i( aes ) <= 2 ) {
 		info( from, 0, "AES message missing or broken:" );
 		ben_free( packet );
 		return;
 	}
 
 	/* Decrypt message */
-	plain = aes_decrypt( aes->v.s->s, aes->v.s->i,
-		salt->v.s->s,
+	plain = aes_decrypt( ben_str_s( aes ), ben_str_i( aes ),
+		ben_str_s( salt ),
 		_main->conf->key, strlen( _main->conf->key ) );
 	if( plain == NULL ) {
 		info( from, 0, "Decoding AES message failed:" );
@@ -479,8 +479,8 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 	}
 
 	/* Type of message */
-	y = ben_searchDictStr( packet, "y" );
-	if( !ben_is_str( y ) || ben_str_size( y ) != 1 ) {
+	y = ben_dict_search_str( packet, "y" );
+	if( !ben_is_str( y ) || ben_str_i( y ) != 1 ) {
 		info( from, 0, "Message type missing or broken:" );
 		ben_free( packet );
 		return;
@@ -513,71 +513,71 @@ void p2p_request( BEN *packet, IP *from ) {
 	BEN *id = NULL;
 
 	/* Query Type */
-	q = ben_searchDictStr( packet, "q" );
+	q = ben_dict_search_str( packet, "q" );
 	if( !ben_is_str( q ) ) {
 		info( from, 0, "Query type missing or broken:" );
 		return;
 	}
 
 	/* Argument */
-	a = ben_searchDictStr( packet, "a" );
+	a = ben_dict_search_str( packet, "a" );
 	if( !ben_is_dict( a ) ) {
 		info( from, 0, "Argument missing or broken:" );
 		return;
 	}
 
 	/* Node ID */
-	id = ben_searchDictStr( a, "id" );
+	id = ben_dict_search_str( a, "id" );
 	if( !p2p_is_hash( id ) ) {
 		info( from, 0, "Node ID missing or broken:" );
 		return;
 	}
 
 	/* Do not talk to myself */
-	if( p2p_packet_from_myself( id->v.s->s ) ) {
+	if( p2p_packet_from_myself( ben_str_s( id )  ) ) {
 		return;
 	}
 
 	/* Transaction ID */
-	t = ben_searchDictStr( packet, "t" );
+	t = ben_dict_search_str( packet, "t" );
 	if( !ben_is_str( t ) ) {
 		info( from, 0, "Transaction ID missing or broken:" );
 		return;
 	}
-	if( ben_str_size( t ) > TID_SIZE_MAX ) {
+	if( ben_str_i( t ) > TID_SIZE_MAX ) {
 		info( from, 0, "Transaction ID too big:" );
 		return;
 	}
 
 	/* Remember node. This does not update the IP address. */
-	nbhd_put( id->v.s->s, (IP *)from );
+	nbhd_put( ben_str_s( id ), from );
 
 	/* PING */
-	if( ben_str_size( q ) == 4 && memcmp( q->v.s->s, "ping", 4 ) == 0 ) {
+	if( ben_str_i( q ) == 4 && memcmp( ben_str_s( q ), "ping", 4 ) == 0 ) {
 		p2p_ping( t, from );
 		return;
 	}
 
 	/* FIND_NODE */
-	if( ben_str_size( q ) == 9 && memcmp( q->v.s->s, "find_node", 9 ) == 0 ) {
+	if( ben_str_i( q ) == 9 && memcmp( ben_str_s( q ), "find_node", 9 ) == 0 ) {
 		p2p_find_node_get_request( a, t, from );
 		return;
 	}
 
 	/* GET_PEERS */
-	if( ben_str_size( q ) == 9 && memcmp( q->v.s->s, "get_peers", 9 ) == 0 ) {
+	if( ben_str_i( q ) == 9 && memcmp( ben_str_s( q ), "get_peers", 9 ) == 0 ) {
 		p2p_get_peers_get_request( a, t, from );
 		return;
 	}
 
 	/* ANNOUNCE */
-	if( ben_str_size( q ) == 13 && memcmp( q->v.s->s, "announce_peer", 13 ) == 0 ) {
-		p2p_announce_get_request( a, id->v.s->s, t, from );
+	if( ben_str_i( q ) == 13 && memcmp( ben_str_s( q ), "announce_peer", 13 ) == 0 ) {
+		p2p_announce_get_request( a, ben_str_s( id ), t, from );
 		return;
 	}
 
 	/* VOTE (utorrent?) */
-	if( ben_str_size( q ) == 4 && memcmp( q->v.s->s, "vote", 4 ) == 0 ) {
+	if( ben_str_i( q ) == 4 && memcmp( ben_str_s( q ), "vote", 4 ) == 0 ) {
 		info( from, 0, "Drop RPC VOTE message from" );
 		return;
 	}
@@ -592,51 +592,51 @@ void p2p_reply( BEN *packet, IP *from ) {
 	ITEM *ti = NULL;
 
 	/* Argument */
-	r = ben_searchDictStr( packet, "r" );
+	r = ben_dict_search_str( packet, "r" );
 	if( !ben_is_dict( r ) ) {
 		info( from, 0, "Argument missing or broken:" );
 		return;
 	}
 
 	/* Node ID */
-	id = ben_searchDictStr( r, "id" );
+	id = ben_dict_search_str( r, "id" );
 	if( !p2p_is_hash( id ) ) {
 		info( from, 0, "Node ID missing or broken:" );
 		return;
 	}
 
 	/* Do not talk to myself */
-	if( p2p_packet_from_myself( id->v.s->s ) ) {
+	if( p2p_packet_from_myself( ben_str_s( id ) ) ) {
 		return;
 	}
 
 	/* Transaction ID */
-	t = ben_searchDictStr( packet, "t" );
-	if( !ben_is_str( t ) && ben_str_size( t ) != TID_SIZE ) {
+	t = ben_dict_search_str( packet, "t" );
+	if( !ben_is_str( t ) && ben_str_i( t ) != TID_SIZE ) {
 		info( from, 0, "Transaction ID missing or broken:" );
 		return;
 	}
 
 	/* Remember node. */
-	nbhd_put( id->v.s->s, (IP *)from );
+	nbhd_put( ben_str_s( id ), (IP *)from );
 
-	ti = tdb_item( t->v.s->s );
+	ti = tdb_item( ben_str_s( t ) );
 
 	/* Get Query type by looking at the TDB */
 	switch( tdb_type( ti ) ) {
 		case P2P_PING:
 		case P2P_PING_MULTICAST:
-			p2p_pong( id->v.s->s, from );
+			p2p_pong( ben_str_s( id ), from );
 			break;
 		case P2P_FIND_NODE:
-			p2p_find_node_get_reply( r, id->v.s->s, from );
+			p2p_find_node_get_reply( r, ben_str_s( id ), from );
 			break;
 		case P2P_GET_PEERS:
 		case P2P_ANNOUNCE_START:
-			p2p_get_peers_get_reply( r, id->v.s->s, ti, from );
+			p2p_get_peers_get_reply( r, ben_str_s( id ), ti, from );
 			break;
 		case P2P_ANNOUNCE_ENGAGE:
-			p2p_announce_get_reply( r, id->v.s->s, ti, from );
+			p2p_announce_get_reply( r, ben_str_s( id ), ti, from );
 			break;
 		default:
 			info( from, 0, "Invalid Transaction ID from" );
@@ -674,7 +674,7 @@ int p2p_packet_from_myself( UCHAR *node_id ) {
 }
 
 void p2p_ping( BEN *tid, IP *from ) {
-	send_pong( from, tid->v.s->s, tid->v.s->i );
+	send_pong( from, ben_str_s( tid ), ben_str_i( tid ) );
 }
 
 void p2p_pong( UCHAR *node_id, IP *from ) {
@@ -687,19 +687,19 @@ void p2p_find_node_get_request( BEN *arg, BEN *tid, IP *from ) {
 	int nodes_compact_size = 0;
 
 	/* Target */
-	target = ben_searchDictStr( arg, "target" );
+	target = ben_dict_search_str( arg, "target" );
 	if( !p2p_is_hash( target ) ) {
 		info( NULL, 0, "Missing or broken target" );
 		return;
 	}
 
 	/* Create compact node list */
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target->v.s->s );
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, ben_str_s( target ) );
 
 	/* Send reply */
 	if( nodes_compact_size > 0 ) {
 		send_find_node_reply( from, nodes_compact_list, nodes_compact_size,
-			tid->v.s->s, tid->v.s->i );
+			ben_str_s( tid ), ben_str_i( tid ) );
 	}
 }
 
@@ -711,22 +711,22 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 	IP sin;
 
 #ifdef IPV6
-	nodes = ben_searchDictStr( arg, "nodes6" );
+	nodes = ben_dict_search_str( arg, "nodes6" );
 #elif IPV4
-	nodes = ben_searchDictStr( arg, "nodes" );
+	nodes = ben_dict_search_str( arg, "nodes" );
 #endif
 	if( !ben_is_str( nodes ) ) {
 		info( NULL, 0, "nodes key missing" );
 		return;
 	}
 
-	if( ben_str_size( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
+	if( ben_str_i( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
 		info( NULL, 0, "nodes key broken" );
 		return;
 	}
 
-	p = nodes->v.s->s;
-	for( i=0; i<nodes->v.s->i; i+=IP_SIZE_META_TRIPLE ) {
+	p = ben_str_s( nodes );
+	for( i=0; i< ben_str_i( nodes ); i+=IP_SIZE_META_TRIPLE ) {
 
 		/* ID */
 		id = p;	p += SHA1_SIZE;
@@ -767,30 +767,30 @@ void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
 	int nodes_compact_size = 0;
 
 	/* info_hash */
-	info_hash = ben_searchDictStr( arg, "info_hash" );
+	info_hash = ben_dict_search_str( arg, "info_hash" );
 	if( !p2p_is_hash( info_hash ) ) {
 		info( NULL, 0, "Missing or broken info_hash" );
 		return;
 	}
 
 	/* Look at the database */
-	nodes_compact_size = val_compact_list( nodes_compact_list, info_hash->v.s->s );
+	nodes_compact_size = val_compact_list( nodes_compact_list, ben_str_s( info_hash ) );
 
 	/* Send values */
 	if( nodes_compact_size > 0 ) {
 		send_get_peers_values( from, nodes_compact_list, nodes_compact_size,
-			tid->v.s->s, tid->v.s->i );
+			ben_str_s( tid ), ben_str_i( tid ) );
 		return;
 	}
 
 	/* Look at the routing table */
 	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list,
-		info_hash->v.s->s );
+		ben_str_s( info_hash ) );
 
 	/* Send nodes */
 	if( nodes_compact_size > 0 ) {
 		send_get_peers_nodes( from, nodes_compact_list, nodes_compact_size,
-			tid->v.s->s, tid->v.s->i );
+			ben_str_s( tid ), ben_str_i( tid ) );
 	}
 }
 
@@ -799,23 +799,23 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 	BEN *nodes = NULL;
 	BEN *values = NULL;
 
-	token = ben_searchDictStr( arg, "token" );
+	token = ben_dict_search_str( arg, "token" );
 	if( !ben_is_str( token ) ) {
 		info( NULL, 0, "token key missing or broken" );
 		return;
-	} else if( ben_str_size( token ) > TOKEN_SIZE_MAX ) {
+	} else if( ben_str_i( token ) > TOKEN_SIZE_MAX ) {
 		info( NULL, 0, "Token key too big" );
 		return;
-	} else if( ben_str_size( token ) <= 0 ) {
+	} else if( ben_str_i( token ) <= 0 ) {
 		info( NULL, 0, "Token key too small" );
 		return;
 	}
 
-	values = ben_searchDictStr( arg, "values" );
+	values = ben_dict_search_str( arg, "values" );
 #ifdef IPV6
-	nodes = ben_searchDictStr( arg, "nodes6" );
+	nodes = ben_dict_search_str( arg, "nodes6" );
 #elif IPV4
-	nodes = ben_searchDictStr( arg, "nodes" );
+	nodes = ben_dict_search_str( arg, "nodes" );
 #endif
 
 	if( values != NULL ) {
@@ -829,7 +829,7 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 	}
 
 	if( nodes != NULL ) {
-		if( !ben_is_str( nodes ) || ben_str_size( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
+		if( !ben_is_str( nodes ) || ben_str_i( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
 			info( NULL, 0, "nodes key missing or broken" );
 			return;
 		} else {
@@ -867,8 +867,8 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 
 	ldb_update( l, node_id, token, from );
 
-	p = nodes->v.s->s;
-	for( i=0; i<nodes->v.s->i; i+=IP_SIZE_META_TRIPLE ) {
+	p = ben_str_s( nodes );
+	for( i=0; i< ben_str_i( nodes ); i+=IP_SIZE_META_TRIPLE ) {
 
 		/* ID */
 		id = p;	p += SHA1_SIZE;
@@ -938,12 +938,12 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 	while( item != NULL && j < 8 ) {
 		val = list_value( item );
 
-		if( !ben_is_str( val ) || ben_str_size( val ) != IP_SIZE_META_PAIR ) {
+		if( !ben_is_str( val ) || ben_str_i( val ) != IP_SIZE_META_PAIR ) {
 			info( NULL, 0, "Values list broken" );
 			return;
 		}
 
-		memcpy( p, val->v.s->s, val->v.s->i );
+		memcpy( p, ben_str_s( val ), ben_str_i( val ) );
 		nodes_compact_size += IP_SIZE_META_PAIR;
 		p += IP_SIZE_META_PAIR;
 
@@ -989,26 +989,26 @@ void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from ) {
 	BEN *port = NULL;
 
 	/* info_hash */
-	info_hash = ben_searchDictStr( arg, "info_hash" );
+	info_hash = ben_dict_search_str( arg, "info_hash" );
 	if( !p2p_is_hash( info_hash ) ) {
 		info( from, 0, "Missing or broken info_hash from" );
 		return;
 	}
 
 	/* Token */
-	token = ben_searchDictStr( arg, "token" );
-	if( !ben_is_str( token ) || ben_str_size( token ) > TOKEN_SIZE_MAX ) {
+	token = ben_dict_search_str( arg, "token" );
+	if( !ben_is_str( token ) || ben_str_i( token ) > TOKEN_SIZE_MAX ) {
 		info( from, 0, "Missing or broken token from" );
 		return;
 	}
 
-	if( !tkn_validate( token->v.s->s ) ) {
+	if( !tkn_validate( ben_str_s( token ) ) ) {
 		info( from, 0, "Invalid token from" );
 		return;
 	}
 
 	/* Port */
-	port = ben_searchDictStr( arg, "port" );
+	port = ben_dict_search_str( arg, "port" );
 	if( !ben_is_int( port ) ) {
 		info( from, 0, "Missing or broken port from" );
 		return;
@@ -1020,10 +1020,10 @@ void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from ) {
 	}
 
 	/* Store info_hash */
-	val_put( info_hash->v.s->s, node_id, port->v.i, from );
+	val_put( ben_str_s( info_hash ), node_id, port->v.i, from );
 
 	/* Send success message */
-	send_announce_reply( from, tid->v.s->s, tid->v.s->i );
+	send_announce_reply( from, ben_str_s( tid ), ben_str_i( tid ) );
 }
 
 /*
@@ -1164,7 +1164,7 @@ int p2p_is_hash( BEN *node ) {
 	if( !ben_is_str( node ) ) {
 		return 0;
 	}
-	if( ben_str_size( node ) != SHA1_SIZE ) {
+	if( ben_str_i( node ) != SHA1_SIZE ) {
 		return 0;
 	}
 	return 1;
@@ -1177,7 +1177,7 @@ int p2p_is_ip( BEN *node ) {
 	if( !ben_is_str( node ) ) {
 		return 0;
 	}
-	if( ben_str_size( node ) != IP_SIZE ) {
+	if( ben_str_i( node ) != IP_SIZE ) {
 		return 0;
 	}
 	return 1;
@@ -1190,7 +1190,7 @@ int p2p_is_port( BEN *node ) {
 	if( !ben_is_str( node ) ) {
 		return 0;
 	}
-	if( ben_str_size( node ) != 2 ) {
+	if( ben_str_i( node ) != 2 ) {
 		return 0;
 	}
 	return 1;

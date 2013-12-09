@@ -52,16 +52,16 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	opts_load( opts, argc, argv );
 
 	/* Mode */
-	if( ben_searchDictStr( opts, "-d" ) != NULL ) {
+	if( ben_dict_search_str( opts, "-d" ) != NULL ) {
 		conf->mode = CONF_DAEMON;
 	} else {
 		conf->mode = CONF_CONSOLE;
 	}
 
 	/* Verbosity */
-	if( ben_searchDictStr( opts, "-v" ) != NULL ) {
+	if( ben_dict_search_str( opts, "-v" ) != NULL ) {
 		conf->verbosity = CONF_VERBOSE;
-	} else if ( ben_searchDictStr( opts, "-q" ) != NULL ) {
+	} else if ( ben_dict_search_str( opts, "-q" ) != NULL ) {
 		conf->verbosity = CONF_BEQUIET;
 	} else {
 		/* Be verbose in the console and quiet while running as a daemon. */
@@ -70,9 +70,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	}
 
 	/* Port */
-	value = ben_searchDictStr( opts, "-p" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		conf->port = atoi( (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-p" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		conf->port = atoi( (char *)ben_str_s( value ) );
 	} else {
 #ifdef TUMBLEWEED
 		if( getuid() == 0 ) {
@@ -103,9 +103,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 
 #ifdef TUMBLEWEED
 	/* HTML index */
-	value = ben_searchDictStr( opts, "-i" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->file, BUF_SIZE, "%s", (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-i" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		snprintf( conf->file, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
 	} else {
 		snprintf( conf->file, BUF_SIZE, "%s", CONF_INDEX_NAME );
 	}
@@ -119,9 +119,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf_hostname( conf, opts );
 
 	/* Realm */
-	value = ben_searchDictStr( opts, "-r" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->realm, BUF_SIZE, "%s", (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-r" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		snprintf( conf->realm, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
 		conf->bool_realm = TRUE;
 	} else {
 		snprintf( conf->realm, BUF_SIZE, "%s", CONF_REALM );
@@ -133,9 +133,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		conf->realm, conf->bool_realm );
 
 	/* Announce this port */
-	value = ben_searchDictStr( opts, "-b" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		conf->announce_port = atoi( (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-b" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		conf->announce_port = atoi( (char *)ben_str_s( value ) );
 	} else {
 		if( getuid() == 0 ) {
 			conf->announce_port = PORT_WWW_PRIV;
@@ -154,9 +154,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	}
 
 	/* Node ID */
-	value = ben_searchDictStr( opts, "-n" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		sha1_hash( conf->node_id, (char *)value->v.s->s, ben_str_size( value ) );
+	value = ben_dict_search_str( opts, "-n" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		sha1_hash( conf->node_id, (char *)ben_str_s( value ), ben_str_i( value ) );
 	} else {
 		rand_urandom( conf->node_id, SHA1_SIZE );
 	}
@@ -164,18 +164,18 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	memset( conf->null_id, '\0', SHA1_SIZE );
 
 	/* Bootstrap node */
-	value = ben_searchDictStr( opts, "-x" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-x" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
 	} else {
 		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", CONF_MULTICAST );
 	}
 
 	/* Bootstrap port */
-	value = ben_searchDictStr( opts, "-y" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		if( str_isSafePort( (char *)value->v.s->s ) != -1 ) {
-			conf->bootstrap_port = atoi( (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-y" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		if( str_isSafePort( (char *)ben_str_s( value ) ) != -1 ) {
+			conf->bootstrap_port = atoi( (char *)ben_str_s( value ) );
 		} else {
 			conf->bootstrap_port = PORT_DHT_DEFAULT;
 		}
@@ -185,9 +185,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 
 #ifdef POLARSSL
 	/* Secret key */
-	value = ben_searchDictStr( opts, "-k" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->key, BUF_SIZE, "%s", (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-k" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		snprintf( conf->key, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
 		conf->bool_encryption = TRUE;
 	} else {
 		memset( conf->key, '\0', BUF_SIZE );
@@ -219,11 +219,11 @@ void conf_home( struct obj_conf *conf, BEN *opts ) {
 #endif
 
 #ifdef TUMBLEWEED
-	value = ben_searchDictStr( opts, "-w" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
+	value = ben_dict_search_str( opts, "-w" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
 		char *p = NULL;
 
-		p = (char *)value->v.s->s;;
+		p = (char *)ben_str_s( value );
 
 		/* Absolute path or relative path */
 		if( *p == '/' ) {
@@ -254,9 +254,9 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 	char *p = NULL;
 	
 	/* Hostname from args */
-	value = ben_searchDictStr( opts, "-a" );
-	if( value != NULL && ben_str_size( value ) >= 1 ) {
-		snprintf( conf->hostname, BUF_SIZE, "%s", (char *)value->v.s->s );
+	value = ben_dict_search_str( opts, "-a" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		snprintf( conf->hostname, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
 		return;
 	} else {
 		strncpy( conf->hostname, "bulk.p2p", BUF_OFF1 );
