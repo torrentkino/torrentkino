@@ -44,4 +44,5 @@ void http_304( TCP_NODE *n );
 void http_200( TCP_NODE *n );
 #ifdef RANGE
 void http_206( TCP_NODE *n );
+void http_416( TCP_NODE *n );
 #endif
