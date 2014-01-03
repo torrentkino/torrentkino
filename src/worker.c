@@ -53,10 +53,11 @@ struct obj_work *work_init( void ) {
 	work->id = 0;
 	work->active = 0;
 #ifdef TORRENTKINO
+	/* The bootstrap thread immediately stops after the start procedure. */
 	work->number_of_threads = _main->conf->cores + 1;
 #endif
 #ifdef TUMBLEWEED
-	work->number_of_threads = _main->conf->cores;
+	work->number_of_threads = ( _main->conf->cores > 2 ) ? _main->conf->cores : 2;
 	work->tcp_node = mutex_init();
 #endif
 	return work;
@@ -72,18 +73,22 @@ void work_free( void ) {
 
 void work_start( void ) {
 	int i = 0;
+#ifdef TUMBLEWEED
+	int number_of_worker = _main->work->number_of_threads;
+#elif TORRENTKINO
+	int number_of_worker = _main->work->number_of_threads-1;
+#endif
 
-	info( NULL, 0, "Starting %i worker", _main->work->number_of_threads );
+	info( NULL, 0, "Worker: %i", number_of_worker );
 
 	/* Initialize and set thread detached attribute */
 	pthread_attr_init( &_main->work->attr );
 	pthread_attr_setdetachstate( &_main->work->attr, PTHREAD_CREATE_JOINABLE );
 
-	/* Thread index */
-
 #ifdef TUMBLEWEED
 	_main->work->threads = (pthread_t **) myalloc( 
 		_main->work->number_of_threads * sizeof(pthread_t *) );
+
 	while( i < _main->work->number_of_threads ) {
 		_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t) );
 		if( pthread_create( _main->work->threads[i], &_main->work->attr, tcp_thread, NULL ) != 0 ) {
@@ -96,6 +101,7 @@ void work_start( void ) {
 #ifdef TORRENTKINO
 	_main->work->threads = (pthread_t **) myalloc( 
 		_main->work->number_of_threads * sizeof(pthread_t *) );
+
 	while( i < _main->work->number_of_threads - 1 ) {
 		_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t) );
 		if( pthread_create( _main->work->threads[i], &_main->work->attr, udp_thread, NULL ) != 0 ) {

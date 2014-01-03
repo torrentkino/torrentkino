@@ -89,11 +89,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	}
 
 	/* Cores */
-#ifdef TUMBLEWEED
-	conf->cores = ( unix_cpus() > 2 ) ? unix_cpus() : 2;
-#elif TORRENTKINO
 	conf->cores = unix_cpus();
-#endif
 	if( conf->cores < 1 || conf->cores > 128 ) {
 		fail( "Invalid number of CPU cores" );
 	}
@@ -312,7 +308,7 @@ void conf_print( void ) {
 		info( NULL, 0, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
 	}
 
-	info( NULL, 0, "Threads: %i", _main->conf->cores );
+	info( NULL, 0, "Cores: %i", _main->conf->cores );
 	
 	if( _main->conf->mode == CONF_CONSOLE ) {
 		info( NULL, 0, "Mode: Console (-d)" );

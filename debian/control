@@ -1,7 +1,7 @@
 Source: torrentkino
 Section: net
 Priority: extra
-Maintainer: Aiko Barz <aiko@chroot.de>
+Maintainer: Aiko Barz <aiko@torrentkino.de>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: https://github.com/torrentkino/torrentkino
@@ -9,5 +9,5 @@ Homepage: https://github.com/torrentkino/torrentkino
 Package: torrentkino
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: P2P/Filesharing toolbox
- P2P based hostname to IP translator. High performance command line webserver.
+Description: P2P lookup service
+ P2P based hostname to IP translator.

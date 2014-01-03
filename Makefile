@@ -1,6 +1,7 @@
-SUBDIRS = torrentkino6 torrentkino4 tknss tkcli tumbleweed
+SUBDIRS = torrentkino6 torrentkino4 tknss tkcli
+#SUBDIRS = tumbleweed
 
-.PHONY : all clean install docs debian ubuntu $(SUBDIRS)
+.PHONY : all clean install docs sync debian ubuntu $(SUBDIRS)
 
 all: $(SUBDIRS)
 
@@ -13,7 +14,10 @@ install:
 	done
 
 docs:
-	./bin/manpage.sh
+	./bin/docs.sh torrentkino
+
+sync:
+	./bin/sync.sh torrentkino
 
 debian:
 	./bin/debian.sh
@@ -25,7 +29,3 @@ clean:
 	for dir in $(SUBDIRS); do \
 		$(MAKE) clean -C $$dir; \
 	done
-	rm -f *.changes
-	rm -f *.tar.gz
-	rm -f *.deb
-	rm -f *.dsc

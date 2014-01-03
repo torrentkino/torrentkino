@@ -1,9 +1,9 @@
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
 Name: torrentkino
-Maintainer: Aiko Barz <aiko@chroot.de>
+Maintainer: Aiko Barz <aiko@torrentkino.de>
 Source: https://github.com/torrentkino/torrentkino
 
-Copyright: 2000-2012 Aiko Barz <aiko@chroot.de>
+Copyright: 2000-2014 Aiko Barz <aiko@torrentkino.de>
 License: GPL-3+
  torrentkino is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

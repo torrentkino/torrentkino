@@ -15,11 +15,12 @@ if [ $? != "0" ]; then
 	sudo apt-get install debhelper
 fi
 
-dpkg -s libmagic-dev > /dev/null
-if [ $? != "0" ]; then
-	sudo apt-get install libmagic-dev
+if [ "x$1" = "xtumbleweed" ]; then
+	dpkg -s libmagic-dev > /dev/null
+	if [ $? != "0" ]; then
+		sudo apt-get install libmagic-dev
+	fi
 fi
-
 
 cat <<EOF
 ###
@@ -28,14 +29,13 @@ cat <<EOF
 EOF
 dpkg-buildpackage -us -uc
 
-
 cat <<EOF
 ###
 ### Install package
 ###
 EOF
-DEB=$(ls -1 ../torrentkino_*.deb | sort | tail -n 1)
-sudo dpkg -i $DEB
+DEB=$(ls -tr ../*.deb | tail -n 1)
+echo "sudo dpkg -i $DEB"
 
 
 cat <<EOF

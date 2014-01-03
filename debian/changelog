@@ -1,3 +1,8 @@
+torrentkino (0.18) wheezy; urgency=low
+
+  * Moved tumbleweed to its own package again.
+ 
+ -- Aiko Barz <aiko@torrentkino.de>  Fri, 03 Jan 2014 20:08:00 +0100
 torrentkino (0.17) wheezy; urgency=low
 
   * sudo -E hint while starting
