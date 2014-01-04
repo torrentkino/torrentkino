@@ -118,7 +118,8 @@ Otherwise, you may use
 	$ make
 	$ sudo make install
 
-Add **tk** to the file */etc/nsswitch.conf*. Example:
+Add **tk** to the */etc/nsswitch.conf*. Example:
+
 	hosts: files tk dns
 
 ## SEE ALSO
