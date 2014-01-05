@@ -24,7 +24,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tksrc.h"
 
-BEN *_nss_tk_conf( void ) {
+BEN *_nss_tk_load( void ) {
 	char filename[BUF_SIZE];
 	int filesize = 0;
 	UCHAR *fbuf = NULL;
@@ -76,6 +76,32 @@ end:
 	return NULL;
 }
 
+int _nss_tk_conf( int *port, int *mode ) {
+	BEN *conf = NULL;
+
+	/* Load config file */
+	if( ( conf = _nss_tk_load() ) == NULL ) {
+		return FALSE;
+	}
+
+	/* Load port */
+	*port = _nss_tk_port( conf );
+	if( *port == -1 ) {
+		ben_free( conf );
+		return FALSE;
+	}
+
+	/* Load mode */
+	*mode = _nss_tk_mode( conf );
+	if( *mode == -1 ) {
+		ben_free( conf );
+		return FALSE;
+	}
+
+	ben_free( conf );
+	return TRUE;
+}
+
 int _nss_tk_port( BEN *conf ) {
 	BEN *port = NULL;
 
@@ -106,7 +132,7 @@ int _nss_tk_mode( BEN *conf ) {
 	return ip_version->v.i;
 }
 
-int _nss_tk_connect( const char *hostname, int hostsize, 
+int _nss_tk_connect( const char *hostname, int hostsize,
 	UCHAR *buffer, int bufsize, int port, int mode ) {
 
 	int sockfd = -1;

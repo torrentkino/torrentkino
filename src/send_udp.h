@@ -31,14 +31,20 @@ void send_ping( IP *sa, UCHAR *tid );
 void send_pong( IP *sa, UCHAR *tid, int tid_size );
 
 void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid );
-void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size );
+void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list,
+	int nodes_compact_size, UCHAR *tid, int tid_size );
 
 void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid );
-void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size );
-void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size );
+void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list,
+	int nodes_compact_size, UCHAR *tid, int tid_size );
+void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list,
+	int nodes_compact_size, UCHAR *tid, int tid_size );
 
 void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size );
 void send_announce_reply( IP *sa, UCHAR *tid, int tid_size );
+
+void send_name( IP *sa, UCHAR *tid );
+void send_ip( IP *sa, UCHAR *tid, int tid_size );
 
 #ifdef POLARSSL
 void send_aes( IP *sa, RAW *raw );

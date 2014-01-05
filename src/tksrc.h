@@ -25,7 +25,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "file.h"
 #include "str.h"
 
-BEN *_nss_tk_conf( void );
+BEN *_nss_tk_load( void );
+int _nss_tk_conf( int *port, int *mode );
 int _nss_tk_port( BEN *conf );
 int _nss_tk_mode( BEN *conf );
 

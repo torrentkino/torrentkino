@@ -83,7 +83,6 @@ enum nss_status _nss_tk_hostent( const char *hostname, int size, int af,
 	size_t s_total = 0;
 	int port = 0;
 	int mode = 0;
-	BEN *conf = NULL;
 	int in_addr_size = 0;
 
 	/* Check */
@@ -99,30 +98,12 @@ enum nss_status _nss_tk_hostent( const char *hostname, int size, int af,
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	/* Load port from config file */
-	if( ( conf = _nss_tk_conf() ) == NULL ) {
+	/* Load config file */
+	if( !_nss_tk_conf( &port, &mode ) ) {
 		*errnop = EAFNOSUPPORT;
 		*h_errnop = NO_DATA;
 		return NSS_STATUS_UNAVAIL;
 	}
-
-	port = _nss_tk_port( conf );
-	if( port == -1 ) {
-		ben_free( conf );
-		*errnop = EAFNOSUPPORT;
-		*h_errnop = NO_DATA;
-		return NSS_STATUS_UNAVAIL;
-	}
-
-	mode = _nss_tk_mode( conf );
-	if( mode == -1 ) {
-		ben_free( conf );
-		*errnop = EAFNOSUPPORT;
-		*h_errnop = NO_DATA;
-		return NSS_STATUS_UNAVAIL;
-	}
-
-	ben_free( conf );
 
 	af = ( mode == 6 ) ? AF_INET6 : AF_INET;
 
@@ -194,7 +175,6 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 	size_t s_total = 0;
 	int af = AF_INET6;
 	int in_addr_size = 0;
-	BEN *conf = NULL;
 	int port = 0;
 	int mode = 0;
 
@@ -211,30 +191,12 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	/* Load port from config file */
-	if( ( conf = _nss_tk_conf() ) == NULL ) {
+	/* Load config file */
+	if( !_nss_tk_conf( &port, &mode ) ) {
 		*errnop = EAFNOSUPPORT;
 		*h_errnop = NO_DATA;
 		return NSS_STATUS_UNAVAIL;
 	}
-
-	port = _nss_tk_port( conf );
-	if( port == -1 ) {
-		ben_free( conf );
-		*errnop = EAFNOSUPPORT;
-		*h_errnop = NO_DATA;
-		return NSS_STATUS_UNAVAIL;
-	}
-
-	mode = _nss_tk_mode( conf );
-	if( mode == -1 ) {
-		ben_free( conf );
-		*errnop = EAFNOSUPPORT;
-		*h_errnop = NO_DATA;
-		return NSS_STATUS_UNAVAIL;
-	}
-
-	ben_free( conf );
 
 	af = ( mode == 6 ) ? AF_INET6 : AF_INET;
 

@@ -29,28 +29,19 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 	UCHAR buffer[BUF_SIZE];
 	int n = 0, j = 0;
 	UCHAR *p = NULL;
-	BEN *conf = NULL;
 	struct sockaddr_in6 sin6;
 	struct sockaddr_in sin;
 	int pair_size = 0;
 	int port = 0;
 	int mode = 0;
 
-	/* Load port from config file */
-	if( ( conf = _nss_tk_conf() ) == NULL ) {
+	/* Load config file */
+	if( !_nss_tk_conf( &port, &mode ) ) {
 		return FALSE;
 	}
-	port = _nss_tk_port( conf );
-	if( port == -1 ) {
-		return FALSE;
-	}
-	mode = _nss_tk_mode( conf );
-	if( mode == -1 ) {
-		return FALSE;
-	}
-	ben_free( conf );
 
-	n = _nss_tk_connect( hostname, strlen( hostname ), buffer, BUF_SIZE, port, mode );
+	n = _nss_tk_connect( hostname, strlen( hostname ), buffer, BUF_SIZE, port,
+		mode );
 	if( n == 0 ) {
 		return FALSE;
 	}
@@ -106,7 +97,9 @@ void torrenkino_print( struct sockaddr_in *sin, const char *handler,
 			ntohs( sin->sin_port ) );
 }
 
-void torrentkino_url( char *url, char **hostname, char **handler, char **path ) {
+void torrentkino_url( char *url, char **hostname, char **handler,
+	char **path ) {
+
 	if( ( *hostname = strstr( url, "://" ) ) != NULL ) {
 		*handler = url;
 		**hostname = '\0';

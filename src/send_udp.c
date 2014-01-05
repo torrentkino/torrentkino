@@ -20,7 +20,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
@@ -247,7 +246,9 @@ void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	}
 */
 
-void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
+void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list,
+	int nodes_compact_size, UCHAR *tid, int tid_size ) {
+
 	BEN *dict = ben_init( BEN_DICT );
 	BEN *key = NULL;
 	BEN *val = NULL;
@@ -396,7 +397,9 @@ void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	}
 */
 
-void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
+void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list,
+	int nodes_compact_size, UCHAR *tid, int tid_size ) {
+
 	BEN *dict = NULL;
 	BEN *key = NULL;
 	BEN *val = NULL;
@@ -478,7 +481,8 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_
 	}
 */
 
-void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact_size, UCHAR *tid, int tid_size ) {
+void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list,
+	int nodes_compact_size, UCHAR *tid, int tid_size ) {
 	BEN *dict = NULL;
 	BEN *list = NULL;
 	BEN *arg = NULL;
@@ -569,7 +573,9 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list, int nodes_compact
 	}
 */
 
-void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size ) {
+void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token,
+	int token_size ) {
+
 	BEN *dict = ben_init( BEN_DICT );
 	BEN *key = NULL;
 	BEN *val = NULL;
@@ -760,5 +766,132 @@ void send_udp( IP *sa, RAW *raw ) {
 		return;
 	}
 
-	sendto( _main->udp->sockfd, raw->code, raw->size, 0,( const struct sockaddr *)sa, addrlen );
+	sendto( _main->udp->sockfd, raw->code, raw->size, 0,
+		( const struct sockaddr * )sa, addrlen );
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "q",
+	"q": "query",
+	"a": {
+		"id": "abcdefghij0123456789"
+		}
+	}
+*/
+
+void send_name( IP *sa, UCHAR *tid ) {
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"id", 2 );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
+	ben_dict( arg, key, val );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"a", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Query type */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"query", 5 );
+	ben_dict( dict, key, val );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, TID_SIZE );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"q", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+#ifdef POLARSSL
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_udp( sa, raw );
+	}
+#else
+	send_udp( sa, raw );
+#endif
+	raw_free( raw );
+	ben_free( dict );
+
+	info( sa, 0, "PING" );
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "r",
+	"r": {
+		"id": "mnopqrstuvwxyz123456"
+		}
+	}
+*/
+
+void send_ip( IP *sa, UCHAR *tid, int tid_size ) {
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"id", 2 );
+	ben_str( val, _main->conf->node_id, SHA1_SIZE );
+	ben_dict( arg, key, val );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key,( UCHAR *)"t", 1 );
+	ben_str( val, tid, tid_size );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"r", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+#ifdef POLARSSL
+	if( _main->conf->bool_encryption ) {
+		send_aes( sa, raw );
+	} else {
+		send_udp( sa, raw );
+	}
+#else
+	send_udp( sa, raw );
+#endif
+	raw_free( raw );
+	ben_free( dict );
+
+	info( sa, 0, "PONG" );
 }
