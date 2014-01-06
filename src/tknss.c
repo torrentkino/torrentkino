@@ -22,40 +22,34 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <errno.h>
 #include <nss.h>
-#include <netdb.h> 
+#include <netdb.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
 #include "tknss.h"
 
-enum nss_status _nss_tk_gethostbyname_r( const char *hostname, struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
+enum nss_status _nss_tk_gethostbyname_r( const char *hostname,
+		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop ) {
 
 	return _nss_tk_gethostbyname3_r( hostname, AF_UNSPEC, host,
-			buffer, buflen,
-			errnop, h_errnop,
-			NULL, NULL );
+			buffer, buflen, errnop, h_errnop, NULL, NULL );
 }
 
-enum nss_status _nss_tk_gethostbyname2_r( const char *hostname, int af, struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
+enum nss_status _nss_tk_gethostbyname2_r( const char *hostname, int af,
+		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop ) {
 
 	return _nss_tk_gethostbyname3_r( hostname, af, host,
-			buffer, buflen,
-			errnop, h_errnop,
-			NULL, NULL );
+			buffer, buflen, errnop, h_errnop, NULL, NULL );
 }
 
-enum nss_status _nss_tk_gethostbyname3_r( const char *hostname, int af, struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
+enum nss_status _nss_tk_gethostbyname3_r( const char *hostname, int af,
+		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
 
 	return _nss_tk_hostent( hostname, strlen( hostname ), af, host, 
-			buffer, buflen,
-			errnop, h_errnop,
-			ttlp, canonp );
+			buffer, buflen, errnop, h_errnop, ttlp, canonp );
 }
 
 enum nss_status _nss_tk_gethostbyname4_r( const char *hostname,
@@ -246,21 +240,72 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
 		int address_size, int port, int mode ) {
 
-	UCHAR buffer[BUF_SIZE];
+    UCHAR bencode[BUF_SIZE];
+    int bensize = 0;
+    int sockfd = -1;
+    struct sockaddr_in6 sa;
+    socklen_t sa_size = sizeof( struct sockaddr_in6 );
+    UCHAR tid[TID_SIZE];
+    UCHAR nid[SHA1_SIZE];
+    BEN *packet = NULL;
+    BEN *values = NULL;
+    BEN *ip_bin = NULL;
+    ITEM *item = NULL;
 	int pair_size = ( mode == 6 ) ? 18 : 6;
-	int n = 0;
 
-	n = _nss_tk_connect( hostname, hostsize, buffer, BUF_SIZE, port, mode );
-	if( n == 0 ) {
-		return 0;
+
+
+    /* Create transaction id */
+    rand_urandom( tid, TID_SIZE );
+
+    /* Create random node id */
+    rand_urandom( nid, SHA1_SIZE );
+
+    /* Prepare socket */
+    if( !_nss_tk_socket( &sockfd, &sa, &sa_size, port, mode ) ) {
+        return FALSE;
+    }
+
+    /* Send request */
+    if( !_nss_tk_send_name( sockfd, &sa, &sa_size, nid, tid,
+        (UCHAR *)hostname, strlen( hostname ) ) ) {
+        return FALSE;
+    }
+
+    /* Read reply */
+    bensize = _nss_tk_read_ip( sockfd, &sa, &sa_size, bencode, BUF_SIZE );
+    if( bensize <= 0 ) {
+        return FALSE;
+    }
+
+    /* Create packet */
+    if( ( packet = _nss_tk_packet( bencode, bensize ) ) == NULL ) {
+        return FALSE;
+    }
+
+    /* Get values*/
+    if( ( values = _nss_tk_values( packet, tid ) ) == NULL ) {
+        ben_free( packet );
+        return FALSE;
+    }
+
+	/* Get values */
+	item = list_start( values->v.l );
+	if( item == NULL ) {
+		ben_free( packet );
+		return FALSE;
 	}
 
-	if( n % pair_size != 0 ) {
-		return 0;
+	/* Get first IP */
+	ip_bin = list_value( item );
+	if( !ben_is_str( ip_bin ) || ben_str_i( ip_bin ) != pair_size ) {
+		ben_free( packet );
+		return FALSE;
 	}
 
-	/* Copy IPv6 address */
-	memcpy( address, buffer, address_size );
+	/* Copy address */
+	memcpy( address, ben_str_s( ip_bin ), address_size );
 
-	return 1;
+	ben_free( packet );
+	return TRUE;
 }

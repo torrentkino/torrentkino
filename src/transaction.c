@@ -59,7 +59,7 @@ void tdb_clean( void ) {
 	}
 }
 
-ITEM *tdb_put( int type, UCHAR *target, IP *from ) {
+ITEM *tdb_put( int type ) {
 	ITEM *item = NULL;
 	TID *tid = NULL;
 
@@ -75,14 +75,15 @@ ITEM *tdb_put( int type, UCHAR *target, IP *from ) {
 	time_add_1_min( &tid->time );
 
 	/* More details */
-	switch( type ) {
-		case P2P_GET_PEERS:
-		case P2P_ANNOUNCE_START:
-			tid->lookup = ldb_init( target, from );
-			break;
-		default:
-			tid->lookup = NULL;
-	}
+//	switch( type ) {
+//		case P2P_GET_PEERS:
+//		case P2P_ANNOUNCE_START:
+//			tid->lookup = ldb_init( target, from );
+//			break;
+//		default:
+//			tid->lookup = NULL;
+//	}
+	tid->lookup = NULL;
 
 	item = list_put( _main->transaction->list, tid );
 	hash_put( _main->transaction->hash, tid->id, TID_SIZE, item );
@@ -129,7 +130,7 @@ void tdb_expire( time_t now ) {
 					p2p_cron_announce_engage( item );
 					break;
 			}
-			
+
 			tdb_del( item );
 		}
 
@@ -138,7 +139,12 @@ void tdb_expire( time_t now ) {
 }
 
 ITEM *tdb_item( UCHAR *id ) {
-	return hash_get( _main->transaction->hash, id, TID_SIZE);
+	return hash_get( _main->transaction->hash, id, TID_SIZE );
+}
+
+void tdb_link_ldb( ITEM *i, LOOKUP *l ) {
+	TID *tid = list_value( i );
+	tid->lookup = l;
 }
 
 int tdb_type( ITEM *i ) {

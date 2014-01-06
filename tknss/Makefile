@@ -5,7 +5,7 @@ CFLAGS += -std=gnu99 -fPIC -DPIC
 CFLAGS += -Wall -Wwrite-strings -pedantic
 CFLAGS += -DNSS
 export LDFLAGS = -lpthread
-OBJS=tknss.o tksrc.o str.o malloc.o file.o ben.o list.o fail.o
+OBJS=tknss.o tksrc.o str.o malloc.o file.o ben.o list.o fail.o random.o
 
 .PHONY: all clean install
 

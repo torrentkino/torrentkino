@@ -122,10 +122,10 @@ void p2p_bootstrap( void ) {
 
 		/* Send PING to a bootstrap node */
 		if( strcmp( _main->conf->bootstrap_node, CONF_MULTICAST ) == 0 ) {
-			ti = tdb_put(P2P_PING_MULTICAST, NULL, NULL );
+			ti = tdb_put( P2P_PING_MULTICAST );
 			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		} else {
-			ti = tdb_put(P2P_PING, NULL, NULL );
+			ti = tdb_put( P2P_PING );
 			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		}
 
@@ -238,7 +238,7 @@ void p2p_cron_ping( void ) {
 
 				/* Ping the first 8 nodes. Ignore the rest. */
 				if( j < 8 ) {
-					ti = tdb_put(P2P_PING, NULL, NULL);
+					ti = tdb_put( P2P_PING );
 					send_ping( &n->c_addr, tdb_tid( ti ) );
 					nbhd_pinged( n->id );
 				} else {
@@ -285,7 +285,7 @@ void p2p_cron_find( UCHAR *target ) {
 
 		if( _main->p2p->time_now.tv_sec > n->time_find ) {
 
-			ti = tdb_put(P2P_FIND_NODE, NULL, NULL);
+			ti = tdb_put( P2P_FIND_NODE );
 			send_find_node_request( &n->c_addr, target, tdb_tid( ti ) );
 			time_add_5_min_approx( &n->time_find );
 		}
@@ -307,11 +307,13 @@ void p2p_cron_announce_start( void ) {
 	UCHAR *id = NULL;
 
 	/* Start the incremental remote search program */
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target );
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket,
+		nodes_compact_list, target );
 
 	/* Create tid and get the lookup table */
-	ti = tdb_put( P2P_ANNOUNCE_START, target, NULL );
-	l = tdb_ldb( ti );
+	ti = tdb_put( P2P_ANNOUNCE_START );
+	l = ldb_init( target, NULL, NULL );
+	tdb_link_ldb( ti, l );
 
 	p = nodes_compact_list;
 	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_TRIPLE ) {
@@ -346,7 +348,7 @@ void p2p_cron_announce_engage( ITEM *ti ) {
 		n = list_value( item );
 
 		if( n->token_size != 0 ) {
-			t_new = tdb_put(P2P_ANNOUNCE_ENGAGE, NULL, NULL);
+			t_new = tdb_put( P2P_ANNOUNCE_ENGAGE );
 			send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
 			j++;
 		}
@@ -367,12 +369,6 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 		return;
 	}
 
-	/* Recursive lookup request from localhost ::1 */
-	if( ip_is_localhost( from ) ) {
-		p2p_localhost_get_request( bencode, bensize, from );
-		return;
-	}
-
 	/* Ignore link-local address */
 	if( ip_is_linklocal( from ) ) {
 		info( from, 0, "DROP LINK-LOCAL message from" );
@@ -387,7 +383,7 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Encrypted message or plaintext message */
 #ifdef POLARSSL
-	if( _main->conf->bool_encryption ) {
+	if( _main->conf->bool_encryption && !ip_is_localhost( from ) ) {
 		p2p_decrypt( bencode, bensize, from );
 	} else {
 		p2p_decode( bencode, bensize, from );
@@ -576,6 +572,12 @@ void p2p_request( BEN *packet, IP *from ) {
 		return;
 	}
 
+	/* LOOKUP */
+	if( ben_str_i( q ) == 4 && memcmp( ben_str_s( q ), "name", 4 ) == 0 ) {
+		p2p_localhost_get_request( a, t, from );
+		return;
+	}
+
 	/* VOTE (utorrent?) */
 	if( ben_str_i( q ) == 4 && memcmp( ben_str_s( q ), "vote", 4 ) == 0 ) {
 		info( from, 0, "Drop RPC VOTE message from" );
@@ -643,9 +645,9 @@ void p2p_reply( BEN *packet, IP *from ) {
 			return;
 	}
 
-	/* Cleanup. The TID gets reused by GET_PEERS and ANNOUNCE_PEER requests. The
-	 * TID is also persistant for multicast requests since multiple answers are
-	 * likely possible. */
+	/* Cleanup. The TID gets reused by GET_PEERS and ANNOUNCE_PEER requests.
+	 * The TID is also persistant for multicast requests since multiple
+	 * answers are likely possible. */
 	switch( tdb_type( ti ) ) {
 		case P2P_PING:
 		case P2P_FIND_NODE:
@@ -658,7 +660,7 @@ void p2p_reply( BEN *packet, IP *from ) {
 int p2p_packet_from_myself( UCHAR *node_id ) {
 	if( node_me( node_id ) ) {
 
-		/* Received packet from myself: 
+		/* Received packet from myself:
 		 * You may see multicast requests from yourself
 		 * if the neighbourhood is empty.
 		 * Do not warn about them.
@@ -774,7 +776,8 @@ void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
 	}
 
 	/* Look at the database */
-	nodes_compact_size = val_compact_list( nodes_compact_list, ben_str_s( info_hash ) );
+	nodes_compact_size = val_compact_list( nodes_compact_list,
+		ben_str_s( info_hash ) );
 
 	/* Send values */
 	if( nodes_compact_size > 0 ) {
@@ -784,8 +787,8 @@ void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from ) {
 	}
 
 	/* Look at the routing table */
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list,
-		ben_str_s( info_hash ) );
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket,
+		nodes_compact_list, ben_str_s( info_hash ) );
 
 	/* Send nodes */
 	if( nodes_compact_size > 0 ) {
@@ -851,7 +854,9 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 	}
 */
 
-void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, IP *from ) {
+void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti,
+	BEN *token, IP *from ) {
+
 	LOOKUP *l = tdb_ldb( ti );
 	UCHAR *target = NULL;
 	UCHAR *id = NULL;
@@ -916,7 +921,9 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, 
 	}
 */
 
-void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token, IP *from ) {
+void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
+	BEN *token, IP *from ) {
+
 	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
 	UCHAR *p = nodes_compact_list;
 	LOOKUP *l = tdb_ldb( ti );
@@ -959,8 +966,12 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 
 		/* Send reply */
 		if( l->send_reply == TRUE ) {
-			sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
-				(const struct sockaddr *)&l->c_addr, sizeof( IP ) );
+// FIXME
+//			sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
+//				(const struct sockaddr *)&l->c_addr, sizeof( IP ) );
+			send_get_peers_values( &l->c_addr,
+				nodes_compact_list, nodes_compact_size,
+				l->tid, l->tid_size );
 		}
 
 		/* Debugging */
@@ -1041,24 +1052,41 @@ void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
 	/* Nothing to do */
 }
 
-void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
+void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from ) {
 	UCHAR target[SHA1_SIZE];
 	int result = FALSE;
+	char *hostname = NULL;
+	int hostsize = 0;
+	BEN *name = NULL;
+
+	/* Get hostname */
+	name = ben_dict_search_str( arg, "name" );
+	if( !ben_is_str( name ) || ben_str_i( name ) <= 0 ) {
+		info( from, 0, "Missing or broken name from" );
+		return;
+	}
+	if( ben_str_i( name ) > 256 ) {
+		info( from, 0, "Name too long from" );
+		return;
+	}
+
+	hostname = (char *) ben_str_s( name );
+	hostsize = ben_str_i( name );
 
 	/* Validate hostname */
-	if ( !str_valid_hostname( (char *)hostname, size ) ) {
+	if ( !str_valid_hostname( hostname, hostsize ) ) {
 		info( NULL, 0, "LOOKUP %s (Invalid hostname)", hostname );
 		return;
 	}
 
 	/* Compute lookup key */
-	conf_hostid( target, (char *)hostname,
+	conf_hostid( target, hostname,
 		_main->conf->realm, _main->conf->bool_realm );
 
 	/* Check local cache */
-	mutex_block( _main->work->mutex );
-	result = p2p_localhost_lookup_cache( target, from );
-	mutex_unblock( _main->work->mutex );
+//	mutex_block( _main->work->mutex );
+	result = p2p_localhost_lookup_cache( target, tid, from );
+//	mutex_unblock( _main->work->mutex );
 
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (cached)", hostname );
@@ -1066,9 +1094,9 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 	}
 
 	/* Check local database */
-	mutex_block( _main->work->mutex );
-	result = p2p_localhost_lookup_local( target, from );
-	mutex_unblock( _main->work->mutex );
+//	mutex_block( _main->work->mutex );
+	result = p2p_localhost_lookup_local( target, tid, from );
+//	mutex_unblock( _main->work->mutex );
 
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (local)", hostname );
@@ -1076,9 +1104,9 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 	}
 
 	/* Start remote search */
-	mutex_block( _main->work->mutex );
-	result = p2p_localhost_lookup_remote( target, from );
-	mutex_unblock( _main->work->mutex );
+//	mutex_block( _main->work->mutex );
+	result = p2p_localhost_lookup_remote( target, tid, from );
+//	mutex_unblock( _main->work->mutex );
 
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (remote)", hostname );
@@ -1086,7 +1114,7 @@ void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from ) {
 	}
 }
 
-int p2p_localhost_lookup_cache( UCHAR *target, IP *from ) {
+int p2p_localhost_lookup_cache( UCHAR *target, BEN *tid, IP *from ) {
 	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
 	int nodes_compact_size = 0;
 
@@ -1096,16 +1124,16 @@ int p2p_localhost_lookup_cache( UCHAR *target, IP *from ) {
 		return FALSE;
 	}
 
-	sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
-		(const struct sockaddr *)from, sizeof( IP ) );
+	send_get_peers_values( from, nodes_compact_list, nodes_compact_size,
+		ben_str_s( tid ), ben_str_i( tid ) );
 
 	return TRUE;
 }
 
 /* Use local info_hash database for lookups too. This is nessecary if only 2
- * nodes are active: Node A announces its name to node B. But Node B cannot talk
- * to itself to lookup A. So, it must use its database directly. */
-int p2p_localhost_lookup_local( UCHAR *target, IP *from ) {
+ * nodes are active: Node A announces its name to node B. But Node B cannot
+ * talk to itself to lookup A. So, it must use its database directly. */
+int p2p_localhost_lookup_local( UCHAR *target, BEN *tid, IP *from ) {
 	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
 	int nodes_compact_size = 0;
 
@@ -1115,13 +1143,13 @@ int p2p_localhost_lookup_local( UCHAR *target, IP *from ) {
 		return FALSE;
 	}
 
-	sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
-		(const struct sockaddr *)from, sizeof( IP ) );
+	send_get_peers_values( from, nodes_compact_list, nodes_compact_size,
+		ben_str_s( tid ), ben_str_i( tid ) );
 
 	return TRUE;
 }
 
-int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
+int p2p_localhost_lookup_remote( UCHAR *target, BEN *tid, IP *from ) {
 	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
 	int nodes_compact_size = 0;
 	IP sin;
@@ -1132,11 +1160,13 @@ int p2p_localhost_lookup_remote( UCHAR *target, IP *from ) {
 	LOOKUP *l = NULL;
 
 	/* Start the incremental remote search program */
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, target );
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket,
+		nodes_compact_list, target );
 
 	/* Create tid and get the lookup table */
-	ti = tdb_put(P2P_GET_PEERS, target, from );
-	l = tdb_ldb( ti );
+	ti = tdb_put( P2P_GET_PEERS );
+	l = ldb_init( target, from, tid );
+	tdb_link_ldb( ti, l );
 
 	p = nodes_compact_list;
 	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_TRIPLE ) {

@@ -111,7 +111,7 @@ void cache_renew( time_t now ) {
 		/* Lookup target on my own every 5 minutes */
 		t = list_value( i );
 		if( now > t->refresh ) {
-			p2p_localhost_lookup_remote( t->target, NULL );
+			p2p_localhost_lookup_remote( t->target, NULL, NULL );
 			time_add_5_min_approx( &t->refresh );
 			cache_print();
 		}

@@ -25,47 +25,76 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "tkcli.h"
 
 int torrentkino_lookup( const char *handler, const char *hostname,
-		const char *path ) {
-	UCHAR buffer[BUF_SIZE];
-	int n = 0, j = 0;
-	UCHAR *p = NULL;
+		const char *path, int port, int mode ) {
+	UCHAR bencode[BUF_SIZE];
+	int bensize = 0;
+	int j = 0;
 	struct sockaddr_in6 sin6;
 	struct sockaddr_in sin;
-	int pair_size = 0;
-	int port = 0;
-	int mode = 0;
+	struct sockaddr_in6 sa;
+	int sockfd = -1;
+	socklen_t sa_size = sizeof( struct sockaddr_in6 );
+	UCHAR tid[TID_SIZE];
+	UCHAR nid[SHA1_SIZE];
+	BEN *packet = NULL;
+	BEN *values = NULL;
+	BEN *ip_bin = NULL;
+	ITEM *item = NULL;
+	int pair_size = ( mode == 6 ) ? 18 : 6;
 
-	/* Load config file */
-	if( !_nss_tk_conf( &port, &mode ) ) {
+	/* Create transaction id */
+	rand_urandom( tid, TID_SIZE );
+
+	/* Create random node id */
+	rand_urandom( nid, SHA1_SIZE );
+
+	/* Prepare socket */
+	if( !_nss_tk_socket( &sockfd, &sa, &sa_size, port, mode ) ) {
 		return FALSE;
 	}
 
-	n = _nss_tk_connect( hostname, strlen( hostname ), buffer, BUF_SIZE, port,
-		mode );
-	if( n == 0 ) {
+	/* Send request */
+	if( !_nss_tk_send_name( sockfd, &sa, &sa_size, nid, tid,
+		(UCHAR *)hostname, strlen( hostname ) ) ) {
 		return FALSE;
 	}
 
-	/* IPv6: 16+2 byte */
-	/* IPv4:  4+2 byte */
-	pair_size = ( mode == 6 ) ? 18 : 6;
-
-	if( n % pair_size != 0 ) {
+	/* Read reply */
+	bensize = _nss_tk_read_ip( sockfd, &sa, &sa_size, bencode, BUF_SIZE );
+	if( bensize <= 0 ) {
 		return FALSE;
 	}
 
-	p = buffer;
-	for( j=0; j<n; j+=pair_size ) {
+	/* Create packet */
+	if( ( packet = _nss_tk_packet( bencode, bensize ) ) == NULL ) {
+		return FALSE;
+	}
+
+	/* Get values*/
+	if( ( values = _nss_tk_values( packet, tid ) ) == NULL ) {
+		ben_free( packet );
+		return FALSE;
+	}
+
+	/* Get values */
+	item = list_start( values->v.l );
+	while( item != NULL && j < 8 ) {
+		ip_bin = list_value( item );
+
+		if( !ben_is_str( ip_bin ) || ben_str_i( ip_bin ) != pair_size ) {
+			ben_free( packet );
+			return FALSE;
+		}
 
 		if( handler != NULL && *handler != '\0' ) {
 			printf( "%s://", handler );
 		}
 
 		if( mode == 6 ) {
-			p = _nss_tk_bytes_to_sin6( &sin6, p );
+			_nss_tk_bytes_to_sin6( &sin6, ben_str_s( ip_bin ) );
 			torrenkino_print6( &sin6, handler, path );
 		} else {
-			p = _nss_tk_bytes_to_sin( &sin, p );
+			_nss_tk_bytes_to_sin( &sin, ben_str_s( ip_bin ) );
 			torrenkino_print( &sin, handler, path );
 		}
 
@@ -74,8 +103,12 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 		} else {
 			printf( "\n" );
 		}
+
+		item = list_next(item);
+		j++;
 	}
 
+	ben_free( packet );
 	return TRUE;
 }
 
@@ -83,7 +116,7 @@ void torrenkino_print6( struct sockaddr_in6 *sin, const char *handler,
 		const char *path ) {
 	char ip_buf[INET6_ADDRSTRLEN+1];
 	memset( ip_buf, '\0', INET6_ADDRSTRLEN+1);
-	printf("[%s]:%i", 
+	printf("[%s]:%i",
 			inet_ntop( AF_INET6, &sin->sin6_addr, ip_buf, INET6_ADDRSTRLEN ),
 			ntohs( sin->sin6_port ) );
 }
@@ -92,8 +125,8 @@ void torrenkino_print( struct sockaddr_in *sin, const char *handler,
 		const char *path ) {
 	char ip_buf[INET_ADDRSTRLEN+1];
 	memset( ip_buf, '\0', INET_ADDRSTRLEN+1);
-	printf("%s:%i", 
-			inet_ntop( AF_INET, &sin->sin_addr, ip_buf, INET_ADDRSTRLEN ), 
+	printf("%s:%i",
+			inet_ntop( AF_INET, &sin->sin_addr, ip_buf, INET_ADDRSTRLEN ),
 			ntohs( sin->sin_port ) );
 }
 
@@ -121,6 +154,8 @@ int main( int argc, char **argv ) {
 	char *hostname = NULL;
 	char *handler = NULL;
 	char *path = NULL;
+	int port = 0;
+	int mode = 0;
 
 	if( argc != 2 ) {
 		return 1;
@@ -139,7 +174,11 @@ int main( int argc, char **argv ) {
 		fail( "%s must end with .p2p", hostname );
 	}
 
-	if( ! torrentkino_lookup( handler, hostname, path ) ) {
+	if( !_nss_tk_conf( &port, &mode ) ) {
+		fail( "Reading configuration failed" );
+	}
+
+	if( ! torrentkino_lookup( handler, hostname, path, port, mode ) ) {
 		fail( "Looking up %s failed", hostname );
 	}
 

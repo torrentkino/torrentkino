@@ -24,6 +24,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "file.h"
 #include "fail.h"
 
+#ifdef NSS
+#define rand_urandom _nss_tk_rand_urandom
+#endif
+
 void rand_urandom( void *buffer, size_t size );
 
 #endif

@@ -35,7 +35,11 @@ typedef struct {
 	IP c_addr;
 	int send_reply;
 
-	int size;
+	/* Transaction ID */
+	UCHAR tid[TID_SIZE_MAX];
+	int tid_size;
+
+	//int size;
 } LOOKUP;
 
 typedef struct {
@@ -45,7 +49,7 @@ typedef struct {
 	int token_size;
 } NODE_L;
 
-LOOKUP *ldb_init( UCHAR *target, IP *from );
+LOOKUP *ldb_init( UCHAR *target, IP *from, BEN *tid );
 void ldb_free( LOOKUP *l );
 
 ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );

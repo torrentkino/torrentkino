@@ -86,10 +86,10 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from );
 void p2p_announce_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from );
 
-void p2p_localhost_get_request( UCHAR *hostname, size_t size, IP *from );
-int p2p_localhost_lookup_cache( UCHAR *target, IP *from );
-int p2p_localhost_lookup_local( UCHAR *target, IP *from );
-int p2p_localhost_lookup_remote( UCHAR *target, IP *from );
+void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from );
+int p2p_localhost_lookup_cache( UCHAR *target, BEN *tid, IP *from );
+int p2p_localhost_lookup_local( UCHAR *target, BEN *tid, IP *from );
+int p2p_localhost_lookup_remote( UCHAR *target, BEN *tid, IP *from );
 
 int p2p_packet_from_myself( UCHAR *node_id );
 

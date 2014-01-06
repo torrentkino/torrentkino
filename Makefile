@@ -20,10 +20,10 @@ sync:
 	./bin/sync.sh torrentkino
 
 debian:
-	./bin/debian.sh
+	./bin/debian.sh torrentkino
 
 ubuntu:
-	./bin/debian.sh
+	./bin/debian.sh torrentkino
 
 clean:
 	for dir in $(SUBDIRS); do \

@@ -1,7 +1,6 @@
 Torrentkino
 ===========
 
-* tkcli und tknss shall use bencode
 * Daemon cookie protection
 * TLD Switch
 * Look for e Messages

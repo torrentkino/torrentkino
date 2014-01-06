@@ -132,6 +132,136 @@ int _nss_tk_mode( BEN *conf ) {
 	return ip_version->v.i;
 }
 
+int _nss_tk_socket( int *sockfd, struct sockaddr_in6 *sa, socklen_t *sa_size,
+	int port, int mode ) {
+	struct timeval tv;
+
+	memset( sa, '\0', *sa_size );
+
+	/* Setup UDP */
+	*sockfd = socket( AF_INET6, SOCK_DGRAM, 0 );
+	if( *sockfd < 0 ) {
+		return FALSE;
+	}
+
+	/* Set receive timeout */
+	tv.tv_sec = TIMEOUT;
+	tv.tv_usec = 0;
+	setsockopt( *sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
+			sizeof( struct timeval ) );
+
+	/* Setup target */
+	sa->sin6_family = AF_INET6;
+	sa->sin6_port = htons( port );
+	if( mode == 6 ) {
+		if( !inet_pton( AF_INET6, "::1", &(sa->sin6_addr)) ) {
+			return FALSE;
+		}
+	} else {
+		if( !inet_pton( AF_INET6, "::FFFF:127.0.0.1", &(sa->sin6_addr)) ) {
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+/*
+	{
+	"t": "aa",
+	"y": "q",
+	"q": "name",
+	"a": {
+		"id": "mnopqrstuvwxyz123456"
+		"name": "owncloud.p2p",
+		}
+	}
+*/
+
+int _nss_tk_send_name( int sockfd,
+	struct sockaddr_in6 *sa, socklen_t *sa_size,
+	UCHAR *nid, UCHAR *tid, UCHAR *name, int name_size ) {
+
+	BEN *dict = ben_init( BEN_DICT );
+	BEN *key = NULL;
+	BEN *val = NULL;
+	RAW *raw = NULL;
+	BEN *arg = ben_init( BEN_DICT );
+	ssize_t n = 0;
+
+	/* Node ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, ( UCHAR *)"id", 2 );
+	ben_str( val, nid, SHA1_SIZE );
+	ben_dict( arg, key, val );
+
+	/* Name */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"name", 4 );
+	ben_str( val, name, name_size );
+	ben_dict( arg, key, val );
+
+	/* Argument */
+	key = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"a", 1 );
+	ben_dict( dict, key, arg );
+
+	/* Query type */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"q", 1 );
+	ben_str( val, (UCHAR *)"name", 4 );
+	ben_dict( dict, key, val );
+
+	/* Transaction ID */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"t", 1 );
+	ben_str( val, tid, TID_SIZE );
+	ben_dict( dict, key, val );
+
+	/* Type of message */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"y", 1 );
+	ben_str( val, (UCHAR *)"q", 1 );
+	ben_dict( dict, key, val );
+
+	raw = ben_enc( dict );
+
+	n = sendto( sockfd, raw->code, raw->size, 0,
+		( const struct sockaddr * )sa, *sa_size );
+
+	raw_free( raw );
+	ben_free( dict );
+
+	if( n != raw->size ) {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+ssize_t _nss_tk_read_ip( int sockfd,
+	struct sockaddr_in6 *sa, socklen_t *sa_size,
+	UCHAR *buffer, int bufsize ) {
+
+	ssize_t n = 0;
+
+	memset( buffer, '\0', bufsize );
+
+	n = recvfrom( sockfd, buffer, bufsize-1, 0,
+			( struct sockaddr * )sa, sa_size );
+
+	if( n <= 0 ) {
+		return 0;
+	}
+
+	return n;
+}
+
 int _nss_tk_connect( const char *hostname, int hostsize,
 	UCHAR *buffer, int bufsize, int port, int mode ) {
 
@@ -183,6 +313,72 @@ int _nss_tk_connect( const char *hostname, int hostsize,
 	}
 
 	return n;
+}
+
+BEN *_nss_tk_packet( UCHAR *bencode, int bensize ) {
+	BEN *packet = NULL;
+
+	/* Validate bencode */
+	if( !ben_validate( bencode, bensize ) ) {
+		return NULL;
+	}
+
+	/* Parse request */
+	packet = ben_dec( bencode, bensize );
+	if( packet == NULL ) {
+		return NULL;
+	} else if( packet->t != BEN_DICT ) {
+		ben_free( packet );
+		return NULL;
+	}
+
+	return packet;
+}
+
+BEN *_nss_tk_values( BEN *packet, UCHAR *tid ) {
+	BEN *y = NULL;
+	BEN *r = NULL;
+	BEN *t = NULL;
+	BEN *v = NULL;
+	BEN *id = NULL;
+
+	/* Type of message */
+	y = ben_dict_search_str( packet, "y" );
+	if( !ben_is_str( y ) || ben_str_i( y ) != 1 ) {
+		return NULL;
+	}
+	if( *y->v.s->s != 'r' ) {
+		return NULL;
+	}
+
+	/* Argument */
+	r = ben_dict_search_str( packet, "r" );
+	if( !ben_is_dict( r ) ) {
+		return NULL;
+	}
+
+	/* Node ID */
+	id = ben_dict_search_str( r, "id" );
+	if( !ben_is_str( id ) || ben_str_i( id ) != SHA1_SIZE ) {
+		return NULL;
+	}
+
+	/* Transaction ID */
+	t = ben_dict_search_str( packet, "t" );
+	if( !ben_is_str( t ) && ben_str_i( t ) != TID_SIZE ) {
+		return NULL;
+	}
+	if( memcmp( t->v.s->s, tid, TID_SIZE ) != 0 ) {
+		return NULL;
+	}
+
+	/* Values */
+	v = ben_dict_search_str( r, "values" );
+	if( !ben_is_list( v ) ) {
+		return NULL;
+	}
+
+	return v;
 }
 
 UCHAR *_nss_tk_bytes_to_sin6( struct sockaddr_in6 *sin, UCHAR *p ) {

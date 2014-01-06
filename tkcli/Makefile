@@ -2,10 +2,10 @@ CODENAME = tk
 export CC = gcc
 export CFLAGS = -O2 -std=gnu99
 CFLAGS += -Wall -Wwrite-strings -pedantic
-CFLAGS += -DTORRENTKINO
+CFLAGS += -DTORRENTKINO -DIPV6
 #CFLAGS += -g -DDEBUG
 export LDFLAGS =
-OBJS=tkcli.o tksrc.o malloc.o file.o ben.o list.o fail.o str.o
+OBJS=tkcli.o tksrc.o malloc.o file.o ben.o list.o fail.o random.o str.o
 
 .PHONY: all clean install
 

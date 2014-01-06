@@ -23,9 +23,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "lookup.h"
 #include "p2p.h"
 
-#define TID_SIZE 4
-#define TID_SIZE_MAX 20
-
 struct obj_transaction {
 	LIST *list;
 	HASH *hash;
@@ -42,11 +39,13 @@ typedef struct obj_tid TID;
 struct obj_transaction *tdb_init( void );
 void tdb_free( void );
 
-ITEM *tdb_put( int type, UCHAR *target, IP *from );
+ITEM *tdb_put( int type );
 void tdb_del( ITEM *i );
 
 void tdb_clean( void );
 void tdb_expire( time_t now );
+
+void tdb_link_ldb( ITEM *i, LOOKUP *l );
 
 void tdb_create_random_id( UCHAR *id );
 ITEM *tdb_item( UCHAR *id );

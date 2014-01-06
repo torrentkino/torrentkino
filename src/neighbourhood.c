@@ -76,12 +76,17 @@ void nbhd_put( UCHAR *id, IP *sa ) {
 		return;
 	}
 
+	/* Ignore localhost */
+	if( ip_is_localhost( sa ) ) {
+		return;
+	}
+
 	/* Find the node or create a new one */
 	if( ( n = hash_get( _main->nbhd->hash, id, SHA1_SIZE)) != NULL ) {
 		node_update( n, sa );
 		return;
 	}
-	
+
 	/* New node */
 	n = node_init( id, sa );
 
