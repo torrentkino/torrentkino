@@ -4,7 +4,7 @@ export CC = gcc
 export CFLAGS_MIN = -O2 -std=gnu99
 CFLAGS_MIN += -DTORRENTKINO -DIPV6
 CFLAGS_MIN += -Wall -Wwrite-strings
-CFLAGS_MIN += -g
+#CFLAGS_MIN += -g
 
 export LDFLAGS = -lpthread
 

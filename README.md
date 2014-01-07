@@ -26,8 +26,7 @@ to your Linux OS.
 
 Torrentkino uses a hostname cache for fast lookups within big swarms. A queried
 hostname will be cached for 30 minutes. Torrentkino also lookups that queried
-hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
-30 minutes after your last query for that hostname.
+hostname every 5 minutes on its own to keep its cache up-to-date.
 
 ## FILES
 
@@ -92,8 +91,8 @@ hostname every 5 minutes on its own. The cache keeps being up-to-date. It stops
 
 ## EXAMPLES
 
-Announce the hostname *owncloud.p2p* within the realm *TooManySecrets* to a global
-Bittorrent swarm.
+Announce the hostname *owncloud.p2p* within the realm *TooManySecrets* to a
+global Bittorrent swarm.
 
 	$ torrentkino6 -h owncloud.p2p -r TooManySecrets -x dht.wifi.pps.jussieu.fr
 	$ getent hosts owncloud.p2p
