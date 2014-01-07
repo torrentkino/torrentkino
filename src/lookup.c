@@ -45,7 +45,7 @@ LOOKUP *ldb_init( UCHAR *target, IP *from, BEN *tid ) {
 	memset( &l->c_addr, '\0', sizeof( IP ) );
 	memset( &l->tid, '\0', TID_SIZE_MAX );
 	l->tid_size = 0;
-	
+
 	if( from != NULL ) {
 		l->send_reply = TRUE;
 		memcpy( &l->c_addr, from, sizeof( IP ) );
@@ -76,12 +76,10 @@ ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 	ULONG index = 0;
 
 	/* Wow. Something is broken or this Kademlia cloud is huge. */
-// FIXME
-//	if( l->size >= 32767 ) {
-//		info( from, 0, "ldb_put(): Too many nodes without end in sight." );
-//		ldb_free( l );
-//		return 32767;
-//	}
+	if( list_size( l->list ) >= 32767 ) {
+		info( from, 0, "ldb_put(): Too many nodes without end in sight." );
+		return 32767;
+	}
 
 	new = (NODE_L *) myalloc( sizeof( NODE_L ) );
 	memcpy( new->id, node_id, SHA1_SIZE );
