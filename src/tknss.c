@@ -48,7 +48,7 @@ enum nss_status _nss_tk_gethostbyname3_r( const char *hostname, int af,
 		struct hostent *host, char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp ) {
 
-	return _nss_tk_hostent( hostname, strlen( hostname ), af, host, 
+	return _nss_tk_hostent( hostname, strlen( hostname ), af, host,
 			buffer, buflen, errnop, h_errnop, ttlp, canonp );
 }
 
@@ -267,7 +267,7 @@ int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
     }
 
     /* Send request */
-    if( !_nss_tk_send_name( sockfd, &sa, &sa_size, nid, tid,
+    if( !_nss_tk_send_lookup( sockfd, &sa, &sa_size, nid, tid,
         (UCHAR *)hostname, strlen( hostname ) ) ) {
         return FALSE;
     }

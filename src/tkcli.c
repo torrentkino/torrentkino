@@ -54,7 +54,7 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 	}
 
 	/* Send request */
-	if( !_nss_tk_send_name( sockfd, &sa, &sa_size, nid, tid,
+	if( !_nss_tk_send_lookup( sockfd, &sa, &sa_size, nid, tid,
 		(UCHAR *)hostname, strlen( hostname ) ) ) {
 		return FALSE;
 	}

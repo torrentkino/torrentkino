@@ -26,14 +26,14 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 LIST *bckt_init( void ) {
 	BUCK *b = (BUCK *) myalloc( sizeof(BUCK) );
 	LIST *l = list_init();
-	
+
 	/* First bucket */
 	memset( b->id, '\0', SHA1_SIZE );
 	b->nodes = list_init();
 
 	/* Connect bucket */
 	list_put( l, b );
-	
+
 	return l;
 }
 
@@ -264,6 +264,13 @@ void bckt_split_print( LIST *l ) {
 	ITEM *item_n = NULL;
 	UDP_NODE *n = NULL;
 	char hex[HEX_LEN];
+#ifdef IPV6
+	char ip_buf[INET6_ADDRSTRLEN+1];
+	memset( ip_buf, '\0', INET6_ADDRSTRLEN+1 );
+#elif IPV4
+	char ip_buf[INET_ADDRSTRLEN+1];
+	memset( ip_buf, '\0', INET_ADDRSTRLEN+1 );
+#endif
 
 	info( NULL, 0, "Bucket split:" );
 
@@ -281,7 +288,13 @@ void bckt_split_print( LIST *l ) {
 			n = list_value( item_n );
 
 			hex_hash_encode( hex, n->id );
-			info( NULL, 0, "  Node: %s", hex );
+			info( NULL, 0, "  Node: %s %s", hex,
+#ifdef IPV6
+				inet_ntop( AF_INET6, &n->c_addr.sin6_addr, ip_buf, INET6_ADDRSTRLEN )
+#elif IPV4
+				inet_ntop( AF_INET, &n->c_addr.sin_addr, ip_buf, INET_ADDRSTRLEN )
+#endif
+			);
 
 			item_n = list_next( item_n );
 		}

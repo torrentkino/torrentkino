@@ -34,9 +34,9 @@ int _nss_tk_mode( BEN *conf );
 int _nss_tk_socket( int *sockfd, struct sockaddr_in6 *sa, socklen_t *sa_size,
 	int port, int mode );
 
-int _nss_tk_send_name( int sockfd,
+int _nss_tk_send_lookup( int sockfd,
 	struct sockaddr_in6 *sa, socklen_t *sa_size,
-	UCHAR *nid, UCHAR *tid, UCHAR *name, int name_size );
+	UCHAR *nid, UCHAR *tid, UCHAR *hostname, int hostsize );
 
 ssize_t _nss_tk_read_ip( int sockfd,
 	struct sockaddr_in6 *sa, socklen_t *sa_size,

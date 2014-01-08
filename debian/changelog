@@ -1,3 +1,9 @@
+torrentkino (0.20) wheezy; urgency=low
+
+  * Limit recursive lookups to localhost
+  * Small improvements
+
+ -- Aiko Barz <aiko@torrentkino.de>  Wed, 08 Jan 2014 21:28:00 +0100
 torrentkino (0.19) wheezy; urgency=low
 
   * tknss and tkcli use bencode to communicate with the daemon

@@ -170,17 +170,17 @@ int _nss_tk_socket( int *sockfd, struct sockaddr_in6 *sa, socklen_t *sa_size,
 	{
 	"t": "aa",
 	"y": "q",
-	"q": "name",
+	"q": "lookup",
 	"a": {
 		"id": "mnopqrstuvwxyz123456"
-		"name": "owncloud.p2p",
+		"hostname": "owncloud.p2p",
 		}
 	}
 */
 
-int _nss_tk_send_name( int sockfd,
+int _nss_tk_send_lookup( int sockfd,
 	struct sockaddr_in6 *sa, socklen_t *sa_size,
-	UCHAR *nid, UCHAR *tid, UCHAR *name, int name_size ) {
+	UCHAR *nid, UCHAR *tid, UCHAR *hostname, int hostsize ) {
 
 	BEN *dict = ben_init( BEN_DICT );
 	BEN *key = NULL;
@@ -199,8 +199,8 @@ int _nss_tk_send_name( int sockfd,
 	/* Name */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
-	ben_str( key, (UCHAR *)"name", 4 );
-	ben_str( val, name, name_size );
+	ben_str( key, (UCHAR *)"hostname", 8 );
+	ben_str( val, hostname, hostsize );
 	ben_dict( arg, key, val );
 
 	/* Argument */
@@ -212,7 +212,7 @@ int _nss_tk_send_name( int sockfd,
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key, (UCHAR *)"q", 1 );
-	ben_str( val, (UCHAR *)"name", 4 );
+	ben_str( val, (UCHAR *)"lookup", 6 );
 	ben_dict( dict, key, val );
 
 	/* Transaction ID */

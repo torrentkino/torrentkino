@@ -573,7 +573,7 @@ void p2p_request( BEN *packet, IP *from ) {
 	}
 
 	/* LOOKUP */
-	if( ben_str_i( q ) == 4 && memcmp( ben_str_s( q ), "name", 4 ) == 0 ) {
+	if( ben_str_i( q ) == 6 && memcmp( ben_str_s( q ), "lookup", 6 ) == 0 ) {
 		p2p_localhost_get_request( a, t, from );
 		return;
 	}
@@ -696,7 +696,8 @@ void p2p_find_node_get_request( BEN *arg, BEN *tid, IP *from ) {
 	}
 
 	/* Create compact node list */
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket, nodes_compact_list, ben_str_s( target ) );
+	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket,
+			nodes_compact_list, ben_str_s( target ) );
 
 	/* Send reply */
 	if( nodes_compact_size > 0 ) {
@@ -804,13 +805,13 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 
 	token = ben_dict_search_str( arg, "token" );
 	if( !ben_is_str( token ) ) {
-		info( NULL, 0, "token key missing or broken" );
+		info( from, 0, "Missing or broken token from" );
 		return;
 	} else if( ben_str_i( token ) > TOKEN_SIZE_MAX ) {
-		info( NULL, 0, "Token key too big" );
+		info( from, 0, "Token key too big from" );
 		return;
 	} else if( ben_str_i( token ) <= 0 ) {
-		info( NULL, 0, "Token key too small" );
+		info( from, 0, "Invalid token from" );
 		return;
 	}
 
@@ -893,18 +894,18 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti,
 
 		nbhd_put( id, &sin );
 
-		/* Do not send requests twice */
+		/* Node known. Do not send requests twice. Stop here. */
 		if( ldb_find( l, id ) != NULL ) {
 			continue;
 		}
 
-		/* Only send a request to this node if it is one of the top matching
-		 * nodes. */
+		/* Add this node to a sorted list. And only send a new lookup request
+		 * to this node if it gets inserted on top of the sorted list. */
 		if( ldb_put( l, id, (IP *)&sin ) >= 8 ) {
 			continue;
 		}
 
-		/* Query node */
+		/* Send a new lookup request. */
 		send_get_peers_request( (IP *)&sin, target, tdb_tid( ti ) );
 	}
 }
@@ -964,11 +965,8 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 		/* Cache result */
 		cache_put( l->target, nodes_compact_list, nodes_compact_size );
 
-		/* Send reply */
+		/* Send reply to tknss or tkcli */
 		if( l->send_reply == TRUE ) {
-// FIXME
-//			sendto( _main->udp->sockfd, nodes_compact_list, nodes_compact_size, 0,
-//				(const struct sockaddr *)&l->c_addr, sizeof( IP ) );
 			send_get_peers_values( &l->c_addr,
 				nodes_compact_list, nodes_compact_size,
 				l->tid, l->tid_size );
@@ -1052,26 +1050,43 @@ void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
 	/* Nothing to do */
 }
 
+/*
+	{
+	"t": "aa",
+	"y": "q",
+	"q": "lookup",
+	"a": {
+		"id": "mnopqrstuvwxyz123456"
+		"hostname": "owncloud.p2p",
+		}
+	}
+*/
+
 void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from ) {
 	UCHAR target[SHA1_SIZE];
 	int result = FALSE;
 	char *hostname = NULL;
 	int hostsize = 0;
-	BEN *name = NULL;
+	BEN *entity = NULL;
 
-	/* Get hostname */
-	name = ben_dict_search_str( arg, "name" );
-	if( !ben_is_str( name ) || ben_str_i( name ) <= 0 ) {
-		info( from, 0, "Missing or broken name from" );
+	/* Limit lookups to localhost */
+	if( !ip_is_localhost( from ) ) {
 		return;
 	}
-	if( ben_str_i( name ) > 256 ) {
+
+	/* Get hostname */
+	entity = ben_dict_search_str( arg, "hostname" );
+	if( !ben_is_str( entity ) || ben_str_i( entity ) <= 0 ) {
+		info( from, 0, "Missing or broken hostname from" );
+		return;
+	}
+	if( ben_str_i( entity ) > 256 ) {
 		info( from, 0, "Name too long from" );
 		return;
 	}
 
-	hostname = (char *) ben_str_s( name );
-	hostsize = ben_str_i( name );
+	hostname = (char *) ben_str_s( entity );
+	hostsize = ben_str_i( entity );
 
 	/* Validate hostname */
 	if ( !str_valid_hostname( hostname, hostsize ) ) {
@@ -1084,30 +1099,21 @@ void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from ) {
 		_main->conf->realm, _main->conf->bool_realm );
 
 	/* Check local cache */
-//	mutex_block( _main->work->mutex );
 	result = p2p_localhost_lookup_cache( target, tid, from );
-//	mutex_unblock( _main->work->mutex );
-
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (cached)", hostname );
 		return;
 	}
 
 	/* Check local database */
-//	mutex_block( _main->work->mutex );
 	result = p2p_localhost_lookup_local( target, tid, from );
-//	mutex_unblock( _main->work->mutex );
-
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (local)", hostname );
 		return;
 	}
 
 	/* Start remote search */
-//	mutex_block( _main->work->mutex );
 	result = p2p_localhost_lookup_remote( target, tid, from );
-//	mutex_unblock( _main->work->mutex );
-
 	if( result == TRUE ) {
 		info( NULL, 0, "LOOKUP %s (remote)", hostname );
 		return;
