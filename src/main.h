@@ -58,7 +58,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_EPOLL_WAIT 1000
 #define CONF_SRVNAME "tumbleweed"
 #define CONF_INDEX_NAME "index.html"
-#define CONF_KEEPALIVE 5
 #endif
 
 #if TORRENTKINO

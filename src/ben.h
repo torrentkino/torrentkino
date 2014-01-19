@@ -87,7 +87,7 @@ typedef struct {
 
 typedef struct {
 	int t;
-	
+
 	union  {
 		unsigned long int i;
 		STR *s;
