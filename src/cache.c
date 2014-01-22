@@ -61,7 +61,12 @@ void cache_put( UCHAR *target_id, UCHAR *nodes_compact_list, int nodes_compact_s
 	/* Update target list */
 	pair = nodes_compact_list;
 	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_PAIR ) {
-		tgt_c_update( target, pair );
+
+		/* Compare the port in the reply to my own announced port. */
+		if( cache_port_policy_ok( pair ) ) {
+			tgt_c_update( target, pair );
+		}
+
 		pair += IP_SIZE_META_PAIR;
 	}
 
@@ -301,4 +306,29 @@ void node_c_free( NODE_C *node_c ) {
 void node_c_update( NODE_C *node_c, UCHAR *pair ) {
 	memcpy( node_c->pair, pair, IP_SIZE_META_PAIR );
 	time_add_30_min( &node_c->eol );
+}
+
+int cache_port_policy_ok( UCHAR *p ) {
+	IP sin;
+	unsigned int port = 0;
+
+	/* Accept any reply when inactive */
+	if( !_main->conf->cache_port_policy ) {
+		return TRUE;
+	}
+
+	ip_bytes_to_sin( &sin, p );
+
+#ifdef IPV6
+	port = ntohs( sin.sin6_port );
+#elif IPV4
+	port = ntohs( sin.sin_port );
+#endif
+
+	/* Limit cache replies to those matching my announced port. */
+	if( port == _main->conf->announce_port ) {
+		return TRUE;
+	}
+
+	return FALSE;
 }

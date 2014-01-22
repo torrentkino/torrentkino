@@ -143,6 +143,13 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		fail( "Invalid announce port number. (-a)" );
 	}
 
+	/* Lookup replies may enter the cache if the announced port matches mine */
+	if( ben_dict_search_str( opts, "-c" ) != NULL ) {
+		conf->cache_port_policy = TRUE;
+	} else {
+		conf->cache_port_policy = FALSE;
+	}
+
 	if( getuid() == 0 ) {
 		snprintf( conf->file, BUF_SIZE, "%s/%s", conf->home, CONF_FILE );
 	} else {
@@ -349,9 +356,14 @@ void conf_print( void ) {
 	hex_hash_encode( hex, _main->conf->host_id );
 	info( NULL, 0, "Host ID: %s", hex );
 
-	info( NULL, 0, "Bootstrap Node: %s (-x)", _main->conf->bootstrap_node );
-	info( NULL, 0, "Bootstrap Port: UDP/%i (-y)", _main->conf->bootstrap_port );
-	info( NULL, 0, "Announce Port: %i (-a)", _main->conf->announce_port );
+	info( NULL, 0, "Bootstrap node: %s (-x)", _main->conf->bootstrap_node );
+	info( NULL, 0, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
+	info( NULL, 0, "Announce port: %i (-a)", _main->conf->announce_port );
+	if( _main->conf->cache_port_policy ) {
+		info( NULL, 0, "Cache port policy: Yes (-c)" );
+	} else {
+		info( NULL, 0, "Cache port policy: No (-c)" );
+	}
 
 	/* Realm */
 	if( _main->conf->bool_realm == 1 ) {

@@ -42,7 +42,7 @@ struct obj_conf {
 	int cores;
 	int verbosity;
 	int mode;
-	int port;
+	unsigned int port;
 
 #ifdef TORRENTKINO
 	char hostname[BUF_SIZE];
@@ -50,9 +50,10 @@ struct obj_conf {
 	UCHAR host_id[SHA1_SIZE];
 	UCHAR null_id[SHA1_SIZE];
 	char bootstrap_node[BUF_SIZE];
-	int bootstrap_port;
-	int announce_port;
+	unsigned int bootstrap_port;
+	unsigned int announce_port;
 	char realm[BUF_SIZE];
+	int cache_port_policy;
 	int bool_realm;
 #ifdef POLARSSL
 	char key[BUF_SIZE];

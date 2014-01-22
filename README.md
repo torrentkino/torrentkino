@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-d] [-q] [-h hostname] [-r realm] [-p port] [-x server] [-y port]
+`torrentkino` [-d] [-q] [-p port] [-a hostname] [-b port] [-c] [-r realm] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -24,10 +24,6 @@ your case, the info hash represents a hostname instead of a torrent file.
 A NSS module makes any hostname with *.p2p* at the end transparently available
 to your Linux OS.
 
-Torrentkino uses a hostname cache for fast lookups within big swarms. A queried
-hostname will be cached for 30 minutes. Torrentkino also lookups that queried
-hostname every 5 minutes on its own to keep its cache up-to-date.
-
 ## FILES
 
   * **/etc/nsswitch.conf**:
@@ -38,7 +34,7 @@ hostname every 5 minutes on its own to keep its cache up-to-date.
     This file gets written by the Torrentkino daemon and contains the server port
 	number and some other hints. Those hints are used by **libnss_tk.so.2** and
 	the **tk** cli program.
-  
+ 
   * **/etc/torrentkino.conf**:
 	This file gets written by the Torrentkino daemon when started by root for
 	example at boot time or by using sudo. It works like the file above.
@@ -48,12 +44,17 @@ hostname every 5 minutes on its own to keep its cache up-to-date.
 ## OPTIONS
 
   * `-a` *hostname*:
-    By default /etc/hostname is used to determine your hostname. The SHA1 hash
-	of the hostname becomes the announced info_hash.
+    Announce this hostname. By default /etc/hostname is used to determine your
+	hostname. The SHA1 hash of the hostname becomes the announced info_hash.
 
   * `-b` *port*:
-	Kademlia also stores a port. You can use **tk** to ask for that port and
-	-b to specify that port. (Default: "8080")
+	Announce this port together with your hostname. (Default: "8080")
+
+  * `-c`
+    When active the port in a lookup response must match your own announced
+	port (*-b*). Otherwise the response does not enter the cache. When you
+	expect all your services to run on port 8080, you can safely ignore answers
+	with different ports in their reply.
 
   * `-n` *node id string*:
     By default a random node id gets computed on every startup. For testing
@@ -63,8 +64,8 @@ hostname every 5 minutes on its own to keep its cache up-to-date.
   * `-r` *realm*:
 	Creating a realm affects the method how to compute the info hash. It helps
 	you to isolate your nodes and be part of a bigger swarm at the same time.
-	This is useful to handle duplicate hostnames. So now, everybody may have his
-	own https://owncloud.p2p within his own realm for example.
+	This is useful to handle duplicate hostnames. With different realms
+	everybody may have his own http://mycloud.p2p for example.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)
@@ -91,18 +92,17 @@ hostname every 5 minutes on its own to keep its cache up-to-date.
 
 ## EXAMPLES
 
-Announce the hostname *owncloud.p2p* within the realm *TooManySecrets* to a
-global Bittorrent swarm.
+Announce the hostname *mycloud.p2p* globally.
 
-	$ torrentkino6 -h owncloud.p2p -r TooManySecrets -x dht.wifi.pps.jussieu.fr
-	$ getent hosts owncloud.p2p
-	$ tk owncloud.p2p
-	$ tk http://owncloud.p2p/index.html
+	$ torrentkino6 -a mycloud.p2p -x dht.wifi.pps.jussieu.fr
+	$ getent hosts mycloud.p2p
+	$ tk mycloud.p2p
+	$ tk http://mycloud.p2p/index.html
 
-	$ torrentkino4 -h owncloud.p2p -r TooManySecrets -x router.utorrent.com
-	$ getent hosts owncloud.p2p
-	$ tk owncloud.p2p
-	$ tk http://owncloud.p2p/index.html
+	$ torrentkino4 -a mycloud.p2p -x router.utorrent.com
+	$ getent hosts mycloud.p2p
+	$ tk mycloud.p2p
+	$ tk http://mycloud.p2p/index.html
 
 ## INSTALLATION
 

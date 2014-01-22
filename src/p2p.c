@@ -947,7 +947,7 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 		val = list_value( item );
 
 		if( !ben_is_str( val ) || ben_str_i( val ) != IP_SIZE_META_PAIR ) {
-			info( NULL, 0, "Values list broken" );
+			info( from, 0, "Values list broken from " );
 			return;
 		}
 
@@ -962,19 +962,28 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 	/* Lookup request? */
 	if( type == P2P_GET_PEERS && nodes_compact_size > 0 ) {
 
+		/* Info */
+		hex_hash_encode( hex, l->target );
+		info( from, 0, "Found %s at", hex );
+
 		/* Cache result */
 		cache_put( l->target, nodes_compact_list, nodes_compact_size );
 
-		/* Send reply to tknss or tkcli */
-		if( l->send_reply == TRUE ) {
-			send_get_peers_values( &l->c_addr,
-				nodes_compact_list, nodes_compact_size,
-				l->tid, l->tid_size );
+		/* tknss and tkcli are not involved. */
+		if( ! l->send_reply ) {
+			return;
 		}
 
-		/* Debugging */
-		hex_hash_encode( hex, l->target );
-		info( from, 0, "Found %s at", hex );
+		/* Get the compact_list from the cache, because not all the data above
+		 * might enter the cache. */
+		nodes_compact_size = cache_compact_list( nodes_compact_list, l->target );
+		if( nodes_compact_size <= 0 ) {
+			return;
+		}
+
+		/* Send the result back to tknss / tkcli */
+		send_get_peers_values( &l->c_addr,
+			nodes_compact_list, nodes_compact_size,	l->tid, l->tid_size );
 	}
 }
 
