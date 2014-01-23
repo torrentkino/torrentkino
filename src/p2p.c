@@ -335,7 +335,7 @@ void p2p_cron_announce_start( void ) {
 void p2p_cron_announce_engage( ITEM *ti ) {
 	ITEM *item = NULL;
 	ITEM *t_new = NULL;
-	ULONG j = 0;
+	int j = 0;
 	TID *tid = list_value( ti );
 	LOOKUP *l = tid->lookup;
 	NODE_L *n = NULL;

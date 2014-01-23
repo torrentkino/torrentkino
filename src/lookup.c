@@ -69,11 +69,11 @@ void ldb_free( LOOKUP *l ) {
 	myfree( l );
 }
 
-ULONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
+LONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 	ITEM *i = NULL;
 	NODE_L *new = NULL;
 	NODE_L *n = NULL;
-	ULONG index = 0;
+	LONG index = 0;
 
 	/* Wow. Something is broken or this Kademlia cloud is huge. */
 	if( list_size( l->list ) >= 32767 ) {

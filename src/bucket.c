@@ -377,7 +377,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 	ITEM *item = NULL;
 	BUCK *b = NULL;
 	UDP_NODE *n = NULL;
-	ULONG j = 0;
+	int j = 0;
 	int size = 0;
 
 	/* Find matching bucket */
@@ -391,7 +391,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 	item = list_start( b->nodes );
 	while( item != NULL && j < 8 ) {
 		n = list_value( item );
-		
+
 		/* Do not include nodes, that are questionable */
 		if( !node_ok( n ) ) {
 			item = list_next( item );
@@ -409,6 +409,6 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 		item = list_next( item );
 		j++;
 	}
-	
+
 	return size;
 }

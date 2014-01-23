@@ -634,7 +634,7 @@ int ben_validate_l( RAW *raw ) {
 }
 
 int ben_validate_s( RAW *raw ) {
-	long int i = 0;
+	LONG i = 0;
 	UCHAR *start = raw->p;
 	UCHAR *buf = NULL;
 	int run = 1;
@@ -663,7 +663,7 @@ int ben_validate_s( RAW *raw ) {
 					return 0;
 
 				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
-				memcpy( buf,start,i );
+				memcpy( buf, start, i );
 				i = atol( (char *)buf );
 				myfree( buf );
 

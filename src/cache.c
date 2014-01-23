@@ -153,7 +153,7 @@ int cache_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id ) {
 	NODE_C *node_c = NULL;
 	TARGET_C *target = NULL;
 	ITEM *item = NULL;
-	ULONG j = 0;
+	int j = 0;
 	int size = 0;
 
 	/* Look into the local database */

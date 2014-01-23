@@ -30,18 +30,18 @@ typedef struct {
 
 typedef struct {
 	PAIR *pairs;
-	ULONG size;
+	LONG size;
 } BUCKET;
 
 typedef struct {
 	BUCKET *buckets;
-	ULONG size;
+	LONG size;
 } HASH;
 
-HASH *hash_init( ULONG capacity );
+HASH *hash_init( LONG capacity );
 void hash_free( HASH *map );
 
-ULONG hash_this( UCHAR *key, LONG size );
+LONG hash_this( UCHAR *key, LONG size );
 PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, LONG size );
 
 void *hash_get( const HASH *map, UCHAR *key, LONG size );

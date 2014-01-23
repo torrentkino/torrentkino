@@ -29,15 +29,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define BEN_LIST 2
 #define BEN_DICT 3
 
-#define BEN_STR_MAXLEN 10
-#define BEN_STR_MAXSIZE 33554432
-#ifdef __i386__
+#define BEN_STR_MAXLEN 3
+#define BEN_STR_MAXSIZE 255
 #define BEN_INT_MAXLEN 10
 #define BEN_INT_MAXSIZE 2147483647
-#else
-#define BEN_INT_MAXLEN 19
-#define BEN_INT_MAXSIZE 9223372036854775807
-#endif
 
 #ifdef NSS
 #define ben_init _nss_tk_ben_init

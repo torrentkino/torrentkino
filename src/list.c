@@ -86,7 +86,7 @@ ITEM *list_stop( LIST *list ) {
 	if( list == NULL ) {
 		return NULL;
 	}
-	
+
 	if( list->item == NULL ) {
 		return NULL;
 	}
@@ -99,7 +99,7 @@ ITEM *list_stop( LIST *list ) {
 	return item;
 }
 
-ULONG list_size( LIST *list ) {
+LONG list_size( LIST *list ) {
 	return list->size;
 }
 
@@ -111,7 +111,7 @@ ITEM *list_put( LIST *list, void *payload ) {
 		return NULL;
 	}
 
-	if( list_size( list ) == ULONG_MAX ) {
+	if( list_size( list ) == LONG_MAX ) {
 		return NULL;
 	}
 
@@ -144,8 +144,8 @@ ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
 	if( list == NULL ) {
 		return NULL;
 	}
-	
-	if( list_size( list ) == ULONG_MAX ) {
+
+	if( list_size( list ) == LONG_MAX ) {
 		return NULL;
 	}
 
@@ -182,7 +182,7 @@ ITEM *list_add( LIST *list, ITEM *here, void *payload ) {
 		return NULL;
 	}
 
-	if( list_size( list ) == ULONG_MAX ) {
+	if( list_size( list ) == LONG_MAX ) {
 		return NULL;
 	}
 
@@ -199,7 +199,7 @@ ITEM *list_add( LIST *list, ITEM *here, void *payload ) {
 
 	item->next = next;
 	item->prev = here;
-	
+
 	here->next = item;
 
 	if( next != NULL ) {
