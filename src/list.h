@@ -39,13 +39,13 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define list_value _nss_tk_list_value
 #endif
 
-struct obj_list {	
+struct obj_list {
 	struct obj_item *item;
 	ULONG size;
 };
 typedef struct obj_list LIST;
 
-struct obj_item {	
+struct obj_item {
 	void *val;
 	struct obj_item *next;
 	struct obj_item *prev;

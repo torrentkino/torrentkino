@@ -7,7 +7,7 @@
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtorrentkino\fR [\-d] [\-q] [\-p port] [\-a hostname] [\-b port] [\-c] [\-r realm] [\-x server] [\-y port]
+\fBtorrentkino\fR [\-d] [\-q] [\-p port] [\-a hostname] [\-b port] [\-r realm] [\-l] [\-x server] [\-y port]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -44,13 +44,13 @@ This file gets written by the Torrentkino daemon when started by root for exampl
 \fB\-b\fR \fIport\fR: Announce this port together with your hostname\. (Default: "8080")
 .
 .IP "\(bu" 4
-\fB\-c\fR When active the port in a lookup response must match your own announced port (\fI\-b\fR)\. Otherwise the response does not enter the cache\. When you expect all your services to run on port 8080, you can safely ignore answers with different ports in their reply\.
-.
-.IP "\(bu" 4
 \fB\-n\fR \fInode id string\fR: By default a random node id gets computed on every startup\. For testing purposes it may be useful to keep the same node id all the time\. The above string is not used directly\. Instead its SHA1 hash is used\.
 .
 .IP "\(bu" 4
 \fB\-r\fR \fIrealm\fR: Creating a realm affects the method how to compute the info hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own http://mycloud\.p2p for example\.
+.
+.IP "\(bu" 4
+\fB\-l\fR Limit the port in lookup responses to your own announce port (\fI\-b\fR)\. That means that you accept lookup responses only from those nodes that announce the same port as you do\. This may be useful in case of SHA1 collisions\.
 .
 .IP "\(bu" 4
 \fB\-p\fR \fIport\fR: Listen to this port (Default: UDP/6881)

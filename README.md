@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-d] [-q] [-p port] [-a hostname] [-b port] [-c] [-r realm] [-x server] [-y port]
+`torrentkino` [-d] [-q] [-p port] [-a hostname] [-b port] [-r realm] [-l] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -50,12 +50,6 @@ to your Linux OS.
   * `-b` *port*:
 	Announce this port together with your hostname. (Default: "8080")
 
-  * `-c`
-    When active the port in a lookup response must match your own announced
-	port (*-b*). Otherwise the response does not enter the cache. When you
-	expect all your services to run on port 8080, you can safely ignore answers
-	with different ports in their reply.
-
   * `-n` *node id string*:
     By default a random node id gets computed on every startup. For testing
 	purposes it may be useful to keep the same node id all the time. The above
@@ -66,6 +60,12 @@ to your Linux OS.
 	you to isolate your nodes and be part of a bigger swarm at the same time.
 	This is useful to handle duplicate hostnames. With different realms
 	everybody may have his own http://mycloud.p2p for example.
+
+  * `-l`
+    Limit the port in lookup responses to your own announce port (*-b*).
+	That means that you accept lookup responses only from those nodes that
+	announce the same port as you do. This may be useful in case of SHA1
+	collisions.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)

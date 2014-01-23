@@ -144,7 +144,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	}
 
 	/* Lookup replies may enter the cache if the announced port matches mine */
-	if( ben_dict_search_str( opts, "-c" ) != NULL ) {
+	if( ben_dict_search_str( opts, "-l" ) != NULL ) {
 		conf->cache_port_policy = TRUE;
 	} else {
 		conf->cache_port_policy = FALSE;
@@ -360,9 +360,9 @@ void conf_print( void ) {
 	info( NULL, 0, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	info( NULL, 0, "Announce port: %i (-a)", _main->conf->announce_port );
 	if( _main->conf->cache_port_policy ) {
-		info( NULL, 0, "Cache port policy: Yes (-c)" );
+		info( NULL, 0, "Cache port policy: Yes (-l)" );
 	} else {
-		info( NULL, 0, "Cache port policy: No (-c)" );
+		info( NULL, 0, "Cache port policy: No (-l)" );
 	}
 
 	/* Realm */
