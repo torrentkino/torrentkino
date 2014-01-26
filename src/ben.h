@@ -77,14 +77,14 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 typedef struct {
 	UCHAR *s;
-	long int i;
+	LONG i;
 } STR;
 
 typedef struct {
 	int t;
 
 	union  {
-		unsigned long int i;
+		LONG i;
 		STR *s;
 		LIST *d;
 		LIST *l;
@@ -98,7 +98,7 @@ typedef struct {
 
 typedef struct {
 	UCHAR *code;
-	long int size;
+	LONG size;
 	UCHAR *p;
 } RAW;
 
@@ -112,24 +112,24 @@ void raw_free( RAW *raw );
 
 void ben_dict( BEN *node, BEN *key, BEN *val );
 void ben_list( BEN *node, BEN *val );
-void ben_str( BEN *node, UCHAR *str, long int len );
-void ben_int( BEN *node, long int i );
+void ben_str( BEN *node, UCHAR *str, LONG len );
+void ben_int( BEN *node, LONG i );
 
 TUPLE *tuple_init( BEN *key, BEN *val );
 void tuple_free( TUPLE *tuple );
 
 RAW *ben_enc( BEN *node );
 UCHAR *ben_enc_rec( BEN *node, UCHAR *p );
-long int ben_enc_size( BEN *node );
+LONG ben_enc_size( BEN *node );
 
-int ben_validate( UCHAR *bencode, long int bensize );
+int ben_validate( UCHAR *bencode, LONG bensize );
 int ben_validate_r( RAW *raw );
 int ben_validate_d( RAW *raw );
 int ben_validate_l( RAW *raw );
 int ben_validate_i( RAW *raw );
 int ben_validate_s( RAW *raw );
 
-BEN *ben_dec( UCHAR *bencode, long int bensize );
+BEN *ben_dec( UCHAR *bencode, LONG bensize );
 BEN *ben_dec_r( RAW *raw );
 BEN *ben_dec_d( RAW *raw );
 BEN *ben_dec_l( RAW *raw );
@@ -147,9 +147,9 @@ BEN *ben_dict_search_str( BEN *node, const char *buffer );
 int ben_compare( BEN *key1, BEN *key2 );
 
 UCHAR *ben_str_s( BEN *node );
-long int ben_str_i( BEN *node );
+LONG ben_str_i( BEN *node );
 
-STR *str_init( UCHAR *buf, long int size );
+STR *str_init( UCHAR *buf, LONG size );
 void str_free( STR *str );
 
 #endif

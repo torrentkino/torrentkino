@@ -41,7 +41,7 @@ int str_isValidUTF8( char *string ) {
 		else if( ( string[i] & 0xFC) == 0xF8) n=4; /* 111110bb */
 		else if( ( string[i] & 0xFE) == 0xFC) n=5; /* 1111110b */
 		else return 0;
-		
+
 		for( j=0; j<n; j++ ) {
 			if( ( ++i == length) ||(( string[i] & 0xC0) != 0x80) ) {
 				return 0;
@@ -101,7 +101,7 @@ int str_isSafePort( char *string ) {
 
 int str_isValidFilename( char *string ) {
 	unsigned int i = 0;
-	
+
 	for( i=0; i<strlen( string ); i++ ) {
 		if( string[i] >= '0' && string[i] <= '9' ) {
 			continue;
@@ -126,7 +126,7 @@ int str_isValidFilename( char *string ) {
 int str_valid_hostname( const char *hostname, int hostsize ) {
 
 	int i = 0;
-	
+
 	for( i=0; i<hostsize; i++ ) {
 		if( hostname[i] >= '0' && hostname[i] <= '9' ) {
 			continue;
@@ -175,7 +175,7 @@ int str_valid_tld( const char *hostname, int hostsize ) {
 /*
 void str_htmlDisarmInput( char *string ) {
 	char *p = string;
-	
+
 	while( *p != '\0' ) {
 		switch( *p ) {
 			case '<':
@@ -203,12 +203,12 @@ int str_count( char *buffer, const char *search ) {
 	int counter = 0;
 	int size = strlen( search );
 	char *p = buffer;
-	
+
 	while( ( p = strstr( p,search)) != NULL ) {
 		p += size;
 		counter++;
 	}
-	
+
 	/* Something is broken here */
 	if( counter < 0 ) {
 		fail( "str_count(): Integer overflow?" );
@@ -231,7 +231,7 @@ void str_GMTtime( char *buffer, int size ) {
 void str_gmttime( char *buffer, int size, time_t timestamp ) {
 	char fallback[] = "Thu, 01 Jan 1970 00:00:00 GMT";
 	struct tm date;
-	
+
 	memset( buffer, '\0', size );
 
 	/* Last-Modified: Thu, 10 Feb 2011 20:25:39 GMT */

@@ -41,7 +41,7 @@ typedef struct {
 HASH *hash_init( LONG capacity );
 void hash_free( HASH *map );
 
-LONG hash_this( UCHAR *key, LONG size );
+ULONG hash_this( UCHAR *key, LONG size );
 PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, LONG size );
 
 void *hash_get( const HASH *map, UCHAR *key, LONG size );

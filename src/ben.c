@@ -184,7 +184,7 @@ void ben_list( BEN *node, BEN *val ) {
 		fail( "ben_list( 5 )" );
 }
 
-void ben_str( BEN *node, UCHAR *str, long int len ) {
+void ben_str( BEN *node, UCHAR *str, LONG len ) {
 	if( node == NULL ) {
 		fail( "ben_str() with NULL argument" );
 	}
@@ -201,7 +201,7 @@ void ben_str( BEN *node, UCHAR *str, long int len ) {
 	node->v.s = str_init( str, len );
 }
 
-void ben_int( BEN *node, long int i ) {
+void ben_int( BEN *node, LONG i ) {
 	if( node == NULL )
 		fail( "ben_int( 1 )" );
 	if( node->t != BEN_INT)
@@ -210,11 +210,11 @@ void ben_int( BEN *node, long int i ) {
 	node->v.i = i;
 }
 
-long int ben_enc_size( BEN *node ) {
+LONG ben_enc_size( BEN *node ) {
 	ITEM *item = NULL;
 	TUPLE *tuple = NULL;
 	char buf[BUF_SIZE];
-	long int size = 0;
+	LONG size = 0;
 
 	if( node == NULL )
 		return size;
@@ -292,7 +292,7 @@ RAW *ben_enc( BEN *node ) {
 	/* Encode ben object */
 	raw->code = (UCHAR *) myalloc( (raw->size) * sizeof(UCHAR) );
 	raw->p = ben_enc_rec( node,raw->code );
-	if( raw->p == NULL ||( long int)(raw->p-raw->code) != raw->size ) {
+	if( raw->p == NULL ||( LONG)(raw->p-raw->code) != raw->size ) {
 		raw_free( raw );
 		return NULL;
 	}
@@ -304,7 +304,7 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 	ITEM *item = NULL;
 	TUPLE *tuple = NULL;
 	char buf[BUF_SIZE];
-	long int len = 0;
+	LONG len = 0;
 
 	if( node == NULL || p == NULL ) {
 		return NULL;
@@ -377,7 +377,7 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 	return p;
 }
 
-BEN *ben_dec( UCHAR *bencode, long int bensize ) {
+BEN *ben_dec( UCHAR *bencode, LONG bensize ) {
 	RAW raw;
 
 	raw.code = (UCHAR *)bencode;
@@ -452,8 +452,8 @@ BEN *ben_dec_l( RAW *raw ) {
 
 BEN *ben_dec_s( RAW *raw ) {
 	BEN *node = ben_init( BEN_STR );
-	long int i = 0;
-	long int l = 0;
+	LONG i = 0;
+	LONG l = 0;
 	UCHAR *start = raw->p;
 	UCHAR *buf = NULL;
 	int run = 1;
@@ -493,12 +493,12 @@ BEN *ben_dec_s( RAW *raw ) {
 
 BEN *ben_dec_i( RAW *raw ) {
 	BEN *node = ben_init( BEN_INT );
-	long int i = 0;
+	LONG i = 0;
 	UCHAR *start = NULL;
 	UCHAR *buf = NULL;
 	int run = 1;
-	long int prefix = 1;
-	long int result = 0;
+	LONG prefix = 1;
+	LONG result = 0;
 
 	start = ++raw->p;
 	if( *raw->p == '-' ) {
@@ -540,7 +540,7 @@ BEN *ben_dec_i( RAW *raw ) {
 	return node;
 }
 
-int ben_validate( UCHAR *bencode, long int bensize ) {
+int ben_validate( UCHAR *bencode, LONG bensize ) {
 	RAW raw;
 
 	raw.code = (UCHAR *)bencode;
@@ -557,7 +557,7 @@ int ben_validate_r( RAW *raw ) {
 	if( raw->code == NULL || raw->p == NULL || raw->size < 1 )
 		return 0;
 
-	if( ( long int)( raw->p - raw->code) >= raw->size )
+	if( ( LONG)( raw->p - raw->code) >= raw->size )
 		return 0;
 
 	switch( *raw->p ) {
@@ -598,7 +598,7 @@ int ben_validate_r( RAW *raw ) {
 }
 
 int ben_validate_d( RAW *raw ) {
-	if( ( long int)( ++raw->p - raw->code) >= raw->size )
+	if( ( LONG)( ++raw->p - raw->code) >= raw->size )
 		return 0;
 
 	while( *raw->p != 'e' ) {
@@ -606,28 +606,28 @@ int ben_validate_d( RAW *raw ) {
 			return 0;
 		if( !ben_validate_r( raw) )
 			return 0;
-		if( ( long int)( raw->p - raw->code) >= raw->size )
+		if( ( LONG)( raw->p - raw->code) >= raw->size )
 			return 0;
 	}
 
-	if( ( long int)( ++raw->p - raw->code) > raw->size )
+	if( ( LONG)( ++raw->p - raw->code) > raw->size )
 		return 0;
 
 	return 1;
 }
 
 int ben_validate_l( RAW *raw ) {
-	if( ( long int)( ++raw->p - raw->code) >= raw->size )
+	if( ( LONG)( ++raw->p - raw->code) >= raw->size )
 		return 0;
 
 	while( *raw->p != 'e' ) {
 		if( !ben_validate_r( raw) )
 			return 0;
-		if( ( long int)( raw->p - raw->code) >= raw->size )
+		if( ( LONG)( raw->p - raw->code) >= raw->size )
 			return 0;
 	}
 
-	if( ( long int)( ++raw->p - raw->code) > raw->size )
+	if( ( LONG)( ++raw->p - raw->code) > raw->size )
 		return 0;
 
 	return 1;
@@ -639,10 +639,10 @@ int ben_validate_s( RAW *raw ) {
 	UCHAR *buf = NULL;
 	int run = 1;
 
-	if( ( long int)( raw->p - raw->code) >= raw->size )
+	if( ( LONG)( raw->p - raw->code) >= raw->size )
 		return 0;
 
-	while( ( long int)( raw->p - raw->code) < raw->size && run == 1 ) {
+	while( ( LONG)( raw->p - raw->code) < raw->size && run == 1 ) {
 		switch( *raw->p ) {
 			case '0':
 			case '1':
@@ -679,31 +679,31 @@ int ben_validate_s( RAW *raw ) {
 		}
 	}
 
-	if( ( long int)( raw->p - raw->code) > raw->size )
+	if( ( LONG)( raw->p - raw->code) > raw->size )
 		return 0;
 
 	return 1;
 }
 
 int ben_validate_i( RAW *raw ) {
-	long int i = 0;
+	LONG i = 0;
 	UCHAR *start = NULL;
 	UCHAR *buf = NULL;
 	int run = 1;
-	long int result = 0;
+	LONG result = 0;
 
-	if( ( long int)( ++raw->p - raw->code) >= raw->size )
+	if( ( LONG)( ++raw->p - raw->code) >= raw->size )
 		return 0;
 
 	start = raw->p;
 	if( *raw->p == '-' ) {
 		start = ++raw->p;
 
-		if( ( long int)( raw->p - raw->code) >= raw->size )
+		if( ( LONG)( raw->p - raw->code) >= raw->size )
 			return 0;
 	}
 
-	while( ( long int)( raw->p - raw->code) < raw->size && run == 1 ) {
+	while( ( LONG)( raw->p - raw->code) < raw->size && run == 1 ) {
 		switch( *raw->p ) {
 			case '0':
 			case '1':
@@ -738,7 +738,7 @@ int ben_validate_i( RAW *raw ) {
 		}
 	}
 
-	if( (long int)( raw->p - raw->code) > raw->size )
+	if( (LONG)( raw->p - raw->code) > raw->size )
 		return 0;
 
 	return 1;
@@ -839,7 +839,7 @@ UCHAR *ben_str_s( BEN *node ) {
 	return node->v.s->s;
 }
 
-long int ben_str_i( BEN *node ) {
+LONG ben_str_i( BEN *node ) {
 	return node->v.s->i;
 }
 
@@ -851,7 +851,7 @@ void ben_sort( BEN *node ) {
 	BEN *key2 = NULL;
 	TUPLE *tuple_this = NULL;
 	TUPLE *tuple_next = NULL;
-	long int switchcounter = 0;
+	LONG switchcounter = 0;
 	int result = 0;
 
 	if( node == NULL ) {
@@ -909,8 +909,8 @@ void ben_sort( BEN *node ) {
 }
 
 int ben_str_compare( BEN *key1, BEN *key2 ) {
-	long int size = 0;
-	long int i = 0;
+	LONG size = 0;
+	LONG i = 0;
 
 	if( !ben_is_str( key1 ) ) {
 		return -1;
@@ -942,7 +942,7 @@ int ben_str_compare( BEN *key1, BEN *key2 ) {
 }
 #endif
 
-STR *str_init( UCHAR *buf, long int size ) {
+STR *str_init( UCHAR *buf, LONG size ) {
 	STR *str = (STR *) myalloc( sizeof(STR) );
 
 	if( buf == NULL ) {

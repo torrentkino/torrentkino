@@ -193,8 +193,8 @@ PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, LONG size ) {
 	return NULL;
 }
 
-LONG hash_this( UCHAR *key, LONG size ) {
-	LONG result = 5381;
+ULONG hash_this( UCHAR *key, LONG size ) {
+	ULONG result = 5381;
 	LONG i = 0;
 
 	for( i=0; i<size; i++ ) {
