@@ -22,6 +22,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "conf.h"
 
-void info( IP *c_addr, int code, const char *format, ... );
+void info( IP *c_addr, const char *format, ... );
 
 #endif

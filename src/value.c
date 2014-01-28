@@ -149,13 +149,13 @@ void val_print( void ) {
 		return;
 	}
 
-	info( NULL, 0, "Values:" );
+	info( NULL, "Values:" );
 	i = list_start( _main->value->list );
 	while( i != NULL ) {
 		target = list_value( i );
 
 		hex_hash_encode( hex, target->target );
-		info( NULL, 0, " Target: %s", hex );
+		info( NULL, " Target: %s", hex );
 
 		tgt_v_print( target );
 
@@ -272,7 +272,7 @@ void tgt_v_print( TARGET_V *target ) {
 		node = list_value( i );
 
 		ip_bytes_to_sin( &sin, node->pair );
-		info( &sin, 0, "  IP:");
+		info( &sin, "  IP:");
 
 		i = list_next( i );
 	}

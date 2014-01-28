@@ -116,7 +116,7 @@ void tkn_create( UCHAR *id ) {
 	} while( hash_exists( _main->token->hash, id, TOKEN_SIZE) && i < max );
 
 	if( i >= max ) {
-		info( NULL, 0, "Tokens exhausted. Giving up." );
+		info( NULL, "Tokens exhausted. Giving up." );
 	}
 }
 

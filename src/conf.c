@@ -255,7 +255,7 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 	BEN *value = NULL;
 	char *f = NULL;
 	char *p = NULL;
-	
+
 	/* Hostname from args */
 	value = ben_dict_search_str( opts, "-a" );
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
@@ -275,7 +275,7 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 	if( f == NULL ) {
 		return;
 	}
-		
+
 	if( ( p = strchr( f, '\n')) != NULL ) {
 		*p = '\0';
 	}
@@ -310,74 +310,74 @@ void conf_print( void ) {
 #endif
 
 	if ( getenv( "PWD" ) == NULL || getenv( "HOME" ) == NULL ) {
-		info( NULL, 0, "# Hint: Reading environment variables failed. sudo?");
-		info( NULL, 0, "# This is not a problem. But in some cases it might be useful" );
-		info( NULL, 0, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
+		info( NULL, "# Hint: Reading environment variables failed. sudo?");
+		info( NULL, "# This is not a problem. But in some cases it might be useful" );
+		info( NULL, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
 	}
 
-	info( NULL, 0, "Cores: %i", _main->conf->cores );
-	
+	info( NULL, "Cores: %i", _main->conf->cores );
+
 	if( _main->conf->mode == CONF_CONSOLE ) {
-		info( NULL, 0, "Mode: Console (-d)" );
+		info( NULL, "Mode: Console (-d)" );
 	} else {
-		info( NULL, 0, "Mode: Daemon (-d)" );
+		info( NULL, "Mode: Daemon (-d)" );
 	}
 
 	if( _main->conf->verbosity == CONF_BEQUIET ) {
-		info( NULL, 0, "Verbosity: Quiet (-q/-v)" );
+		info( NULL, "Verbosity: Quiet (-q/-v)" );
 	} else {
-		info( NULL, 0, "Verbosity: Verbose (-q/-v)" );
+		info( NULL, "Verbosity: Verbose (-q/-v)" );
 	}
 
 #ifdef TUMBLEWEED
-	info( NULL, 0, "Workdir: %s (-w)", _main->conf->home );
+	info( NULL, "Workdir: %s (-w)", _main->conf->home );
 #elif TORRENTKINO
-	info( NULL, 0, "Workdir: %s", _main->conf->home );
+	info( NULL, "Workdir: %s", _main->conf->home );
 #endif
 
 #ifdef TUMBLEWEED
-	info( NULL, 0, "Index file: %s (-i)", _main->conf->file );
+	info( NULL, "Index file: %s (-i)", _main->conf->file );
 #elif TORRENTKINO
-	info( NULL, 0, "Config file: %s", _main->conf->file );
+	info( NULL, "Config file: %s", _main->conf->file );
 #endif
 
 #ifdef TUMBLEWEED
-	info( NULL, 0, "Listen to TCP/%i (-p)", _main->conf->port );
+	info( NULL, "Listen to TCP/%i (-p)", _main->conf->port );
 #elif TORRENTKINO
-	info( NULL, 0, "Listen to UDP/%i (-p)", _main->conf->port );
+	info( NULL, "Listen to UDP/%i (-p)", _main->conf->port );
 #endif
 
 #ifdef TORRENTKINO
-	info( NULL, 0, "Hostname: %s (-a)", _main->conf->hostname );
+	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
 
 	hex_hash_encode( hex, _main->conf->node_id );
-	info( NULL, 0, "Node ID: %s", hex );
+	info( NULL, "Node ID: %s", hex );
 
 	hex_hash_encode( hex, _main->conf->host_id );
-	info( NULL, 0, "Host ID: %s", hex );
+	info( NULL, "Host ID: %s", hex );
 
-	info( NULL, 0, "Bootstrap node: %s (-x)", _main->conf->bootstrap_node );
-	info( NULL, 0, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
-	info( NULL, 0, "Announce port: %i (-a)", _main->conf->announce_port );
+	info( NULL, "Bootstrap node: %s (-x)", _main->conf->bootstrap_node );
+	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
+	info( NULL, "Announce port: %i (-a)", _main->conf->announce_port );
 	if( _main->conf->cache_port_policy ) {
-		info( NULL, 0, "Cache port policy: Yes (-l)" );
+		info( NULL, "Cache port policy: Yes (-l)" );
 	} else {
-		info( NULL, 0, "Cache port policy: No (-l)" );
+		info( NULL, "Cache port policy: No (-l)" );
 	}
 
 	/* Realm */
 	if( _main->conf->bool_realm == 1 ) {
-		info( NULL, 0, "Realm: %s (-r)", _main->conf->realm );
+		info( NULL, "Realm: %s (-r)", _main->conf->realm );
 	} else {
-		info( NULL, 0, "Realm: None (-r)" );
+		info( NULL, "Realm: None (-r)" );
 	}
 
 	/* Encryption */
 #ifdef POLARSSL
 	if( _main->conf->bool_encryption == 1 ) {
-		info( NULL, 0, "Encryption key: %s (-k)", _main->conf->key );
+		info( NULL, "Encryption key: %s (-k)", _main->conf->key );
 	} else {
-		info( NULL, 0, "Encryption key: None (-k)" );
+		info( NULL, "Encryption key: None (-k)" );
 	}
 #endif
 #endif

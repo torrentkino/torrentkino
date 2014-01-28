@@ -180,6 +180,6 @@ void tdb_create_random_id( UCHAR *id ) {
 	} while( hash_exists( _main->transaction->hash, id, TID_SIZE) && i < max );
 
 	if( i >= max ) {
-		info( NULL, 0, "Transaction IDs exhausted. Giving up." );
+		info( NULL, "Transaction IDs exhausted. Giving up." );
 	}
 }

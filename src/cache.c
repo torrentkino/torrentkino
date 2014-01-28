@@ -134,13 +134,13 @@ void cache_print( void ) {
 		return;
 	}
 
-	info( NULL, 0, "Cache:" );
+	info( NULL, "Cache:" );
 	i = list_start( _main->cache->list );
 	while( i != NULL ) {
 		t = list_value( i );
 
 		hex_hash_encode( hex, t->target );
-		info( NULL, 0, " Target: %s", hex );
+		info( NULL, " Target: %s", hex );
 
 		tgt_c_print( t );
 
@@ -261,7 +261,7 @@ void tgt_c_print( TARGET_C *target ) {
 		node = list_value( i );
 
 		ip_bytes_to_sin( &sin, node->pair );
-		info( &sin, 0, "  IP:");
+		info( &sin, "  IP:");
 
 		i = list_next( i );
 	}

@@ -95,12 +95,12 @@ void unix_limits( int cores, int max_events ) {
 		fail( strerror( errno ) );
 	}
 
-	info( NULL, 0, "Max open files: %i", limit );
+	info( NULL, "Max open files: %i", limit );
 }
 
 void unix_dropuid0( void ) {
 	struct passwd *pw = NULL;
-	
+
 	if( getuid() != 0 ) {
 		return;
 	}
@@ -127,7 +127,7 @@ void unix_dropuid0( void ) {
 		fail( "ERROR: Managed to regain root privileges?" );
 	}
 
-	info( NULL, 0, "uid: %i, gid: %i", pw->pw_uid, pw->pw_gid );
+	info( NULL, "uid: %i, gid: %i", pw->pw_uid, pw->pw_gid );
 }
 
 #if 0

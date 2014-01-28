@@ -26,7 +26,7 @@ along with torrentkino. If not, see <http://www.gnu.org/licenses/>.
 
 #include "log.h"
 
-void info( IP *from, int code, const char *format, ... ) {
+void info( IP *from, const char *format, ... ) {
 	char log_buf[BUF_SIZE];
 	char va_buf[BUF_SIZE];
 	va_list vlist;
@@ -50,7 +50,7 @@ void info( IP *from, int code, const char *format, ... ) {
 	if( from != NULL ) {
 
 #ifdef TUMBLEWEED
-		snprintf( log_buf, BUF_SIZE, "%.3u %s %s", code,
+		snprintf( log_buf, BUF_SIZE, "%s %s",
 #ifdef IPV6
 			inet_ntop( AF_INET6, &from->sin6_addr, ip_buf, INET6_ADDRSTRLEN ),
 #elif IPV4
