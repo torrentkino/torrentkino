@@ -371,7 +371,7 @@ void p2p_parse( UCHAR *bencode, size_t bensize, IP *from ) {
 
 	/* Ignore link-local address */
 	if( ip_is_linklocal( from ) ) {
-		info( from, "DROP LINK-LOCAL message from" );
+		info( from, "Drop LINK-LOCAL message from" );
 		return;
 	}
 
@@ -493,7 +493,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 			p2p_reply( packet, from );
 			break;
 		default:
-			info( from, "Unknown message type:" );
+			info( from, "Drop invalid message type '%c' from", *y->v.s->s );
 	}
 
 	mutex_unblock( _main->work->mutex );
@@ -584,7 +584,7 @@ void p2p_request( BEN *packet, IP *from ) {
 		return;
 	}
 
-	info( from, "Invalid query type from" );
+	info( from, "Drop invalid query type from" );
 }
 
 void p2p_reply( BEN *packet, IP *from ) {
