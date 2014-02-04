@@ -1,13 +1,13 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TORRENTKINO" "1" "January 2014" "" ""
+.TH "TORRENTKINO" "1" "February 2014" "" ""
 .
 .SH "NAME"
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtorrentkino\fR [\-d] [\-q] [\-p port] [\-a hostname] [\-b port] [\-r realm] [\-l] [\-x server] [\-y port]
+\fBtorrentkino\fR [\-d] [\-q] [\-p port] [\-a hostname] [\-b port] [\-r realm] [\-s] [\-x server] [\-y port]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -50,7 +50,7 @@ This file gets written by the Torrentkino daemon when started by root for exampl
 \fB\-r\fR \fIrealm\fR: Creating a realm affects the method how to compute the info hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own http://mycloud\.p2p for example\.
 .
 .IP "\(bu" 4
-\fB\-l\fR Limit the port in lookup responses to your own announce port (\fI\-b\fR)\. That means that you accept lookup responses only from those nodes that announce the same port as you do\. This may be useful in case of SHA1 collisions\.
+\fB\-s\fR Strict mode: Only accept responses that match your own announced port\.
 .
 .IP "\(bu" 4
 \fB\-p\fR \fIport\fR: Listen to this port (Default: UDP/6881)

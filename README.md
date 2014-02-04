@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-d] [-q] [-p port] [-a hostname] [-b port] [-r realm] [-l] [-x server] [-y port]
+`torrentkino` [-d] [-q] [-p port] [-a hostname] [-b port] [-r realm] [-s] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -31,14 +31,14 @@ to your Linux OS.
 	requests to the Torrentkino DHT daemon.
 
   * **$HOME/.torrentkino.conf**:
-    This file gets written by the Torrentkino daemon and contains the server port
-	number and some other hints. Those hints are used by **libnss_tk.so.2** and
-	the **tk** cli program.
- 
+    This file gets written by the Torrentkino daemon and contains the server
+	port number and some other hints. Those hints are used by **libnss_tk.so.2**
+	and the **tk** cli program.
+
   * **/etc/torrentkino.conf**:
 	This file gets written by the Torrentkino daemon when started by root for
 	example at boot time or by using sudo. It works like the file above.
-	**libnss_tk.so.2** and the **tk** cli program will look for 
+	**libnss_tk.so.2** and the **tk** cli program will look for
 	**$HOME/.torrentkino.conf** first.
 
 ## OPTIONS
@@ -61,11 +61,8 @@ to your Linux OS.
 	This is useful to handle duplicate hostnames. With different realms
 	everybody may have his own http://mycloud.p2p for example.
 
-  * `-l`
-    Limit the port in lookup responses to your own announce port (*-b*).
-	That means that you accept lookup responses only from those nodes that
-	announce the same port as you do. This may be useful in case of SHA1
-	collisions.
+  * `-s`
+    Strict mode: Only accept responses that match your own announced port.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)

@@ -76,6 +76,6 @@ NODE_C *node_c_init( UCHAR *pair );
 void node_c_free( NODE_C *node_c );
 void node_c_update( NODE_C *node_c, UCHAR *pair );
 
-int cache_port_policy_ok( UCHAR *p );
+int cache_strict_error( UCHAR *p );
 
 #endif /* CACHE_H */

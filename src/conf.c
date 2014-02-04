@@ -144,10 +144,10 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	}
 
 	/* Lookup replies may enter the cache if the announced port matches mine */
-	if( ben_dict_search_str( opts, "-l" ) != NULL ) {
-		conf->cache_port_policy = TRUE;
+	if( ben_dict_search_str( opts, "-s" ) != NULL ) {
+		conf->strict = TRUE;
 	} else {
-		conf->cache_port_policy = FALSE;
+		conf->strict = FALSE;
 	}
 
 	if( getuid() == 0 ) {
@@ -359,10 +359,10 @@ void conf_print( void ) {
 	info( NULL, "Bootstrap node: %s (-x)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	info( NULL, "Announce port: %i (-a)", _main->conf->announce_port );
-	if( _main->conf->cache_port_policy ) {
-		info( NULL, "Cache port policy: Yes (-l)" );
+	if( _main->conf->strict ) {
+		info( NULL, "Strict mode: Yes (-s)" );
 	} else {
-		info( NULL, "Cache port policy: No (-l)" );
+		info( NULL, "Strict mode: No (-s)" );
 	}
 
 	/* Realm */

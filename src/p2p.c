@@ -833,8 +833,11 @@ void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from ) {
 	}
 
 	if( nodes != NULL ) {
-		if( !ben_is_str( nodes ) || ben_str_i( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
-			info( NULL, "nodes key missing or broken" );
+		if( !ben_is_str( nodes ) ) {
+			info( NULL, "nodes key missing" );
+			return;
+		} else if( ben_str_i( nodes ) % IP_SIZE_META_TRIPLE != 0 ) {
+			info( NULL, "nodes key broken" );
 			return;
 		} else {
 			p2p_get_peers_get_nodes( nodes, node_id, ti, token, from );
