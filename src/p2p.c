@@ -492,6 +492,9 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from ) {
 		case 'r':
 			p2p_reply( packet, from );
 			break;
+		case 'e':
+			p2p_error( packet, from );
+			break;
 		default:
 			info( from, "Drop invalid message type '%c' from", *y->v.s->s );
 	}
@@ -614,8 +617,12 @@ void p2p_reply( BEN *packet, IP *from ) {
 
 	/* Transaction ID */
 	t = ben_dict_search_str( packet, "t" );
-	if( !ben_is_str( t ) && ben_str_i( t ) != TID_SIZE ) {
-		info( from, "Transaction ID missing or broken:" );
+	if( !ben_is_str( t ) ) {
+		info( from, "Missing transaction ID from" );
+		return;
+	}
+	if( ben_str_i( t ) != TID_SIZE ) {
+		info( from, "Broken transaction ID from" );
 		return;
 	}
 
@@ -656,6 +663,58 @@ void p2p_reply( BEN *packet, IP *from ) {
 			break;
 	}
 }
+
+void p2p_error( BEN *packet, IP *from ) {
+	BEN *e = NULL;
+	BEN *code = NULL;
+	BEN *msg = NULL;
+	ITEM *i = NULL;
+
+#if 0
+	BEN *t = NULL;
+	/* Transaction ID */
+	t = ben_dict_search_str( packet, "t" );
+	if( !ben_is_str( t ) ) {
+		info( from, "Missing transaction ID from" );
+		return;
+	}
+	if( ben_str_i( t ) != TID_SIZE ) {
+		info( from, "Broken transaction ID from" );
+		return;
+	}
+#endif
+
+	/* The error */
+	e = ben_dict_search_str( packet, "e" );
+	if( !ben_is_list( e ) ) {
+		info( from, "Missing or broken error message from" );
+		return;
+	}
+
+	/* Error code */
+	i = list_start( e->v.l );
+	code = list_value( i );
+	if( !ben_is_int( code ) ) {
+		info( from, "Broken error code from" );
+		return;
+	}
+
+	/* Error message */
+	i = list_stop( e->v.l );
+	msg = list_value( i );
+	if( !ben_is_str( msg ) ) {
+		info( from, "Broken error message from" );
+		return;
+	}
+	if( ben_str_i( msg ) > 100 ) {
+		info( from, "Error message too big from" );
+		return;
+	}
+
+	/* Notification */
+	info( from, "ERROR %li: \"%s\" from", code->v.i, ben_str_s( msg ) );
+}
+
 
 int p2p_packet_from_myself( UCHAR *node_id ) {
 	if( node_me( node_id ) ) {

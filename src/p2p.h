@@ -71,6 +71,7 @@ void p2p_decode( UCHAR *bencode, size_t bensize, IP *from );
 
 void p2p_request( BEN *packet, IP *from );
 void p2p_reply( BEN *packet, IP *from );
+void p2p_error( BEN *packet, IP *from );
 
 void p2p_ping( BEN *tid, IP *from );
 void p2p_pong( UCHAR *node_id, IP *from );

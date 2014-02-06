@@ -35,7 +35,7 @@ void list_free( LIST *list ) {
 	if( list == NULL ) {
 		return;
 	}
-	
+
 	while( list->item != NULL ) {
 		list_del( list, list->item );
 	}
@@ -63,7 +63,7 @@ ITEM *list_start( LIST *list ) {
 	if( list == NULL ) {
 		return NULL;
 	}
-	
+
 	if( list->item == NULL ) {
 		return NULL;
 	}
@@ -267,7 +267,7 @@ void list_rotate( LIST *list ) {
 	if( list == NULL ) {
 		return;
 	}
-	
+
 	if( list_size( list ) <= 1 ) {
 		return;
 	}

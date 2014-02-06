@@ -365,7 +365,10 @@ BEN *_nss_tk_values( BEN *packet, UCHAR *tid ) {
 
 	/* Transaction ID */
 	t = ben_dict_search_str( packet, "t" );
-	if( !ben_is_str( t ) && ben_str_i( t ) != TID_SIZE ) {
+	if( !ben_is_str( t ) ) {
+		return NULL;
+	}
+	if( ben_str_i( t ) != TID_SIZE ) {
 		return NULL;
 	}
 	if( memcmp( t->v.s->s, tid, TID_SIZE ) != 0 ) {

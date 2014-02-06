@@ -1,3 +1,9 @@
+torrentkino (0.22) wheezy; urgency=low
+
+  * Switch option renamed: -c is called -s now.
+  * Parse and print error messages.
+
+ -- Aiko Barz <aiko@torrentkino.de>  Wed, 05 Feb 2014 21:15:00 +0100
 torrentkino (0.21) wheezy; urgency=low
 
   * Added -c switch to skip unwanted lookup responses

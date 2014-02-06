@@ -45,7 +45,7 @@ void opts_load( BEN *opts, int argc, char **argv ) {
 
 	for( i=0; i<argc; i++ ) {
 		if( argv[i] != NULL && argv[i][0] == '-' ) {
-			
+
 			/* -x */
 			if( strlen( argv[i] ) == 2 ) {
 				if( i+1 < argc && argv[i+1] != NULL && argv[i+1][0] != '-' ) {

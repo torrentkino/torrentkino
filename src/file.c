@@ -41,7 +41,7 @@ int file_isreg( const char *filename ) {
 
 	if( lstat( filename, &statbuf) == 0 && S_ISREG( statbuf.st_mode) )
 		return 1;
-	
+
 	return 0;
 }
 
@@ -50,7 +50,7 @@ int file_islink( const char *filename ) {
 
 	if( lstat( filename, &statbuf) == 0 && S_ISLNK( statbuf.st_mode) )
 		return 1;
-	
+
 	return 0;
 }
 
@@ -147,7 +147,7 @@ size_t file_append( const char *filename, char *buffer, size_t size ) {
 int file_rm( const char *filename ) {
 	if( unlink( filename) != 0 )
 		return 0;
-	
+
 	return 1;
 }
 
@@ -155,7 +155,7 @@ int file_rmdir( const char *dirname ) {
 	if( rmdir( dirname) == 0 ) {
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -172,7 +172,7 @@ int file_rmrf( char *fileordir ) {
 		if( ( dh = opendir( fileordir ) ) == NULL ) {
 			return 0;
 		}
-	  
+
 		while( ( entry = readdir( dh ) ) != NULL ) {
 			if( strcmp( entry->d_name,"." ) != 0 && strcmp( entry->d_name,".." ) != 0 ) {
 				snprintf( filename, BUF_SIZE, "%s/%s", fileordir, entry->d_name );
@@ -181,7 +181,7 @@ int file_rmrf( char *fileordir ) {
 				}
 			}
 		}
-		
+
 		if( closedir( dh ) != 0 ) {
 			return 0;
 		}
