@@ -60,7 +60,7 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 	}
 
 	/* Read reply */
-	bensize = _nss_tk_read_ip( sockfd, &sa, &sa_size, bencode, BUF_SIZE );
+	bensize = _nss_tk_read_data( sockfd, &sa, &sa_size, bencode, BUF_SIZE );
 	if( bensize <= 0 ) {
 		return FALSE;
 	}

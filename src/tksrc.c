@@ -244,7 +244,7 @@ int _nss_tk_send_lookup( int sockfd,
 	return TRUE;
 }
 
-ssize_t _nss_tk_read_ip( int sockfd,
+ssize_t _nss_tk_read_data( int sockfd,
 	struct sockaddr_in6 *sa, socklen_t *sa_size,
 	UCHAR *buffer, int bufsize ) {
 

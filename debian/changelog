@@ -1,3 +1,8 @@
+torrentkino (0.23) wheezy; urgency=low
+
+  * NSS module enhancement: Reply multiple IPs if necessary.
+
+ -- Aiko Barz <aiko@torrentkino.de>  Mon, 10 Feb 2014 20:42:00 +0100
 torrentkino (0.22) wheezy; urgency=low
 
   * Switch option renamed: -c is called -s now.

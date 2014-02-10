@@ -38,7 +38,7 @@ int _nss_tk_send_lookup( int sockfd,
 	struct sockaddr_in6 *sa, socklen_t *sa_size,
 	UCHAR *nid, UCHAR *tid, UCHAR *hostname, int hostsize );
 
-ssize_t _nss_tk_read_ip( int sockfd,
+ssize_t _nss_tk_read_data( int sockfd,
 	struct sockaddr_in6 *sa, socklen_t *sa_size,
 	UCHAR *buffer, int bufsize );
 
