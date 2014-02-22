@@ -28,7 +28,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define str_gmttime _nss_tk_str_gmttime
 #define str_GMTtime _nss_tk_str_GMTtime
 #define str_isNumber _nss_tk_str_isNumber
-#define str_isSafePort _nss_tk_str_isSafePort
+#define str_safe_port _nss_tk_str_safe_port
 #define str_isValidFilename _nss_tk_str_isValidFilename
 #define str_valid_hostname _nss_tk_str_valid_hostname
 #define str_valid_tld _nss_tk_str_valid_tld
@@ -39,7 +39,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 int str_isValidUTF8( char *string );
 int str_isNumber( char *string );
-int str_isSafePort( char *string );
+int str_safe_port( char *string );
 /* int str_isHex( char *string ); */
 int str_isValidFilename( char *string );
 int str_valid_hostname( const char *hostname, int hostsize );

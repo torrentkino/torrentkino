@@ -25,6 +25,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <errno.h>
 
 #include "ben.h"
 
@@ -484,7 +485,7 @@ BEN *ben_dec_s( RAW *raw ) {
 	LONG i = 0;
 	LONG l = 0;
 	UCHAR *start = raw->p;
-	UCHAR *buf = NULL;
+	char buf[BUF_SIZE];
 	int run = 1;
 
 	while( run ) {
@@ -503,10 +504,9 @@ BEN *ben_dec_s( RAW *raw ) {
 				raw->p++;
 				break;
 			case ':':
-				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
-				memcpy( buf,start,i );
-				l = atol( ( char * )buf );
-				myfree( buf );
+				memcpy( buf, start, i );
+				buf[i] = '\0';
+				l = strtol( buf, NULL, 10 );
 
 				raw->p += 1;
 				ben_str( node, raw->p, l );
@@ -524,7 +524,7 @@ BEN *ben_dec_i( RAW *raw ) {
 	BEN *node = ben_init( BEN_INT );
 	LONG i = 0;
 	UCHAR *start = NULL;
-	UCHAR *buf = NULL;
+	char buf[BUF_SIZE];
 	int run = 1;
 	LONG prefix = 1;
 	LONG result = 0;
@@ -551,10 +551,9 @@ BEN *ben_dec_i( RAW *raw ) {
 				raw->p++;
 				break;
 			case 'e':
-				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
-				memcpy( buf,start,i );
-				result = atol( ( char * )buf );
-				myfree( buf );
+				memcpy( buf, start, i );
+				buf[i] = '\0';
+				result = strtol( buf, NULL, 10 );
 
 				raw->p++;
 				run = 0;
@@ -681,7 +680,8 @@ int ben_validate_l( RAW *raw ) {
 int ben_validate_s( RAW *raw ) {
 	LONG i = 0;
 	UCHAR *start = raw->p;
-	UCHAR *buf = NULL;
+	char buf[BUF_SIZE];
+	char *end = NULL;
 	int run = 1;
 
 	if( ( LONG )( raw->p - raw->code ) >= raw->size ) {
@@ -709,10 +709,23 @@ int ben_validate_s( RAW *raw ) {
 					return 0;
 				}
 
-				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
 				memcpy( buf, start, i );
-				i = atol( ( char * )buf );
-				myfree( buf );
+				buf[i] = '\0';
+
+				errno = 0;
+				i = strtol( buf, &end, 10 );
+
+				if( errno != 0 ) {
+					return 0;
+				}
+
+				if( end == buf ) {
+					return 0;
+				}
+
+				if( *end != '\0' ) {
+					return 0;
+				}
 
 				/* i < 0 makes no sense */
 				if( i < 0 || i > BEN_STR_MAXSIZE ) {
@@ -737,7 +750,8 @@ int ben_validate_s( RAW *raw ) {
 int ben_validate_i( RAW *raw ) {
 	LONG i = 0;
 	UCHAR *start = NULL;
-	UCHAR *buf = NULL;
+	char buf[BUF_SIZE];
+	char *end = NULL;
 	int run = 1;
 	LONG result = 0;
 
@@ -774,10 +788,23 @@ int ben_validate_i( RAW *raw ) {
 					return 0;
 				}
 
-				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
 				memcpy( buf, start, i );
-				result = atol( ( char * )buf );
-				myfree( buf );
+				buf[i] = '\0';
+
+				errno = 0;
+				result = strtol( buf, &end, 10 );
+
+				if( errno != 0 ) {
+					return 0;
+				}
+
+				if( end == buf ) {
+					return 0;
+				}
+
+				if( *end != '\0' ) {
+					return 0;
+				}
 
 				if( result < 0 || result > BEN_INT_MAXSIZE ) {
 					return 0;
@@ -876,7 +903,8 @@ BEN *ben_dict_search_key( BEN *node, BEN *key ) {
 	do {
 		tuple = list_value( item );
 		thiskey = tuple->key;
-		if( thiskey->v.s->i == key->v.s->i && memcmp( thiskey->v.s->s, key->v.s->s, key->v.s->i ) == 0 ) {
+		if( thiskey->v.s->i == key->v.s->i &&
+				memcmp( thiskey->v.s->s, key->v.s->s, key->v.s->i ) == 0 ) {
 			return tuple->val;
 		}
 		item = list_next( item );

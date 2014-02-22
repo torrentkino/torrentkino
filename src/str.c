@@ -20,12 +20,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 #include <pthread.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
+#include <errno.h>
 
 #include "str.h"
 
@@ -66,15 +62,27 @@ int str_isNumber( char *string ) {
 	return 1;
 }
 
-int str_isSafePort( char *string ) {
-	/* Variables */
-	int number = -1;
+int str_safe_port( char *string ) {
+	LONG number = 0;
+	char *end = NULL;
 
-	if( str_isNumber( string) ) {
-		number = atoi( string );
+	if( str_isNumber( string ) ) {
+		number = strtol( string, &end, 10 );
+
+		if( errno != 0 ) {
+			return 0;
+		}
+
+		if( end == string ) {
+			return 0;
+		}
+
+		if( end != NULL ) {
+			return 0;
+		}
 
 		if( number < CONF_PORTMIN || number > CONF_PORTMAX ) {
-			number = -1;
+			return 0;
 		}
 	}
 
