@@ -61,18 +61,23 @@ to your Linux OS.
 	This is useful to handle duplicate hostnames. With different realms
 	everybody may have his own http://mycloud.p2p for example.
 
-  * `-s`
+  * `-s`:
     Strict mode: Only accept responses that match your own announced port.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)
 
   * `-x` *server*:
-	Use server as a bootstrap server. The server can be an IPv6 address, a FQHN
-	like www.example.net or even a IPv6 multicast address. (Default: ff0e::1)
+	Use server as a bootstrap server. Otherwise a multicast address is used.
+	For LAN only cases the multicast bootstrap is enough.
 
   * `-y` *port*:
 	The bootstrap server will be addressed at this port. (Default: UDP/6881)
+
+  * `-l`:
+    Lazy mode: This option sets a WAN bootstrap server without typing too much.
+	This is equivalent to *-x router.utorrent.com* or
+	*-x dht.wifi.pps.jussieu.fr* depending on the IP protocol.
 
   * `-d`:
 	Start as a daemon and run in background. The output will be send to syslog.
@@ -91,12 +96,9 @@ to your Linux OS.
 
 Announce the hostname *mycloud.p2p* globally.
 
-	$ torrentkino6 -a mycloud.p2p -x dht.wifi.pps.jussieu.fr
-	$ getent hosts mycloud.p2p
-	$ tk mycloud.p2p
-	$ tk http://mycloud.p2p/index.html
+	$ torrentkino6 -a mycloud.p2p -l -s
+	$ torrentkino4 -a mycloud.p2p -l -s
 
-	$ torrentkino4 -a mycloud.p2p -x router.utorrent.com
 	$ getent hosts mycloud.p2p
 	$ tk mycloud.p2p
 	$ tk http://mycloud.p2p/index.html

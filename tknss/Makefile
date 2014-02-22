@@ -3,7 +3,7 @@ export CC = gcc
 export CFLAGS = -O2
 CFLAGS += -std=gnu99 -fPIC -DPIC
 CFLAGS += -Wall -Wwrite-strings -pedantic
-CFLAGS += -DNSS
+CFLAGS += -DTORRENTKINO -DNSS
 export LDFLAGS = -lpthread
 OBJS=tknss.o tksrc.o str.o malloc.o file.o ben.o list.o fail.o random.o
 

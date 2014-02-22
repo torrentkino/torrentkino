@@ -121,7 +121,7 @@ void p2p_bootstrap( void ) {
 	while( p != NULL && i < P2P_MAX_BOOTSTRAP_NODES ) {
 
 		/* Send PING to a bootstrap node */
-		if( strcmp( _main->conf->bootstrap_node, CONF_MULTICAST ) == 0 ) {
+		if( strcmp( _main->conf->bootstrap_node, MULTICAST_DEFAULT ) == 0 ) {
 			ti = tdb_put( P2P_PING_MULTICAST );
 			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		} else {

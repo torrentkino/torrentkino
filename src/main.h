@@ -52,7 +52,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #define PORT_WWW_USER 8080
 #define PORT_WWW_PRIV 80
-#define PORT_DHT_DEFAULT 6881
 
 #ifdef TUMBLEWEED
 #define CONF_EPOLL_WAIT 1000
@@ -64,15 +63,19 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_EPOLL_WAIT 2000
 #define CONF_SRVNAME "torrentkino"
 #define CONF_REALM "open.p2p"
-#ifdef IPV6
-#define CONF_MULTICAST "ff0e::1"
-#elif IPV4
-#define CONF_MULTICAST "224.0.0.252"
-#endif
-#endif
-
 #define TID_SIZE 4
 #define TID_SIZE_MAX 20
+#define PORT_DHT_DEFAULT 6881
+
+#ifdef IPV6
+#define MULTICAST_DEFAULT "ff0e::1"
+#define BOOTSTRAP_DEFAULT "dht.wifi.pps.jussieu.fr"
+#elif IPV4
+#define MULTICAST_DEFAULT "224.0.0.252"
+#define BOOTSTRAP_DEFAULT "router.utorrent.com"
+#endif
+
+#endif
 
 typedef unsigned long int ULONG;
 typedef unsigned int UINT;

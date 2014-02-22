@@ -37,40 +37,53 @@ This file gets written by the Torrentkino daemon when started by root for exampl
 .
 .SH "OPTIONS"
 .
-.IP "\(bu" 4
-\fB\-a\fR \fIhostname\fR: Announce this hostname\. By default /etc/hostname is used to determine your hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
+.TP
+\fB\-a\fR \fIhostname\fR
+Announce this hostname\. By default /etc/hostname is used to determine your hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
 .
-.IP "\(bu" 4
-\fB\-b\fR \fIport\fR: Announce this port together with your hostname\. (Default: "8080")
+.TP
+\fB\-b\fR \fIport\fR
+Announce this port together with your hostname\. (Default: "8080")
 .
-.IP "\(bu" 4
-\fB\-n\fR \fInode id string\fR: By default a random node id gets computed on every startup\. For testing purposes it may be useful to keep the same node id all the time\. The above string is not used directly\. Instead its SHA1 hash is used\.
+.TP
+\fB\-n\fR \fInode id string\fR
+By default a random node id gets computed on every startup\. For testing purposes it may be useful to keep the same node id all the time\. The above string is not used directly\. Instead its SHA1 hash is used\.
 .
-.IP "\(bu" 4
-\fB\-r\fR \fIrealm\fR: Creating a realm affects the method how to compute the info hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own http://mycloud\.p2p for example\.
+.TP
+\fB\-r\fR \fIrealm\fR
+Creating a realm affects the method how to compute the info hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own http://mycloud\.p2p for example\.
 .
-.IP "\(bu" 4
-\fB\-s\fR Strict mode: Only accept responses that match your own announced port\.
+.TP
+\fB\-s\fR
+Strict mode: Only accept responses that match your own announced port\.
 .
-.IP "\(bu" 4
-\fB\-p\fR \fIport\fR: Listen to this port (Default: UDP/6881)
+.TP
+\fB\-p\fR \fIport\fR
+Listen to this port (Default: UDP/6881)
 .
-.IP "\(bu" 4
-\fB\-x\fR \fIserver\fR: Use server as a bootstrap server\. The server can be an IPv6 address, a FQHN like www\.example\.net or even a IPv6 multicast address\. (Default: ff0e::1)
+.TP
+\fB\-x\fR \fIserver\fR
+Use server as a bootstrap server\. Otherwise a multicast address is used\. For LAN only cases the multicast bootstrap is enough\.
 .
-.IP "\(bu" 4
-\fB\-y\fR \fIport\fR: The bootstrap server will be addressed at this port\. (Default: UDP/6881)
+.TP
+\fB\-y\fR \fIport\fR
+The bootstrap server will be addressed at this port\. (Default: UDP/6881)
 .
-.IP "\(bu" 4
-\fB\-d\fR: Start as a daemon and run in background\. The output will be send to syslog\.
+.TP
+\fB\-l\fR
+Lazy mode: This option sets a WAN bootstrap server without typing too much\. This is equivalent to \fI\-x router\.utorrent\.com\fR or \fI\-x dht\.wifi\.pps\.jussieu\.fr\fR depending on the IP protocol\.
 .
-.IP "\(bu" 4
-\fB\-v\fR: Verbose\.
+.TP
+\fB\-d\fR
+Start as a daemon and run in background\. The output will be send to syslog\.
 .
-.IP "\(bu" 4
-\fB\-k\fR \fIpassword\fR: Setting a password results in encrypting each packet with AES256\. The encrypted message is encapsulated in bencode too\. You effectively isolate your nodes from the rest of the world this way\. This method is not compatible to the Bittorrent network and only works between torrentkino daemons\. (Torrentkino needs to be compiled with PolarSSL support\. See Makefile\.)
+.TP
+\fB\-v\fR
+Verbose\.
 .
-.IP "" 0
+.TP
+\fB\-k\fR \fIpassword\fR
+Setting a password results in encrypting each packet with AES256\. The encrypted message is encapsulated in bencode too\. You effectively isolate your nodes from the rest of the world this way\. This method is not compatible to the Bittorrent network and only works between torrentkino daemons\. (Torrentkino needs to be compiled with PolarSSL support\. See Makefile\.)
 .
 .SH "EXAMPLES"
 Announce the hostname \fImycloud\.p2p\fR globally\.
@@ -79,12 +92,9 @@ Announce the hostname \fImycloud\.p2p\fR globally\.
 .
 .nf
 
-$ torrentkino6 \-a mycloud\.p2p \-x dht\.wifi\.pps\.jussieu\.fr
-$ getent hosts mycloud\.p2p
-$ tk mycloud\.p2p
-$ tk http://mycloud\.p2p/index\.html
+$ torrentkino6 \-a mycloud\.p2p \-l \-s
+$ torrentkino4 \-a mycloud\.p2p \-l \-s
 
-$ torrentkino4 \-a mycloud\.p2p \-x router\.utorrent\.com
 $ getent hosts mycloud\.p2p
 $ tk mycloud\.p2p
 $ tk http://mycloud\.p2p/index\.html

@@ -166,12 +166,21 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 
 	memset( conf->null_id, '\0', SHA1_SIZE );
 
-	/* Bootstrap node */
+	/* Bootstrap node:
+	 * -x overwrites everything
+	 * -l sets a default internet bootstrap server
+	 * Last resort: Use multicast
+	 */
 	value = ben_dict_search_str( opts, "-x" );
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
+		snprintf( conf->bootstrap_node, BUF_SIZE, "%s",
+			(char *)ben_str_s( value ) );
 	} else {
-		snprintf( conf->bootstrap_node, BUF_SIZE, "%s", CONF_MULTICAST );
+		if( ben_dict_search_str( opts, "-l" ) != NULL ) {
+			snprintf( conf->bootstrap_node, BUF_SIZE, "%s", BOOTSTRAP_DEFAULT );
+		} else {
+			snprintf( conf->bootstrap_node, BUF_SIZE, "%s", MULTICAST_DEFAULT );
+		}
 	}
 
 	/* Bootstrap port */
@@ -356,7 +365,7 @@ void conf_print( void ) {
 	hex_hash_encode( hex, _main->conf->host_id );
 	info( NULL, "Host ID: %s", hex );
 
-	info( NULL, "Bootstrap node: %s (-x)", _main->conf->bootstrap_node );
+	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	info( NULL, "Announce port: %i (-a)", _main->conf->announce_port );
 	if( _main->conf->strict ) {

@@ -1,3 +1,8 @@
+torrentkino (0.24) wheezy; urgency=low
+
+  * New command line switch: -l for lazy. Sets a predefined bootstrap server.
+
+ -- Aiko Barz <aiko@torrentkino.de>  Fri, 14 Feb 2014 21:11:00 +0100
 torrentkino (0.23) wheezy; urgency=low
 
   * NSS module enhancement: Reply multiple IPs if necessary.
@@ -34,12 +39,12 @@ torrentkino (0.17) wheezy; urgency=low
 
   * sudo -E hint while starting
   * Prevent NSS name space pollution
- 
+
  -- Aiko Barz <aiko@torrentkino.de>  Sat, 23 Nov 2013 23:24:00 +0100
 torrentkino (0.16) wheezy; urgency=low
 
   * More complex cache with aggregation of multiple answers
- 
+
  -- Aiko Barz <aiko@torrentkino.de>  Sat, 09 Nov 2013 18:42:00 +0100
 torrentkino (0.15) wheezy; urgency=low
 
