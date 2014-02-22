@@ -29,7 +29,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "ben.h"
 
 BEN *ben_init( int type ) {
-	BEN *node = (BEN *) myalloc( sizeof(BEN) );
+	BEN *node = ( BEN * ) myalloc( sizeof( BEN ) );
 
 	node->t = type;
 
@@ -52,8 +52,9 @@ BEN *ben_init( int type ) {
 }
 
 void ben_free( BEN *node ) {
-	if( node == NULL )
+	if( node == NULL ) {
 		return;
+	}
 
 	/* Delete recursively */
 	ben_free_r( node );
@@ -65,8 +66,9 @@ void ben_free( BEN *node ) {
 void ben_free_r( BEN *node ) {
 	ITEM *item = NULL;
 
-	if( node == NULL )
+	if( node == NULL ) {
 		return;
+	}
 
 	switch( node->t ) {
 		case BEN_DICT:
@@ -91,21 +93,26 @@ void ben_free_r( BEN *node ) {
 			}
 			break;
 		case BEN_STR:
-			if( node->v.s != NULL )
+			if( node->v.s != NULL ) {
 				str_free( node->v.s );
+			}
 			break;
 	}
 }
 
 ITEM *ben_free_item( BEN *node, ITEM *item ) {
-	if( node == NULL || item == NULL )
+	if( node == NULL || item == NULL ) {
 		return NULL;
-	if( node->t != BEN_DICT && node->t != BEN_LIST )
+	}
+	if( node->t != BEN_DICT && node->t != BEN_LIST ) {
 		return NULL;
-	if( node->t == BEN_DICT && node->v.d == NULL )
+	}
+	if( node->t == BEN_DICT && node->v.d == NULL ) {
 		return NULL;
-	if( node->t == BEN_LIST && node->v.l == NULL )
+	}
+	if( node->t == BEN_LIST && node->v.l == NULL ) {
 		return NULL;
+	}
 
 	/* Remove key in case of BEN_DICT */
 	if( node->t == BEN_DICT ) {
@@ -122,7 +129,7 @@ ITEM *ben_free_item( BEN *node, ITEM *item ) {
 }
 
 RAW *raw_init( void ) {
-	RAW *raw = (RAW *) myalloc( sizeof(RAW) );
+	RAW *raw = ( RAW * ) myalloc( sizeof( RAW ) );
 	raw->code = NULL;
 	raw->size = 0;
 	raw->p = NULL;
@@ -136,7 +143,7 @@ void raw_free( RAW *raw ) {
 
 
 TUPLE *tuple_init( BEN *key, BEN *val ) {
-	TUPLE *tuple = (TUPLE *) myalloc( sizeof(TUPLE) );
+	TUPLE *tuple = ( TUPLE * ) myalloc( sizeof( TUPLE ) );
 	tuple->key = key;
 	tuple->val = val;
 	return tuple;
@@ -151,37 +158,49 @@ void tuple_free( TUPLE *tuple ) {
 void ben_dict( BEN *node, BEN *key, BEN *val ) {
 	TUPLE *tuple = NULL;
 
-	if( node == NULL )
+	if( node == NULL ) {
 		fail( "ben_dict( 1 )" );
-	if( node->t != BEN_DICT)
+	}
+	if( node->t != BEN_DICT ) {
 		fail( "ben_dict( 2 )" );
-	if( node->v.d == NULL )
+	}
+	if( node->v.d == NULL ) {
 		fail( "ben_dict( 3 )" );
-	if( key == NULL )
+	}
+	if( key == NULL ) {
 		fail( "ben_dict( 4 )" );
-	if( key->t != BEN_STR)
+	}
+	if( key->t != BEN_STR ) {
 		fail( "ben_dict( 5 )" );
-	if( val == NULL )
+	}
+	if( val == NULL ) {
 		fail( "ben_dict( 6 )" );
+	}
 
 	tuple = tuple_init( key, val );
 
-	if( list_put( node->v.d, tuple) == NULL )
+	if( list_put( node->v.d, tuple ) == NULL ) {
 		fail( "ben_dict( 7 )" );
+	}
 }
 
 void ben_list( BEN *node, BEN *val ) {
-	if( node == NULL )
+	if( node == NULL ) {
 		fail( "ben_list( 1 )" );
-	if( node->t != BEN_LIST)
+	}
+	if( node->t != BEN_LIST ) {
 		fail( "ben_list( 2 )" );
-	if( node->v.l == NULL )
+	}
+	if( node->v.l == NULL ) {
 		fail( "ben_list( 3 )" );
-	if( val == NULL )
+	}
+	if( val == NULL ) {
 		fail( "ben_list( 4 )" );
+	}
 
-	if( list_put( node->v.l, val) == NULL )
+	if( list_put( node->v.l, val ) == NULL ) {
 		fail( "ben_list( 5 )" );
+	}
 }
 
 void ben_str( BEN *node, UCHAR *str, LONG len ) {
@@ -202,10 +221,12 @@ void ben_str( BEN *node, UCHAR *str, LONG len ) {
 }
 
 void ben_int( BEN *node, LONG i ) {
-	if( node == NULL )
+	if( node == NULL ) {
 		fail( "ben_int( 1 )" );
-	if( node->t != BEN_INT)
+	}
+	if( node->t != BEN_INT ) {
 		fail( "ben_int( 2 )" );
+	}
 
 	node->v.i = i;
 }
@@ -216,18 +237,21 @@ LONG ben_enc_size( BEN *node ) {
 	char buf[BUF_SIZE];
 	LONG size = 0;
 
-	if( node == NULL )
+	if( node == NULL ) {
 		return size;
+	}
 
 	switch( node->t ) {
 		case BEN_DICT:
 			size += 2; /* de */
 
-			if( node->v.d == NULL )
+			if( node->v.d == NULL ) {
 				return size;
+			}
 
-			if( node->v.d->item == NULL )
+			if( node->v.d->item == NULL ) {
 				return size;
+			}
 
 			item = list_start( node->v.d );
 			do {
@@ -247,11 +271,13 @@ LONG ben_enc_size( BEN *node ) {
 		case BEN_LIST:
 			size += 2; /* le */
 
-			if( node->v.l == NULL )
+			if( node->v.l == NULL ) {
 				return size;
+			}
 
-			if( node->v.l->item == NULL )
+			if( node->v.l->item == NULL ) {
 				return size;
+			}
 
 			item = list_start( node->v.l );
 			do {
@@ -290,9 +316,9 @@ RAW *ben_enc( BEN *node ) {
 	}
 
 	/* Encode ben object */
-	raw->code = (UCHAR *) myalloc( (raw->size) * sizeof(UCHAR) );
+	raw->code = ( UCHAR * ) myalloc( raw->size * sizeof( UCHAR ) );
 	raw->p = ben_enc_rec( node,raw->code );
-	if( raw->p == NULL ||( LONG)(raw->p-raw->code) != raw->size ) {
+	if( raw->p == NULL ||( LONG )( raw->p-raw->code ) != raw->size ) {
 		raw_free( raw );
 		return NULL;
 	}
@@ -320,11 +346,13 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 					tuple = list_value( item );
 
 					if( tuple->key != NULL && tuple->val != NULL ) {
-						if( ( p = ben_enc_rec( tuple->key, p)) == NULL )
+						if( ( p = ben_enc_rec( tuple->key, p ) ) == NULL ) {
 							return NULL;
+						}
 
-						if( ( p = ben_enc_rec( tuple->val, p)) == NULL )
+						if( ( p = ben_enc_rec( tuple->val, p ) ) == NULL ) {
 							return NULL;
+						}
 					}
 
 					item = list_next( item );
@@ -341,8 +369,9 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 			if( node->v.l != NULL && node->v.l->item != NULL ) {
 				item = list_start( node->v.l );
 				do {
-					if( ( p = ben_enc_rec( item->val, p)) == NULL )
+					if( ( p = ben_enc_rec( item->val, p ) ) == NULL ) {
 						return NULL;
+					}
 
 					item = list_next( item );
 
@@ -380,9 +409,9 @@ UCHAR *ben_enc_rec( BEN *node, UCHAR *p ) {
 BEN *ben_dec( UCHAR *bencode, LONG bensize ) {
 	RAW raw;
 
-	raw.code = (UCHAR *)bencode;
+	raw.code = ( UCHAR * )bencode;
 	raw.size = bensize;
-	raw.p = (UCHAR *)bencode;
+	raw.p = ( UCHAR * )bencode;
 
 	return ben_dec_r( &raw );
 }
@@ -474,9 +503,9 @@ BEN *ben_dec_s( RAW *raw ) {
 				raw->p++;
 				break;
 			case ':':
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
+				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
 				memcpy( buf,start,i );
-				l = atol( (char *)buf );
+				l = atol( ( char * )buf );
 				myfree( buf );
 
 				raw->p += 1;
@@ -522,9 +551,9 @@ BEN *ben_dec_i( RAW *raw ) {
 				raw->p++;
 				break;
 			case 'e':
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
+				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
 				memcpy( buf,start,i );
-				result = atol( (char *)buf );
+				result = atol( ( char * )buf );
 				myfree( buf );
 
 				raw->p++;
@@ -543,37 +572,43 @@ BEN *ben_dec_i( RAW *raw ) {
 int ben_validate( UCHAR *bencode, LONG bensize ) {
 	RAW raw;
 
-	raw.code = (UCHAR *)bencode;
+	raw.code = ( UCHAR * )bencode;
 	raw.size = bensize;
-	raw.p = (UCHAR *)bencode;
+	raw.p = ( UCHAR * )bencode;
 
 	return ben_validate_r( &raw );
 }
 
 int ben_validate_r( RAW *raw ) {
-	if( raw == NULL )
+	if( raw == NULL ) {
 		return 0;
+	}
 
-	if( raw->code == NULL || raw->p == NULL || raw->size < 1 )
+	if( raw->code == NULL || raw->p == NULL || raw->size < 1 ) {
 		return 0;
+	}
 
-	if( ( LONG)( raw->p - raw->code) >= raw->size )
+	if( ( LONG )( raw->p - raw->code ) >= raw->size ) {
 		return 0;
+	}
 
 	switch( *raw->p ) {
 		case 'd':
-			if( !ben_validate_d( raw) )
+			if( !ben_validate_d( raw ) ) {
 				return 0;
+			}
 			break;
 
 		case 'l':
-			if( !ben_validate_l( raw) )
+			if( !ben_validate_l( raw ) ) {
 				return 0;
+			}
 			break;
 
 		case 'i':
-			if( !ben_validate_i( raw) )
+			if( !ben_validate_i( raw ) ) {
 				return 0;
+			}
 			break;
 
 		case '0':
@@ -586,8 +621,9 @@ int ben_validate_r( RAW *raw ) {
 		case '7':
 		case '8':
 		case '9':
-			if( !ben_validate_s( raw) )
+			if( !ben_validate_s( raw ) ) {
 				return 0;
+			}
 			break;
 
 		default:
@@ -598,37 +634,46 @@ int ben_validate_r( RAW *raw ) {
 }
 
 int ben_validate_d( RAW *raw ) {
-	if( ( LONG)( ++raw->p - raw->code) >= raw->size )
+	if( ( LONG )( ++raw->p - raw->code ) >= raw->size ) {
 		return 0;
-
-	while( *raw->p != 'e' ) {
-		if( !ben_validate_s( raw) )
-			return 0;
-		if( !ben_validate_r( raw) )
-			return 0;
-		if( ( LONG)( raw->p - raw->code) >= raw->size )
-			return 0;
 	}
 
-	if( ( LONG)( ++raw->p - raw->code) > raw->size )
+	while( *raw->p != 'e' ) {
+		if( !ben_validate_s( raw ) ) {
+			return 0;
+		}
+		if( !ben_validate_r( raw ) ) {
+			return 0;
+		}
+		if( ( LONG )( raw->p - raw->code ) >= raw->size ) {
+			return 0;
+		}
+	}
+
+	if( ( LONG )( ++raw->p - raw->code ) > raw->size ) {
 		return 0;
+	}
 
 	return 1;
 }
 
 int ben_validate_l( RAW *raw ) {
-	if( ( LONG)( ++raw->p - raw->code) >= raw->size )
+	if( ( LONG )( ++raw->p - raw->code ) >= raw->size ) {
 		return 0;
-
-	while( *raw->p != 'e' ) {
-		if( !ben_validate_r( raw) )
-			return 0;
-		if( ( LONG)( raw->p - raw->code) >= raw->size )
-			return 0;
 	}
 
-	if( ( LONG)( ++raw->p - raw->code) > raw->size )
+	while( *raw->p != 'e' ) {
+		if( !ben_validate_r( raw ) ) {
+			return 0;
+		}
+		if( ( LONG )( raw->p - raw->code ) >= raw->size ) {
+			return 0;
+		}
+	}
+
+	if( ( LONG )( ++raw->p - raw->code ) > raw->size ) {
 		return 0;
+	}
 
 	return 1;
 }
@@ -639,10 +684,11 @@ int ben_validate_s( RAW *raw ) {
 	UCHAR *buf = NULL;
 	int run = 1;
 
-	if( ( LONG)( raw->p - raw->code) >= raw->size )
+	if( ( LONG )( raw->p - raw->code ) >= raw->size ) {
 		return 0;
+	}
 
-	while( ( LONG)( raw->p - raw->code) < raw->size && run == 1 ) {
+	while( ( LONG )( raw->p - raw->code ) < raw->size && run == 1 ) {
 		switch( *raw->p ) {
 			case '0':
 			case '1':
@@ -659,17 +705,19 @@ int ben_validate_s( RAW *raw ) {
 				break;
 			case ':':
 				/* String length limitation */
-				if( i <= 0 || i > BEN_STR_MAXLEN )
+				if( i <= 0 || i > BEN_STR_MAXLEN ) {
 					return 0;
+				}
 
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
+				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
 				memcpy( buf, start, i );
-				i = atol( (char *)buf );
+				i = atol( ( char * )buf );
 				myfree( buf );
 
 				/* i < 0 makes no sense */
-				if( i < 0 || i > BEN_STR_MAXSIZE )
+				if( i < 0 || i > BEN_STR_MAXSIZE ) {
 					return 0;
+				}
 
 				raw->p += i+1;
 				run = 0;
@@ -679,8 +727,9 @@ int ben_validate_s( RAW *raw ) {
 		}
 	}
 
-	if( ( LONG)( raw->p - raw->code) > raw->size )
+	if( ( LONG )( raw->p - raw->code ) > raw->size ) {
 		return 0;
+	}
 
 	return 1;
 }
@@ -692,18 +741,20 @@ int ben_validate_i( RAW *raw ) {
 	int run = 1;
 	LONG result = 0;
 
-	if( ( LONG)( ++raw->p - raw->code) >= raw->size )
+	if( ( LONG )( ++raw->p - raw->code ) >= raw->size ) {
 		return 0;
+	}
 
 	start = raw->p;
 	if( *raw->p == '-' ) {
 		start = ++raw->p;
 
-		if( ( LONG)( raw->p - raw->code) >= raw->size )
+		if( ( LONG )( raw->p - raw->code ) >= raw->size ) {
 			return 0;
+		}
 	}
 
-	while( ( LONG)( raw->p - raw->code) < raw->size && run == 1 ) {
+	while( ( LONG )( raw->p - raw->code ) < raw->size && run == 1 ) {
 		switch( *raw->p ) {
 			case '0':
 			case '1':
@@ -719,16 +770,18 @@ int ben_validate_i( RAW *raw ) {
 				raw->p++;
 				break;
 			case 'e':
-				if( i <= 0 || i > BEN_INT_MAXLEN )
+				if( i <= 0 || i > BEN_INT_MAXLEN ) {
 					return 0;
+				}
 
-				buf = (UCHAR *) myalloc( (i+1) * sizeof(UCHAR) );
+				buf = ( UCHAR * ) myalloc( ( i+1 ) * sizeof( UCHAR ) );
 				memcpy( buf, start, i );
-				result = atol( (char *)buf );
+				result = atol( ( char * )buf );
 				myfree( buf );
 
-				if( result < 0 || result > BEN_INT_MAXSIZE )
+				if( result < 0 || result > BEN_INT_MAXSIZE ) {
 					return 0;
+				}
 
 				raw->p++;
 				run = 0;
@@ -738,13 +791,14 @@ int ben_validate_i( RAW *raw ) {
 		}
 	}
 
-	if( (LONG)( raw->p - raw->code) > raw->size )
+	if( ( LONG )( raw->p - raw->code ) > raw->size ) {
 		return 0;
+	}
 
 	return 1;
 }
 
-int ben_is_dict( BEN *node) {
+int ben_is_dict( BEN *node ) {
 	if( node == NULL ) {
 		return 0;
 	}
@@ -798,25 +852,31 @@ BEN *ben_dict_search_key( BEN *node, BEN *key ) {
 	TUPLE *tuple = NULL;
 
 	/* Tests */
-	if( node == NULL )
+	if( node == NULL ) {
 		return NULL;
-	if( node->t != BEN_DICT )
+	}
+	if( node->t != BEN_DICT ) {
 		return NULL;
-	if( key == NULL )
+	}
+	if( key == NULL ) {
 		return NULL;
-	if( key->t != BEN_STR )
+	}
+	if( key->t != BEN_STR ) {
 		return NULL;
-	if( node->v.d == NULL )
+	}
+	if( node->v.d == NULL ) {
 		return NULL;
-	if( node->v.d->item == NULL )
+	}
+	if( node->v.d->item == NULL ) {
 		return NULL;
+	}
 
 	item = list_start( node->v.d );
 
 	do {
 		tuple = list_value( item );
 		thiskey = tuple->key;
-		if( thiskey->v.s->i == key->v.s->i && memcmp( thiskey->v.s->s, key->v.s->s, key->v.s->i) == 0 ) {
+		if( thiskey->v.s->i == key->v.s->i && memcmp( thiskey->v.s->s, key->v.s->s, key->v.s->i ) == 0 ) {
 			return tuple->val;
 		}
 		item = list_next( item );
@@ -829,7 +889,7 @@ BEN *ben_dict_search_key( BEN *node, BEN *key ) {
 BEN *ben_dict_search_str( BEN *node, const char *buffer ) {
 	BEN *result = NULL;
 	BEN *key = ben_init( BEN_STR );
-	ben_str( key, (UCHAR *)buffer, strlen( buffer ) );
+	ben_str( key, ( UCHAR * )buffer, strlen( buffer ) );
 	result = ben_dict_search_key( node, key );
 	ben_free( key );
 	return result;
@@ -920,7 +980,7 @@ int ben_str_compare( BEN *key1, BEN *key2 ) {
 		return 1;
 	}
 
-	size = (key1->v.s->i > key2->v.s->i) ? key1->v.s->i : key2->v.s->i;
+	size = ( key1->v.s->i > key2->v.s->i ) ? key1->v.s->i : key2->v.s->i;
 
 	for( i=0; i<size; i++ ) {
 		if( key1->v.s->s[i] > key2->v.s->s[i] ) {
@@ -943,7 +1003,7 @@ int ben_str_compare( BEN *key1, BEN *key2 ) {
 #endif
 
 STR *str_init( UCHAR *buf, LONG size ) {
-	STR *str = (STR *) myalloc( sizeof(STR) );
+	STR *str = ( STR * ) myalloc( sizeof( STR ) );
 
 	if( buf == NULL ) {
 		fail( "str_init() with NULL argument" );
@@ -953,7 +1013,7 @@ STR *str_init( UCHAR *buf, LONG size ) {
 		fail( "str_init() with zero size" );
 	}
 
-	str->s = myalloc( (size+1) * sizeof(UCHAR) );
+	str->s = myalloc( ( size+1 ) * sizeof( UCHAR ) );
 	memcpy( str->s, buf, size );
 	str->i = size;
 
