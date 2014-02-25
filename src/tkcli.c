@@ -25,7 +25,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "tkcli.h"
 
 int torrentkino_lookup( const char *handler, const char *hostname,
-		const char *path, int port, int mode ) {
+		const char *path, unsigned int port, int mode ) {
 	UCHAR bencode[BUF_SIZE];
 	int bensize = 0;
 	int j = 0;
@@ -154,8 +154,9 @@ int main( int argc, char **argv ) {
 	char *hostname = NULL;
 	char *handler = NULL;
 	char *path = NULL;
-	int port = 0;
+	unsigned int port = 0;
 	int mode = 0;
+	char domain[BUF_SIZE];
 
 	if( argc != 2 ) {
 		return 1;
@@ -166,16 +167,17 @@ int main( int argc, char **argv ) {
 
 	torrentkino_url( argv[1], &hostname, &handler, &path );
 
+	/* Get some hints */
+	if( !_nss_tk_conf( &port, &mode, domain ) ) {
+		fail( "Reading configuration failed" );
+	}
+
 	if( !str_valid_hostname( hostname, strlen( hostname ) ) ) {
 		fail( "%s is not a valid hostname", hostname );
 	}
 
-	if( !str_valid_tld( hostname, strlen( hostname ) ) ) {
-		fail( "%s must end with .p2p", hostname );
-	}
-
-	if( !_nss_tk_conf( &port, &mode ) ) {
-		fail( "Reading configuration failed" );
+	if( !str_valid_tld( hostname, strlen( hostname ), domain ) ) {
+		fail( "The TLD of %s does not match .%s", hostname, domain );
 	}
 
 	if( ! torrentkino_lookup( handler, hostname, path, port, mode ) ) {

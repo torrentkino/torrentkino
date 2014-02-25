@@ -46,6 +46,7 @@ struct obj_conf {
 
 #ifdef TORRENTKINO
 	char hostname[BUF_SIZE];
+	char domain[BUF_SIZE];
 	UCHAR node_id[SHA1_SIZE];
 	UCHAR host_id[SHA1_SIZE];
 	UCHAR null_id[SHA1_SIZE];

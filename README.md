@@ -50,6 +50,11 @@ to your Linux OS.
   * `-b` *port*:
 	Announce this port together with your hostname. (Default: "8080")
 
+  * `-t` *domain*:
+    Instead of using the default TLD *.p2p*, you may chose a differrent TLD like
+	*.underground*, *.darknet* or *.whatever*. There has to be a consensus
+	within your darknet community about what TLD you use though.
+
   * `-n` *node id string*:
     By default a random node id gets computed on every startup. For testing
 	purposes it may be useful to keep the same node id all the time. The above
@@ -75,7 +80,7 @@ to your Linux OS.
 	The bootstrap server will be addressed at this port. (Default: UDP/6881)
 
   * `-l`:
-    Lazy mode: This option sets a WAN bootstrap server without typing too much.
+    Lazy mode: This option sets a hardcoded WAN bootstrap server.
 	This is equivalent to *-x router.utorrent.com* or
 	*-x dht.wifi.pps.jussieu.fr* depending on the IP protocol.
 

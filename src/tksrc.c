@@ -76,7 +76,7 @@ end:
 	return NULL;
 }
 
-int _nss_tk_conf( int *port, int *mode ) {
+int _nss_tk_conf( unsigned int *port, int *mode, char *domain ) {
 	BEN *conf = NULL;
 
 	/* Load config file */
@@ -86,7 +86,7 @@ int _nss_tk_conf( int *port, int *mode ) {
 
 	/* Load port */
 	*port = _nss_tk_port( conf );
-	if( *port == -1 ) {
+	if( *port == 0 ) {
 		ben_free( conf );
 		return FALSE;
 	}
@@ -98,27 +98,33 @@ int _nss_tk_conf( int *port, int *mode ) {
 		return FALSE;
 	}
 
+	/* Load domain */
+	if( !_nss_tk_domain( conf, domain ) ) {
+		ben_free( conf );
+		return FALSE;
+	}
+
 	ben_free( conf );
 	return TRUE;
 }
 
-int _nss_tk_port( BEN *conf ) {
+unsigned int _nss_tk_port( BEN *conf ) {
 	BEN *port = NULL;
 
 	port = ben_dict_search_str( conf, "port" );
 	if( !ben_is_int( port ) ) {
-		return -1;
+		return 0;
 	}
 
 	if( port->v.i < 1 || port->v.i > 65535 ) {
-		return -1;
+		return 0;
 	}
 
 	return port->v.i;
 }
 
 int _nss_tk_mode( BEN *conf ) {
-	BEN *ip_version;
+	BEN *ip_version = NULL;
 
 	ip_version = ben_dict_search_str( conf, "ip_version" );
 	if( !ben_is_int( ip_version ) ) {
@@ -132,8 +138,26 @@ int _nss_tk_mode( BEN *conf ) {
 	return ip_version->v.i;
 }
 
+int _nss_tk_domain( BEN *conf, char *domain ) {
+	BEN *val = NULL;
+
+	val = ben_dict_search_str( conf, "domain" );
+
+	if( !ben_is_str( val ) ) {
+		return FALSE;
+	}
+
+	if( ben_str_i( val ) <= 0 ) {
+		return FALSE;
+	}
+
+	strncpy( domain, (char *)ben_str_s( val ), BUF_OFF1 );
+
+	return TRUE;
+}
+
 int _nss_tk_socket( int *sockfd, struct sockaddr_in6 *sa, socklen_t *sa_size,
-	int port, int mode ) {
+	unsigned int port, int mode ) {
 	struct timeval tv;
 
 	memset( sa, '\0', *sa_size );
@@ -256,59 +280,6 @@ ssize_t _nss_tk_read_data( int sockfd,
 			( struct sockaddr * )sa, sa_size );
 
 	if( n <= 0 ) {
-		return 0;
-	}
-
-	return n;
-}
-
-int _nss_tk_connect( const char *hostname, int hostsize,
-	UCHAR *buffer, int bufsize, int port, int mode ) {
-
-	int sockfd = -1;
-	int n = 0;
-	struct timeval tv;
-	struct sockaddr_in6 sa6;
-	socklen_t sin_size = sizeof( struct sockaddr_in6 );
-
-	memset( &sa6, '\0', sin_size );
-	memset( buffer, '\0', bufsize );
-
-	/* Setup UDP */
-	sockfd = socket( AF_INET6, SOCK_DGRAM, 0 );
-	if( sockfd < 0 ) {
-		return 0;
-	}
-
-	/* Set receive timeout */
-	tv.tv_sec = TIMEOUT;
-	tv.tv_usec = 0;
-	setsockopt( sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
-			sizeof( struct timeval ) );
-
-	/* Setup target */
-	sa6.sin6_family = AF_INET6;
-	sa6.sin6_port = htons( port );
-	if( mode == 6 ) {
-		if( !inet_pton( AF_INET6, "::1", &(sa6.sin6_addr)) ) {
-			return 0;
-		}
-	} else {
-		if( !inet_pton( AF_INET6, "::FFFF:127.0.0.1", &(sa6.sin6_addr)) ) {
-			return 0;
-		}
-	}
-
-	n = sendto( sockfd, hostname, hostsize, 0,
-			(struct sockaddr *)&sa6, sin_size );
-	if( n != hostsize ) {
-		return 0;
-	}
-
-	n = recvfrom( sockfd, buffer, bufsize-1, 0,
-			(struct sockaddr *)&sa6, &sin_size );
-
-	if( n < 0 ) {
 		return 0;
 	}
 

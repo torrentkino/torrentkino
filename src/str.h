@@ -43,7 +43,7 @@ int str_safe_port( char *string );
 /* int str_isHex( char *string ); */
 int str_isValidFilename( char *string );
 int str_valid_hostname( const char *hostname, int hostsize );
-int str_valid_tld( const char *hostname, int hostsize );
+int str_valid_tld( const char *hostname, int hostsize, const char *domain );
 
 /*void str_htmlDisarmInput( char *string );*/
 

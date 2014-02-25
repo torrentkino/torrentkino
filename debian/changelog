@@ -1,3 +1,8 @@
+torrentkino (0.25) wheezy; urgency=low
+
+  * Switch -t: Chose a different TLD. This mainly affects the NSS module.
+
+ -- Aiko Barz <aiko@torrentkino.de>  Tue, 25 Feb 2014 21:33:00 +0100
 torrentkino (0.24) wheezy; urgency=low
 
   * New command line switch: -l for lazy. Sets a predefined bootstrap server.

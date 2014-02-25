@@ -46,6 +46,10 @@ Announce this hostname\. By default /etc/hostname is used to determine your host
 Announce this port together with your hostname\. (Default: "8080")
 .
 .TP
+\fB\-t\fR \fIdomain\fR
+Instead of using the default TLD \fI\.p2p\fR, you may chose a differrent TLD like \fI\.underground\fR, \fI\.darknet\fR or \fI\.whatever\fR\. There has to be a consensus within your darknet community about what TLD you use though\.
+.
+.TP
 \fB\-n\fR \fInode id string\fR
 By default a random node id gets computed on every startup\. For testing purposes it may be useful to keep the same node id all the time\. The above string is not used directly\. Instead its SHA1 hash is used\.
 .
@@ -71,7 +75,7 @@ The bootstrap server will be addressed at this port\. (Default: UDP/6881)
 .
 .TP
 \fB\-l\fR
-Lazy mode: This option sets a WAN bootstrap server without typing too much\. This is equivalent to \fI\-x router\.utorrent\.com\fR or \fI\-x dht\.wifi\.pps\.jussieu\.fr\fR depending on the IP protocol\.
+Lazy mode: This option sets a hardcoded WAN bootstrap server\. This is equivalent to \fI\-x router\.utorrent\.com\fR or \fI\-x dht\.wifi\.pps\.jussieu\.fr\fR depending on the IP protocol\.
 .
 .TP
 \fB\-d\fR

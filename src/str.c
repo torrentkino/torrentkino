@@ -67,6 +67,7 @@ int str_safe_port( char *string ) {
 	char *end = NULL;
 
 	if( str_isNumber( string ) ) {
+		errno = 0;
 		number = strtol( string, &end, 10 );
 
 		if( errno != 0 ) {
@@ -77,7 +78,7 @@ int str_safe_port( char *string ) {
 			return 0;
 		}
 
-		if( end != NULL ) {
+		if( *end != '\0' ) {
 			return 0;
 		}
 
@@ -156,7 +157,7 @@ int str_valid_hostname( const char *hostname, int hostsize ) {
 	return 1;
 }
 
-int str_valid_tld( const char *hostname, int hostsize ) {
+int str_valid_tld( const char *hostname, int hostsize, const char *domain ) {
 
 	const char *p0 = NULL;
 	char *p1 = NULL;
@@ -172,8 +173,8 @@ int str_valid_tld( const char *hostname, int hostsize ) {
 		p0 = p1+1;
 	}
 
-	/* TLD must be ".p2p" */
-	if( strcmp( p0,"p2p") != 0 ) {
+	/* TLD must be something like ".p2p" */
+	if( strcmp( p0, domain ) != 0 ) {
 		return 0;
 	}
 

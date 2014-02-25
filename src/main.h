@@ -63,6 +63,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_EPOLL_WAIT 2000
 #define CONF_SRVNAME "torrentkino"
 #define CONF_REALM "open.p2p"
+#define TLD_DEFAULT "p2p"
 #define TID_SIZE 4
 #define TID_SIZE_MAX 20
 #define PORT_DHT_DEFAULT 6881

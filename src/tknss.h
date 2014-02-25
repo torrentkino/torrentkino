@@ -25,19 +25,23 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tksrc.h"
 
-enum nss_status _nss_tk_gethostbyname_r( const char *hostname, struct hostent *host,
+enum nss_status _nss_tk_gethostbyname_r( const char *hostname,
+		struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop) _public_;
 
-enum nss_status _nss_tk_gethostbyname2_r( const char *hostname, int af, struct hostent *host,
+enum nss_status _nss_tk_gethostbyname2_r( const char *hostname, int af,
+		struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop) _public_;
 
-enum nss_status _nss_tk_gethostbyname3_r( const char *hostname, int af, struct hostent *host,
+enum nss_status _nss_tk_gethostbyname3_r( const char *hostname, int af,
+		struct hostent *host,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp, char **canonp) _public_;
 
-enum nss_status _nss_tk_gethostbyname4_r( const char *hostname, struct gaih_addrtuple **pat,
+enum nss_status _nss_tk_gethostbyname4_r( const char *hostname,
+		struct gaih_addrtuple **pat,
 		char *buffer, size_t buflen, int *errnop,
 		int *h_errnop, int32_t *ttlp) _public_;
 
@@ -51,6 +55,6 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 
 
 int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
-		int address_size, int port, int mode );
+		int address_size, unsigned int port, int mode );
 
 #endif

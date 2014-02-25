@@ -111,6 +111,14 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 #endif
 
 #ifdef TORRENTKINO
+	/* TLD */
+	value = ben_dict_search_str( opts, "-t" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		snprintf( conf->domain, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
+	} else {
+		strncpy( conf->domain, TLD_DEFAULT, BUF_OFF1 );
+	}
+
 	/* Hostname */
 	conf_hostname( conf, opts );
 
@@ -187,6 +195,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	value = ben_dict_search_str( opts, "-y" );
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
 		conf->bootstrap_port = str_safe_port( (char *)ben_str_s( value ) );
+		printf( "%i %s \n", conf->bootstrap_port, (char *)ben_str_s( value ));
 		if( conf->bootstrap_port == 0 ) {
 			conf->bootstrap_port = PORT_DHT_DEFAULT;
 		}
@@ -264,13 +273,15 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 	char *f = NULL;
 	char *p = NULL;
 
+	/* Init */
+	strncpy( conf->hostname, "bulk.p2p", BUF_OFF1 );
+
 	/* Hostname from args */
 	value = ben_dict_search_str( opts, "-a" );
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->hostname, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
+		snprintf( conf->hostname, BUF_SIZE, "%s.%s",
+				(char *)ben_str_s( value ), conf->domain );
 		return;
-	} else {
-		strncpy( conf->hostname, "bulk.p2p", BUF_OFF1 );
 	}
 
 	/* Hostname from file */
@@ -288,7 +299,7 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 		*p = '\0';
 	}
 
-	snprintf( conf->hostname, BUF_SIZE, "%s.p2p", f );
+	snprintf( conf->hostname, BUF_SIZE, "%s.%s", f, conf->domain );
 
 	myfree( f );
 }
@@ -356,6 +367,7 @@ void conf_print( void ) {
 #endif
 
 #ifdef TORRENTKINO
+	info( NULL, "Domain: %s (-t)", _main->conf->domain );
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
 
 	hex_hash_encode( hex, _main->conf->node_id );
@@ -366,7 +378,7 @@ void conf_print( void ) {
 
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
-	info( NULL, "Announce port: %i (-a)", _main->conf->announce_port );
+	info( NULL, "Announce port: %i (-b)", _main->conf->announce_port );
 	if( _main->conf->strict ) {
 		info( NULL, "Strict mode: Yes (-s)" );
 	} else {
@@ -416,8 +428,17 @@ void conf_write( void ) {
 #endif
 	ben_dict( dict, key, val );
 
+	/* Domain */
+	key = ben_init( BEN_STR );
+	val = ben_init( BEN_STR );
+	ben_str( key, (UCHAR *)"domain", 6 );
+	ben_str( val, (UCHAR *)_main->conf->domain, strlen( _main->conf->domain ) );
+	ben_dict( dict, key, val );
+
+	/* Encode */
 	raw = ben_enc( dict );
 
+	/* Write */
 	if( !file_write( _main->conf->file, (char *)raw->code, raw->size ) ) {
 		fail( "Writing %s failed", _main->conf->file );
 	}

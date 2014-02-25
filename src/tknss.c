@@ -75,11 +75,19 @@ enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
 	char *p_addr_list = NULL;
 	char *p_idx = NULL;
 	size_t s_total = 0;
-	int port = 0;
+	unsigned int port = 0;
 	int mode = 0;
+	char domain[BUF_SIZE];
 	int in_addr_size = 0;
 	int result = 0;
 	int j = 0;
+
+	/* Load config file */
+	if( !_nss_tk_conf( &port, &mode, domain ) ) {
+		*errnop = EAFNOSUPPORT;
+		*h_errnop = NO_DATA;
+		return NSS_STATUS_UNAVAIL;
+	}
 
 	/* Check */
 	if( !_nss_tk_str_valid_hostname( hostname, hostsize ) ) {
@@ -88,17 +96,10 @@ enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_tk_str_valid_tld( hostname, hostsize ) ) {
+	if( !_nss_tk_str_valid_tld( hostname, hostsize, domain ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
-	}
-
-	/* Load config file */
-	if( !_nss_tk_conf( &port, &mode ) ) {
-		*errnop = EAFNOSUPPORT;
-		*h_errnop = NO_DATA;
-		return NSS_STATUS_UNAVAIL;
 	}
 
 	af = ( mode == 6 ) ? AF_INET6 : AF_INET;
@@ -110,7 +111,8 @@ enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
 	address = myalloc( 8 * in_addr_size * sizeof( char ) );
 
 	/* Ask daemon */
-	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size, port, mode );
+	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size,
+			port, mode );
 	if( result == 0 ) {
 		myfree( address );
 		*errnop = ENOENT;
@@ -189,10 +191,18 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 	size_t s_total = 0;
 	int af = AF_INET6;
 	int in_addr_size = 0;
-	int port = 0;
+	unsigned int port = 0;
 	int mode = 0;
+	char domain[BUF_SIZE];
 	int result = 0;
 	int j = 0;
+
+	/* Load config file */
+	if( !_nss_tk_conf( &port, &mode, domain ) ) {
+		*errnop = EAFNOSUPPORT;
+		*h_errnop = NO_DATA;
+		return NSS_STATUS_UNAVAIL;
+	}
 
 	/* Check */
 	if( !_nss_tk_str_valid_hostname( hostname, hostsize ) ) {
@@ -201,17 +211,10 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if( !_nss_tk_str_valid_tld( hostname, hostsize ) ) {
+	if( !_nss_tk_str_valid_tld( hostname, hostsize, domain ) ) {
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
-	}
-
-	/* Load config file */
-	if( !_nss_tk_conf( &port, &mode ) ) {
-		*errnop = EAFNOSUPPORT;
-		*h_errnop = NO_DATA;
-		return NSS_STATUS_UNAVAIL;
 	}
 
 	af = ( mode == 6 ) ? AF_INET6 : AF_INET;
@@ -223,7 +226,8 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 	address = myalloc( 8 * in_addr_size * sizeof( char ) );
 
 	/* Ask daemon */
-	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size, port, mode );
+	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size,
+			port, mode );
 	if( result == 0 ) {
 		myfree( address );
 		*errnop = ENOMEM;
@@ -281,7 +285,7 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 }
 
 int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
-		int address_size, int port, int mode ) {
+		int address_size, unsigned int port, int mode ) {
 
     UCHAR bencode[BUF_SIZE];
     int bensize = 0;
