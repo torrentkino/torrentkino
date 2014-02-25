@@ -101,8 +101,8 @@ to your Linux OS.
 
 Announce the hostname *mycloud.p2p* globally.
 
-	$ torrentkino6 -a mycloud.p2p -l -s
-	$ torrentkino4 -a mycloud.p2p -l -s
+	$ torrentkino6 -a mycloud -l -s
+	$ torrentkino4 -a mycloud -l -s
 
 	$ getent hosts mycloud.p2p
 	$ tk mycloud.p2p
