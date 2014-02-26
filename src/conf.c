@@ -52,7 +52,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	opts_load( opts, argc, argv );
 
 	/* Mode */
-	if( ben_dict_search_str( opts, "-d" ) != NULL ) {
+	if( ben_dict_search_str( opts, "-f" ) != NULL ) {
 		conf->mode = CONF_DAEMON;
 	} else {
 		conf->mode = CONF_CONSOLE;
@@ -112,7 +112,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 
 #ifdef TORRENTKINO
 	/* TLD */
-	value = ben_dict_search_str( opts, "-t" );
+	value = ben_dict_search_str( opts, "-d" );
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
 		snprintf( conf->domain, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
 	} else {
@@ -337,9 +337,9 @@ void conf_print( void ) {
 	info( NULL, "Cores: %i", _main->conf->cores );
 
 	if( _main->conf->mode == CONF_CONSOLE ) {
-		info( NULL, "Mode: Console (-d)" );
+		info( NULL, "Mode: Console (-f)" );
 	} else {
-		info( NULL, "Mode: Daemon (-d)" );
+		info( NULL, "Mode: Daemon (-f)" );
 	}
 
 	if( _main->conf->verbosity == CONF_BEQUIET ) {
@@ -367,7 +367,7 @@ void conf_print( void ) {
 #endif
 
 #ifdef TORRENTKINO
-	info( NULL, "Domain: %s (-t)", _main->conf->domain );
+	info( NULL, "Domain: %s (-d)", _main->conf->domain );
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
 
 	hex_hash_encode( hex, _main->conf->node_id );

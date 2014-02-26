@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-d] [-q] [-p port] [-a hostname] [-b port] [-r realm] [-s] [-x server] [-y port]
+`torrentkino` [-v] [-q] [-p port] [-a hostname] [-b port] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -21,8 +21,8 @@ below. Your client becomes a full member of the swarm and resolves info hashes
 to IP/port tuples. The swarm on the other end does the same for you. But in
 your case, the info hash represents a hostname instead of a torrent file.
 
-A NSS module makes any hostname with *.p2p* at the end transparently available
-to your Linux OS.
+A NSS module makes any hostname with a *.p2p* TLD transparently available to
+your Linux OS.
 
 ## FILES
 
@@ -32,8 +32,8 @@ to your Linux OS.
 
   * **$HOME/.torrentkino.conf**:
     This file gets written by the Torrentkino daemon and contains the server
-	port number and some other hints. Those hints are used by **libnss_tk.so.2**
-	and the **tk** cli program.
+	port number and some other hints like the TLD it shall be responsible for.
+	Those hints are used by **libnss_tk.so.2** 	and the **tk** cli program.
 
   * **/etc/torrentkino.conf**:
 	This file gets written by the Torrentkino daemon when started by root for
@@ -50,10 +50,11 @@ to your Linux OS.
   * `-b` *port*:
 	Announce this port together with your hostname. (Default: "8080")
 
-  * `-t` *domain*:
+  * `-d` *domain*:
     Instead of using the default TLD *.p2p*, you may chose a differrent TLD like
-	*.underground*, *.darknet* or *.whatever*. There has to be a consensus
-	within your darknet community about what TLD you use though.
+	*.underground*, *.darknet* or *.whatever*. This setting primarely affects
+	the NSS module, because it needs to know for what TLD it shall contact the
+	Torrentkino daemon.
 
   * `-n` *node id string*:
     By default a random node id gets computed on every startup. For testing
@@ -67,7 +68,8 @@ to your Linux OS.
 	everybody may have his own http://mycloud.p2p for example.
 
   * `-s`:
-    Strict mode: Only accept responses that match your own announced port.
+    Strict mode: Only accept lookup responses that match your own announced
+	port.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)
@@ -80,33 +82,49 @@ to your Linux OS.
 	The bootstrap server will be addressed at this port. (Default: UDP/6881)
 
   * `-l`:
-    Lazy mode: This option sets a hardcoded WAN bootstrap server.
-	This is equivalent to *-x router.utorrent.com* or
-	*-x dht.wifi.pps.jussieu.fr* depending on the IP protocol.
+    Lazy mode: This option sets a predefined bootstrap server like
+	*router.utorrent.com* for example.
 
-  * `-d`:
-	Start as a daemon and run in background. The output will be send to syslog.
+  * `-f`:
+	Fork a daemon and run in background. The output will be send to syslog.
 
   * `-v`:
-	Verbose.
+	Verbose. Default for the console mode.
+
+  * `-q`:
+	Be quiet. Default for the daemon mode.
 
   * `-k` *password*:
 	Setting a password results in encrypting each packet with AES256. The
 	encrypted message is encapsulated in bencode too. You effectively
 	isolate your nodes from the rest of the world this way. This method is not
 	compatible to the Bittorrent network and only works between torrentkino
-	daemons. (Torrentkino needs to be compiled with PolarSSL support. See Makefile.)
+	daemons. (Torrentkino needs to be compiled with PolarSSL support. See
+	Makefile.)
 
 ## EXAMPLES
 
-Announce the hostname *mycloud.p2p* globally.
+Announce the hostname *my.cloud* globally.
 
-	$ torrentkino6 -a mycloud -l -s
-	$ torrentkino4 -a mycloud -l -s
+	$ torrentkino6 -a my -d cloud -l
+	$ getent hosts my.cloud
+	$ tk my.cloud
+	$ tk http://my.cloud/index.html
 
+Announce the hostname *mycloud.p2p* within the LAN.
+
+	$ torrentkino4 -a mycloud
 	$ getent hosts mycloud.p2p
 	$ tk mycloud.p2p
 	$ tk http://mycloud.p2p/index.html
+
+Isolate your nodes within a realm *darkness*, fork the process into background
+and log everything to syslog.
+
+	$ torrentkino6 -a torrentkino -d cloud -r darkness -l -s -f -v
+	$ getent hosts torrentkino.cloud
+	$ tk torrentkino.cloud
+	$ tk http://torrentkino.cloud/index.html
 
 ## INSTALLATION
 
