@@ -328,8 +328,8 @@ int cache_strict_error( UCHAR *p ) {
 	port = ntohs( sin.sin_port );
 #endif
 
-	/* Limit cache replies to those matching my announced port. */
-	if( port == _main->conf->announce_port ) {
+	/* Limit cache replies to those matching my port. */
+	if( port == _main->conf->port ) {
 		return FALSE;
 	}
 

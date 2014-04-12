@@ -599,7 +599,7 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token,
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_INT );
 	ben_str( key,( UCHAR *)"port", 4 );
-	ben_int( val, _main->conf->announce_port );
+	ben_int( val, _main->conf->port );
 	ben_dict( arg, key, val );
 
 	/* Token */

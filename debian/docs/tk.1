@@ -1,13 +1,13 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TORRENTKINO" "1" "February 2014" "" ""
+.TH "TORRENTKINO" "1" "April 2014" "" ""
 .
 .SH "NAME"
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtorrentkino\fR [\-v] [\-q] [\-p port] [\-a hostname] [\-b port] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
+\fBtorrentkino\fR [\-v] [\-q] [\-p port] [\-a hostname] [\-g group] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -42,12 +42,12 @@ This file gets written by the Torrentkino daemon when started by root for exampl
 Announce this hostname\. By default /etc/hostname is used to determine your hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
 .
 .TP
-\fB\-b\fR \fIport\fR
-Announce this port together with your hostname\. (Default: "8080")
+\fB\-g\fR \fIgroup\fR
+Announce this group to organize different nodes in a workgroup\. This can be used as a discovery service\. Lookup the group and you will see the other members\.
 .
 .TP
 \fB\-d\fR \fIdomain\fR
-Instead of using the default TLD \fI\.p2p\fR, you may chose a differrent TLD like \fI\.underground\fR, \fI\.darknet\fR or \fI\.whatever\fR\. This setting primarely affects the NSS module, because it needs to know for what TLD it shall contact the Torrentkino daemon\.
+Instead of using the default TLD \fI\.p2p\fR, you may chose a differrent TLD like \fI\.darknet\fR, \fI\.cloud\fR or \fI\.files\fR\. This setting primarely affects the NSS module, because it needs to know for what TLD it shall be responsible\.
 .
 .TP
 \fB\-n\fR \fInode id string\fR
@@ -59,7 +59,7 @@ Creating a realm affects the method how to compute the info hash\. It helps you 
 .
 .TP
 \fB\-s\fR
-Strict mode: Only accept lookup responses that match your own announced port\.
+Strict mode: In this mode every node must use the same port to find each other\. Search results with different ports are silently dropped\.
 .
 .TP
 \fB\-p\fR \fIport\fR
@@ -88,10 +88,6 @@ Verbose\. Default for the console mode\.
 .TP
 \fB\-q\fR
 Be quiet\. Default for the daemon mode\.
-.
-.TP
-\fB\-k\fR \fIpassword\fR
-Setting a password results in encrypting each packet with AES256\. The encrypted message is encapsulated in bencode too\. You effectively isolate your nodes from the rest of the world this way\. This method is not compatible to the Bittorrent network and only works between torrentkino daemons\. (Torrentkino needs to be compiled with PolarSSL support\. See Makefile\.)
 .
 .SH "EXAMPLES"
 Announce the hostname \fImy\.cloud\fR globally\.

@@ -72,7 +72,8 @@ P2P *p2p_init( void ) {
 
 	p2p->time_maintainance = 0;
 	p2p->time_multicast = 0;
-	p2p->time_announce = 0;
+	p2p->time_announce_host = 0;
+	p2p->time_announce_group = 0;
 	p2p->time_restart = 0;
 	p2p->time_expire = 0;
 	p2p->time_cache = 0;
@@ -181,9 +182,16 @@ void p2p_cron( void ) {
 
 		/* Announce my hostname every ~5 minutes. This includes a full search
 		 * to get the needed tokens first. */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce ) {
-			p2p_cron_announce_start();
-			time_add_5_min_approx( &_main->p2p->time_announce );
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_host ) {
+			p2p_cron_announce_start( _main->conf->host_id );
+			time_add_5_min_approx( &_main->p2p->time_announce_host );
+		}
+
+		/* Announce my group every ~5 minutes. This includes a full search
+		 * to get the needed tokens first. */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_group ) {
+			p2p_cron_announce_start( _main->conf->group_id );
+			time_add_5_min_approx( &_main->p2p->time_announce_group );
 		}
 
 		/* Ping all nodes every ~5 minutes. Run once a minute. */
@@ -295,10 +303,9 @@ void p2p_cron_find( UCHAR *target ) {
 	}
 }
 
-void p2p_cron_announce_start( void ) {
+void p2p_cron_announce_start( UCHAR *target ) {
 	LOOKUP *l = NULL;
 	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
-	UCHAR *target = _main->conf->host_id;
 	ITEM *ti = NULL;
 	UCHAR *p = NULL;
 	int nodes_compact_size = 0;

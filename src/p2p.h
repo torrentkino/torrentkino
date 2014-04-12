@@ -39,7 +39,8 @@ struct obj_p2p {
 	struct timeval time_now;
 	time_t time_maintainance;
 	time_t time_multicast;
-	time_t time_announce;
+	time_t time_announce_host;
+	time_t time_announce_group;
 	time_t time_restart;
 	time_t time_expire;
 	time_t time_cache;
@@ -60,7 +61,7 @@ void p2p_cron_ping( void );
 void p2p_cron_find_myself( void );
 void p2p_cron_find_random( void );
 void p2p_cron_find( UCHAR *target );
-void p2p_cron_announce_start( void );
+void p2p_cron_announce_start( UCHAR *target );
 void p2p_cron_announce_engage( ITEM *ti );
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );

@@ -46,15 +46,21 @@ struct obj_conf {
 
 #ifdef TORRENTKINO
 	char hostname[BUF_SIZE];
+	UCHAR host_id[SHA1_SIZE];
+
+	char groupname[BUF_SIZE];
+	UCHAR group_id[SHA1_SIZE];
+	int bool_group;
+
 	char domain[BUF_SIZE];
 	UCHAR node_id[SHA1_SIZE];
-	UCHAR host_id[SHA1_SIZE];
 	UCHAR null_id[SHA1_SIZE];
 	char bootstrap_node[BUF_SIZE];
 	unsigned int bootstrap_port;
-	unsigned int announce_port;
+
 	char realm[BUF_SIZE];
 	int bool_realm;
+
 	int strict;
 #ifdef POLARSSL
 	char key[BUF_SIZE];
@@ -72,6 +78,7 @@ void conf_write( void );
 void conf_home( struct obj_conf *conf, BEN *opts );
 #ifdef TORRENTKINO
 void conf_hostname( struct obj_conf *conf, BEN *opts );
+void conf_groupname( struct obj_conf *conf, BEN *opts );
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
 #endif
 

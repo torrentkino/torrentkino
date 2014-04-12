@@ -122,6 +122,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	/* Hostname */
 	conf_hostname( conf, opts );
 
+	/* Group */
+	conf_groupname( conf, opts );
+
 	/* Realm */
 	value = ben_dict_search_str( opts, "-r" );
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
@@ -136,20 +139,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf_hostid( conf->host_id, conf->hostname,
 		conf->realm, conf->bool_realm );
 
-	/* Announce this port */
-	value = ben_dict_search_str( opts, "-b" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		conf->announce_port = str_safe_port( (char *)ben_str_s( value ) );
-	} else {
-		if( getuid() == 0 ) {
-			conf->announce_port = PORT_WWW_PRIV;
-		} else {
-			conf->announce_port = PORT_WWW_USER;
-		}
-	}
-	if( conf->announce_port == 0 ) {
-		fail( "Invalid announce port number. (-a)" );
-	}
+	/* Compute group_id. Respect the realm. */
+	conf_hostid( conf->group_id, conf->groupname,
+		conf->realm, conf->bool_realm );
 
 	/* Lookup replies may enter the cache if the announced port matches mine */
 	if( ben_dict_search_str( opts, "-s" ) != NULL ) {
@@ -304,6 +296,23 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 	myfree( f );
 }
 
+void conf_groupname( struct obj_conf *conf, BEN *opts ) {
+	BEN *value = NULL;
+
+	/* Init */
+	strncpy( conf->groupname, "None", BUF_OFF1 );
+
+	value = ben_dict_search_str( opts, "-g" );
+	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
+		snprintf( conf->groupname, BUF_SIZE, "%s.%s",
+				(char *)ben_str_s( value ), conf->domain );
+		conf->bool_group = TRUE;
+		return;
+	} else {
+		conf->bool_group = FALSE;
+	}
+}
+
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
 	UCHAR sha1_buf1[SHA1_SIZE];
 	UCHAR sha1_buf2[SHA1_SIZE];
@@ -369,6 +378,7 @@ void conf_print( void ) {
 #ifdef TORRENTKINO
 	info( NULL, "Domain: %s (-d)", _main->conf->domain );
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
+	info( NULL, "Group: %s (-g)", _main->conf->groupname );
 
 	hex_hash_encode( hex, _main->conf->node_id );
 	info( NULL, "Node ID: %s", hex );
@@ -376,9 +386,13 @@ void conf_print( void ) {
 	hex_hash_encode( hex, _main->conf->host_id );
 	info( NULL, "Host ID: %s", hex );
 
+	if( _main->conf->bool_group ) {
+		hex_hash_encode( hex, _main->conf->group_id );
+		info( NULL, "Group ID: %s", hex );
+	}
+
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
-	info( NULL, "Announce port: %i (-b)", _main->conf->announce_port );
 	if( _main->conf->strict ) {
 		info( NULL, "Strict mode: Yes (-s)" );
 	} else {

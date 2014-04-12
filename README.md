@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-v] [-q] [-p port] [-a hostname] [-b port] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
+`torrentkino` [-v] [-q] [-p port] [-a hostname] [-g group] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -31,7 +31,7 @@ your Linux OS.
 	requests to the Torrentkino DHT daemon.
 
   * **$HOME/.torrentkino.conf**:
-    This file gets written by the Torrentkino daemon and contains the server
+	This file gets written by the Torrentkino daemon and contains the server
 	port number and some other hints like the TLD it shall be responsible for.
 	Those hints are used by **libnss_tk.so.2** 	and the **tk** cli program.
 
@@ -44,20 +44,22 @@ your Linux OS.
 ## OPTIONS
 
   * `-a` *hostname*:
-    Announce this hostname. By default /etc/hostname is used to determine your
+	Announce this hostname. By default /etc/hostname is used to determine your
 	hostname. The SHA1 hash of the hostname becomes the announced info_hash.
 
-  * `-b` *port*:
-	Announce this port together with your hostname. (Default: "8080")
+  * `-g` *group*:
+	Announce this group to organize different nodes in a workgroup. This can
+	be used as a discovery service. Lookup the group and you will see the other
+	members.
 
   * `-d` *domain*:
-    Instead of using the default TLD *.p2p*, you may chose a differrent TLD like
-	*.underground*, *.darknet* or *.whatever*. This setting primarely affects
-	the NSS module, because it needs to know for what TLD it shall contact the
-	Torrentkino daemon.
+	Instead of using the default TLD *.p2p*, you may chose a differrent TLD like
+	*.darknet*, *.cloud* or *.files*. This setting primarely affects
+	the NSS module, because it needs to know for what TLD it shall be
+	responsible.
 
   * `-n` *node id string*:
-    By default a random node id gets computed on every startup. For testing
+	By default a random node id gets computed on every startup. For testing
 	purposes it may be useful to keep the same node id all the time. The above
 	string is not used directly. Instead its SHA1 hash is used.
 
@@ -68,8 +70,8 @@ your Linux OS.
 	everybody may have his own http://mycloud.p2p for example.
 
   * `-s`:
-    Strict mode: Only accept lookup responses that match your own announced
-	port.
+	Strict mode: In this mode every node must use the same port to find each
+	other. Search results with different ports are silently dropped.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)
@@ -82,7 +84,7 @@ your Linux OS.
 	The bootstrap server will be addressed at this port. (Default: UDP/6881)
 
   * `-l`:
-    Lazy mode: This option sets a predefined bootstrap server like
+	Lazy mode: This option sets a predefined bootstrap server like
 	*router.utorrent.com* for example.
 
   * `-f`:
@@ -93,14 +95,6 @@ your Linux OS.
 
   * `-q`:
 	Be quiet. Default for the daemon mode.
-
-  * `-k` *password*:
-	Setting a password results in encrypting each packet with AES256. The
-	encrypted message is encapsulated in bencode too. You effectively
-	isolate your nodes from the rest of the world this way. This method is not
-	compatible to the Bittorrent network and only works between torrentkino
-	daemons. (Torrentkino needs to be compiled with PolarSSL support. See
-	Makefile.)
 
 ## EXAMPLES
 
