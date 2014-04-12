@@ -189,9 +189,11 @@ void p2p_cron( void ) {
 
 		/* Announce my group every ~5 minutes. This includes a full search
 		 * to get the needed tokens first. */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_group ) {
-			p2p_cron_announce_start( _main->conf->group_id );
-			time_add_5_min_approx( &_main->p2p->time_announce_group );
+		if( _main->conf->bool_group ) {
+			if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_group ) {
+				p2p_cron_announce_start( _main->conf->group_id );
+				time_add_5_min_approx( &_main->p2p->time_announce_group );
+			}
 		}
 
 		/* Ping all nodes every ~5 minutes. Run once a minute. */
