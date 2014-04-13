@@ -25,21 +25,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <unistd.h>
 
-#ifdef TUMBLEWEED
-#include "tumbleweed.h"
-#include "str.h"
-#include "malloc.h"
-#include "list.h"
-#include "node_tcp.h"
-#include "log.h"
-#include "file.h"
-#include "unix.h"
-#endif
-
-#ifdef TORRENTKINO
 #include "torrentkino.h"
 #include "log.h"
-#endif
 
 #include "conf.h"
 
@@ -74,15 +61,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
 		conf->port = str_safe_port( (char *)ben_str_s( value ) );
 	} else {
-#ifdef TUMBLEWEED
-		if( getuid() == 0 ) {
-			conf->port = PORT_WWW_PRIV;
-		} else {
-			conf->port = PORT_WWW_USER;
-		}
-#elif TORRENTKINO
 		conf->port = PORT_DHT_DEFAULT;
-#endif
 	}
 	if( conf->port == 0 ) {
 		fail( "Invalid port number (-p)" );
@@ -97,20 +76,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	/* HOME */
 	conf_home( conf, opts );
 
-#ifdef TUMBLEWEED
-	/* HTML index */
-	value = ben_dict_search_str( opts, "-i" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->file, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
-	} else {
-		snprintf( conf->file, BUF_SIZE, "%s", CONF_INDEX_NAME );
-	}
-	if( !str_isValidFilename( conf->file ) ) {
-		fail( "Index %s looks suspicious", conf->file );
-	}
-#endif
-
-#ifdef TORRENTKINO
 	/* TLD */
 	value = ben_dict_search_str( opts, "-d" );
 	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
@@ -206,7 +171,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		conf->bool_encryption = FALSE;
 	}
 #endif
-#endif
 
 	opts_free( opts );
 
@@ -218,48 +182,18 @@ void conf_free( void ) {
 }
 
 void conf_home( struct obj_conf *conf, BEN *opts ) {
-#ifdef TUMBLEWEED
-	BEN *value = NULL;
-#endif
 
-#ifdef TORRENTKINO
 	if( getenv( "HOME" ) == NULL || getuid() == 0 ) {
 		strncpy( conf->home, "/etc", BUF_OFF1 );
 	} else {
 		snprintf( conf->home,  BUF_SIZE, "%s", getenv( "HOME") );
 	}
-#endif
-
-#ifdef TUMBLEWEED
-	value = ben_dict_search_str( opts, "-w" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		char *p = NULL;
-
-		p = (char *)ben_str_s( value );
-
-		/* Absolute path or relative path */
-		if( *p == '/' ) {
-			snprintf( conf->home, BUF_SIZE, "%s", p );
-		} else if ( getenv( "PWD" ) != NULL ) {
-			snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "PWD" ), p );
-		} else {
-			strncpy( conf->home, "/var/www", BUF_OFF1 );
-		}
-	} else {
-		if( getenv( "HOME" ) == NULL || getuid() == 0 ) {
-			strncpy( conf->home, "/var/www", BUF_OFF1 );
-		} else {
-			snprintf( conf->home, BUF_SIZE, "%s/%s", getenv( "HOME"), "Public" );
-		}
-	}
-#endif
 
 	if( !file_isdir( conf->home ) ) {
 		fail( "%s does not exist", conf->home );
 	}
 }
 
-#ifdef TORRENTKINO
 void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 	BEN *value = NULL;
 	char *f = NULL;
@@ -330,12 +264,9 @@ void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
 		sha1_hash( host_id, hostname, strlen( hostname ) );
 	}
 }
-#endif
 
 void conf_print( void ) {
-#ifdef TORRENTKINO
 	char hex[HEX_LEN];
-#endif
 
 	if ( getenv( "PWD" ) == NULL || getenv( "HOME" ) == NULL ) {
 		info( NULL, "# Hint: Reading environment variables failed. sudo?");
@@ -357,25 +288,12 @@ void conf_print( void ) {
 		info( NULL, "Verbosity: Verbose (-q/-v)" );
 	}
 
-#ifdef TUMBLEWEED
-	info( NULL, "Workdir: %s (-w)", _main->conf->home );
-#elif TORRENTKINO
 	info( NULL, "Workdir: %s", _main->conf->home );
-#endif
 
-#ifdef TUMBLEWEED
-	info( NULL, "Index file: %s (-i)", _main->conf->file );
-#elif TORRENTKINO
 	info( NULL, "Config file: %s", _main->conf->file );
-#endif
 
-#ifdef TUMBLEWEED
-	info( NULL, "Listen to TCP/%i (-p)", _main->conf->port );
-#elif TORRENTKINO
 	info( NULL, "Listen to UDP/%i (-p)", _main->conf->port );
-#endif
 
-#ifdef TORRENTKINO
 	info( NULL, "Domain: %s (-d)", _main->conf->domain );
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
 	info( NULL, "Group: %s (-g)", _main->conf->groupname );
@@ -414,10 +332,8 @@ void conf_print( void ) {
 		info( NULL, "Encryption key: None (-k)" );
 	}
 #endif
-#endif
 }
 
-#ifdef TORRENTKINO
 void conf_write( void ) {
 	BEN *dict = ben_init( BEN_DICT );
 	BEN *key = NULL;
@@ -460,7 +376,6 @@ void conf_write( void ) {
 	raw_free( raw );
 	ben_free( dict );
 }
-#endif
 
 int conf_verbosity( void ) {
 	return _main->conf->verbosity;
