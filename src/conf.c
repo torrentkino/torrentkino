@@ -148,6 +148,11 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf_hostid( conf->group_id, conf->groupname,
 		conf->realm, conf->bool_realm );
 
+	/* I don't want to be responsible for myself */
+	if( memcmp( conf->host_id, conf->node_id, SHA1_SIZE ) == 0 ) {
+		fail( "The host id and the node id must not be the same" );
+	}
+
 	/* UID dependent configuration file */
 	if( getuid() == 0 ) {
 		snprintf( conf->file, BUF_SIZE, "%s/%s", conf->home, CONF_FILE );
