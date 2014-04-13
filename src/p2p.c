@@ -191,7 +191,6 @@ void p2p_cron( void ) {
 		 * to get the needed tokens first. */
 		if( _main->conf->bool_group ) {
 			if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_group ) {
-		printf("asdf\n");
 				p2p_cron_announce_start( _main->conf->group_id );
 				time_add_5_min_approx( &_main->p2p->time_announce_group );
 			}
