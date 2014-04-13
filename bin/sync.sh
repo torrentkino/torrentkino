@@ -20,8 +20,6 @@ cp -f debian/source/format $TGT/debian/source/
 
 cp -f src/ben.c $TGT/src/
 cp -f src/ben.h $TGT/src/
-cp -f src/conf.c $TGT/src/
-cp -f src/conf.h $TGT/src/
 cp -f src/fail.c $TGT/src/
 cp -f src/fail.h $TGT/src/
 cp -f src/file.c $TGT/src/
