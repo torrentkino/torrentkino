@@ -191,6 +191,7 @@ void p2p_cron( void ) {
 		 * to get the needed tokens first. */
 		if( _main->conf->bool_group ) {
 			if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_group ) {
+		printf("asdf\n");
 				p2p_cron_announce_start( _main->conf->group_id );
 				time_add_5_min_approx( &_main->p2p->time_announce_group );
 			}
@@ -358,7 +359,8 @@ void p2p_cron_announce_engage( ITEM *ti ) {
 
 		if( n->token_size != 0 ) {
 			t_new = tdb_put( P2P_ANNOUNCE_ENGAGE );
-			send_announce_request( &n->c_addr, tdb_tid( t_new ), n->token, n->token_size );
+			send_announce_request( &n->c_addr, tdb_tid( t_new ), l->target,
+					n->token, n->token_size );
 			j++;
 		}
 

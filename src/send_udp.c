@@ -572,8 +572,8 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list,
 	}
 */
 
-void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token,
-	int token_size ) {
+void send_announce_request( IP *sa, UCHAR *tid, UCHAR *target,
+		UCHAR *token, int token_size ) {
 
 	BEN *dict = ben_init( BEN_DICT );
 	BEN *key = NULL;
@@ -588,11 +588,11 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token,
 	ben_str( val, _main->conf->node_id, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
-	/* My host ID */
+	/* My host ID ot my group ID */
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_STR );
 	ben_str( key,( UCHAR *)"info_hash", 9 );
-	ben_str( val, _main->conf->host_id, SHA1_SIZE );
+	ben_str( val, target, SHA1_SIZE );
 	ben_dict( arg, key, val );
 
 	/* Port */

@@ -40,7 +40,8 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list,
 void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list,
 	int nodes_compact_size, UCHAR *tid, int tid_size );
 
-void send_announce_request( IP *sa, UCHAR *tid, UCHAR *token, int token_size );
+void send_announce_request( IP *sa, UCHAR *tid, UCHAR *target,
+		UCHAR *token, int token_size );
 void send_announce_reply( IP *sa, UCHAR *tid, int tid_size );
 
 void send_ip( IP *sa, UCHAR *tid, int tid_size );
