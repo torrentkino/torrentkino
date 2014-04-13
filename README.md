@@ -70,8 +70,9 @@ your Linux OS.
 	everybody may have his own http://mycloud.p2p for example.
 
   * `-s`:
-	Strict mode: In this mode every node must use the same port to find each
-	other. Search results with different ports are silently dropped.
+	Strict mode: In this mode all friendly nodes must operate on the same port
+	to find each other. Nodes, that operate/announce different ports, do not
+	show up in search results, even if they announce the *right* SHA1 hash.
 
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)
