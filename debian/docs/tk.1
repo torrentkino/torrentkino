@@ -7,7 +7,7 @@
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtorrentkino\fR [\-v] [\-q] [\-p port] [\-a hostname] [\-g group] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
+\fBtorrentkino\fR [\-q] [\-p port] [\-a hostname] [\-g group] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -79,15 +79,11 @@ Lazy mode: This option sets a predefined bootstrap server like \fIrouter\.utorre
 .
 .TP
 \fB\-f\fR
-Fork a daemon and run in background\. The output will be send to syslog\.
-.
-.TP
-\fB\-v\fR
-Verbose\. Default for the console mode\.
+Fork and become a daemon\.
 .
 .TP
 \fB\-q\fR
-Be quiet\. Default for the daemon mode\.
+Be quiet\.
 .
 .SH "EXAMPLES"
 Announce the hostname \fImy\.cloud\fR globally\.

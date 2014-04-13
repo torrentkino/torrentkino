@@ -45,5 +45,5 @@ void fail( const char *format, ... ) {
 
 	fprintf( stderr, "%s\n", va_buf );
 
-	exit( 1 );
+	exit( EXIT_FAILURE );
 }

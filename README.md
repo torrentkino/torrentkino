@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-v] [-q] [-p port] [-a hostname] [-g group] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
+`torrentkino` [-q] [-p port] [-a hostname] [-g group] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -89,13 +89,10 @@ your Linux OS.
 	*router.utorrent.com* for example.
 
   * `-f`:
-	Fork a daemon and run in background. The output will be send to syslog.
-
-  * `-v`:
-	Verbose. Default for the console mode.
+	Fork and become a daemon.
 
   * `-q`:
-	Be quiet. Default for the daemon mode.
+	Be quiet.
 
 ## EXAMPLES
 

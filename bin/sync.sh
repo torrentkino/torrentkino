@@ -33,8 +33,6 @@ cp -f src/log.h $TGT/src/
 cp -f src/main.h $TGT/src/
 cp -f src/malloc.c $TGT/src/
 cp -f src/malloc.h $TGT/src/
-cp -f src/opts.c $TGT/src/
-cp -f src/opts.h $TGT/src/
 cp -f src/str.c $TGT/src/
 cp -f src/str.h $TGT/src/
 cp -f src/thrd.c $TGT/src/

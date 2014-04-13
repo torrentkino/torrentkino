@@ -57,7 +57,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 UDP_NODE *node_init( UCHAR *node_id, IP *sa ) {
 	UDP_NODE *n = (UDP_NODE *) myalloc( sizeof(UDP_NODE) );
-		
+
 	/* ID */
 	memcpy( n->id, node_id, SHA1_SIZE );
 

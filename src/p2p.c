@@ -45,7 +45,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "conf.h"
 #include "file.h"
 #include "unix.h"
-#include "opts.h"
 #include "udp.h"
 #include "ben.h"
 #ifdef POLARSSL

@@ -24,80 +24,120 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <signal.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "torrentkino.h"
 #include "log.h"
-
 #include "conf.h"
 
 struct obj_conf *conf_init( int argc, char **argv ) {
-	struct obj_conf *conf = (struct obj_conf *) myalloc( sizeof(struct obj_conf) );
-	BEN *opts = opts_init();
-	BEN *value = NULL;
+	struct obj_conf *conf = myalloc( sizeof( struct obj_conf ) );
+	int opt = 0;
+	char opt_hostname[BUF_SIZE];
+	char opt_group[BUF_SIZE];
 
-	/* Parse command line */
-	opts_load( opts, argc, argv );
+	/* Defaults */
+	conf->mode = CONF_CONSOLE;
+	conf->port = PORT_DHT_DEFAULT;
+	conf->verbosity = CONF_VERBOSE;
+	conf->bootstrap_port = PORT_DHT_DEFAULT;
+	conf->cores = unix_cpus();
+	conf->strict = FALSE;
+	conf->bool_group = FALSE;
+	conf->bool_realm = FALSE;
+#ifdef POLARSSL
+	conf->bool_encryption = FALSE;
+	memset( conf->key, '\0', BUF_SIZE );
+#endif
+	memset( conf->null_id, '\0', SHA1_SIZE );
+	strncpy( conf->domain, TLD_DEFAULT, BUF_OFF1 );
+	strncpy( conf->realm, CONF_REALM, BUF_OFF1 );
+	strncpy( conf->bootstrap_node, MULTICAST_DEFAULT, BUF_OFF1 );
+	strncpy( opt_hostname, CONF_SRVNAME, BUF_OFF1 );
+	strncpy( opt_group, "None", BUF_OFF1 );
+	conf_hostname_from_file( opt_hostname );
+	conf_home_from_env( conf );
+	rand_urandom( conf->node_id, SHA1_SIZE );
 
-	/* Mode */
-	if( ben_dict_search_str( opts, "-f" ) != NULL ) {
-		conf->mode = CONF_DAEMON;
-	} else {
-		conf->mode = CONF_CONSOLE;
+	/* Arguments */
+	while( ( opt = getopt( argc, argv, "a:d:fg:hk:ln:p:qr:sx:y:" ) ) != -1 ) {
+		switch( opt ) {
+			case 'a':
+				snprintf( opt_hostname, BUF_SIZE, "%s", optarg );
+				break;
+			case 'd':
+				snprintf( conf->domain, BUF_SIZE, "%s", optarg );
+				break;
+			case 'f':
+				conf->mode = CONF_DAEMON;
+				break;
+			case 'g':
+				snprintf( opt_group, BUF_SIZE, "%s", optarg );
+				conf->bool_group = TRUE;
+				break;
+			case 'h':
+				conf_usage( argv[0] );
+				break;
+			case 'k':
+#ifdef POLARSSL
+				snprintf( conf->key, BUF_SIZE, "%s", optarg );
+				conf->bool_encryption = TRUE;
+#endif
+				break;
+			case 'l':
+				snprintf( conf->bootstrap_node, BUF_SIZE,
+						"%s", BOOTSTRAP_DEFAULT );
+				break;
+			case 'n':
+				sha1_hash( conf->node_id, optarg, strlen( optarg ) );
+				break;
+			case 'p':
+				conf->port = str_safe_port( optarg );
+				break;
+			case 'q':
+				conf->verbosity = CONF_BEQUIET;
+				break;
+			case 'r':
+				snprintf( conf->realm, BUF_SIZE, "%s", optarg );
+				conf->bool_realm = TRUE;
+				break;
+			case 's':
+				conf->strict = TRUE;
+				break;
+			case 'x':
+				snprintf( conf->bootstrap_node, BUF_SIZE, "%s", optarg );
+				break;
+			case 'y':
+				conf->bootstrap_port = str_safe_port( optarg );
+				break;
+			default: /* '?' */
+				conf_usage( argv[0] );
+		}
 	}
 
-	/* Verbosity */
-	if( ben_dict_search_str( opts, "-v" ) != NULL ) {
-		conf->verbosity = CONF_VERBOSE;
-	} else if ( ben_dict_search_str( opts, "-q" ) != NULL ) {
-		conf->verbosity = CONF_BEQUIET;
+	/* Put domain and hostname together */
+	snprintf( conf->hostname, BUF_SIZE, "%s.%s",
+			opt_hostname, conf->domain );
+
+	/* Put domain and group together */
+	if( conf->bool_group ) {
+		snprintf( conf->groupname, BUF_SIZE, "%s.%s",
+				opt_group, conf->domain );
 	} else {
-		/* Be verbose in the console and quiet while running as a daemon. */
-		conf->verbosity = ( conf->mode == CONF_CONSOLE ) ?
-			CONF_VERBOSE : CONF_BEQUIET;
+		snprintf( conf->groupname, BUF_SIZE, "%s",
+				opt_group );
 	}
 
-	/* Port */
-	value = ben_dict_search_str( opts, "-p" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		conf->port = str_safe_port( (char *)ben_str_s( value ) );
-	} else {
-		conf->port = PORT_DHT_DEFAULT;
-	}
 	if( conf->port == 0 ) {
 		fail( "Invalid port number (-p)" );
 	}
 
-	/* Cores */
-	conf->cores = unix_cpus();
+	if( conf->bootstrap_port == 0 ) {
+		fail( "Invalid bootstrap port number (-y)" );
+	}
+
 	if( conf->cores < 1 || conf->cores > 128 ) {
 		fail( "Invalid number of CPU cores" );
-	}
-
-	/* HOME */
-	conf_home( conf, opts );
-
-	/* TLD */
-	value = ben_dict_search_str( opts, "-d" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->domain, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
-	} else {
-		strncpy( conf->domain, TLD_DEFAULT, BUF_OFF1 );
-	}
-
-	/* Hostname */
-	conf_hostname( conf, opts );
-
-	/* Group */
-	conf_groupname( conf, opts );
-
-	/* Realm */
-	value = ben_dict_search_str( opts, "-r" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->realm, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
-		conf->bool_realm = TRUE;
-	} else {
-		snprintf( conf->realm, BUF_SIZE, "%s", CONF_REALM );
-		conf->bool_realm = FALSE;
 	}
 
 	/* Compute host_id. Respect the realm. */
@@ -108,71 +148,12 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf_hostid( conf->group_id, conf->groupname,
 		conf->realm, conf->bool_realm );
 
-	/* Lookup replies may enter the cache if the announced port matches mine */
-	if( ben_dict_search_str( opts, "-s" ) != NULL ) {
-		conf->strict = TRUE;
-	} else {
-		conf->strict = FALSE;
-	}
-
+	/* UID dependent configuration file */
 	if( getuid() == 0 ) {
 		snprintf( conf->file, BUF_SIZE, "%s/%s", conf->home, CONF_FILE );
 	} else {
 		snprintf( conf->file, BUF_SIZE, "%s/.%s", conf->home, CONF_FILE );
 	}
-
-	/* Node ID */
-	value = ben_dict_search_str( opts, "-n" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		sha1_hash( conf->node_id, (char *)ben_str_s( value ), ben_str_i( value ) );
-	} else {
-		rand_urandom( conf->node_id, SHA1_SIZE );
-	}
-
-	memset( conf->null_id, '\0', SHA1_SIZE );
-
-	/* Bootstrap node:
-	 * -x overwrites everything
-	 * -l sets a default internet bootstrap server
-	 * Last resort: Use multicast
-	 */
-	value = ben_dict_search_str( opts, "-x" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->bootstrap_node, BUF_SIZE, "%s",
-			(char *)ben_str_s( value ) );
-	} else {
-		if( ben_dict_search_str( opts, "-l" ) != NULL ) {
-			snprintf( conf->bootstrap_node, BUF_SIZE, "%s", BOOTSTRAP_DEFAULT );
-		} else {
-			snprintf( conf->bootstrap_node, BUF_SIZE, "%s", MULTICAST_DEFAULT );
-		}
-	}
-
-	/* Bootstrap port */
-	value = ben_dict_search_str( opts, "-y" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		conf->bootstrap_port = str_safe_port( (char *)ben_str_s( value ) );
-		printf( "%i %s \n", conf->bootstrap_port, (char *)ben_str_s( value ));
-		if( conf->bootstrap_port == 0 ) {
-			conf->bootstrap_port = PORT_DHT_DEFAULT;
-		}
-	} else {
-		conf->bootstrap_port = PORT_DHT_DEFAULT;
-	}
-
-#ifdef POLARSSL
-	/* Secret key */
-	value = ben_dict_search_str( opts, "-k" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->key, BUF_SIZE, "%s", (char *)ben_str_s( value ) );
-		conf->bool_encryption = TRUE;
-	} else {
-		memset( conf->key, '\0', BUF_SIZE );
-		conf->bool_encryption = FALSE;
-	}
-#endif
-
-	opts_free( opts );
 
 	return conf;
 }
@@ -181,7 +162,14 @@ void conf_free( void ) {
 	myfree( _main->conf );
 }
 
-void conf_home( struct obj_conf *conf, BEN *opts ) {
+void conf_usage( char *command ) {
+	fail(
+		"Usage: %s [-q] [-p port] [-a hostname] [-g group] "
+		"[-d domain] [-r realm] [-s] [-l] [-x server] [-y port]",
+		command );
+}
+
+void conf_home_from_env( struct obj_conf *conf ) {
 
 	if( getenv( "HOME" ) == NULL || getuid() == 0 ) {
 		strncpy( conf->home, "/etc", BUF_OFF1 );
@@ -194,23 +182,12 @@ void conf_home( struct obj_conf *conf, BEN *opts ) {
 	}
 }
 
-void conf_hostname( struct obj_conf *conf, BEN *opts ) {
-	BEN *value = NULL;
+void conf_hostname_from_file( char *opt_hostname ) {
 	char *f = NULL;
 	char *p = NULL;
 
-	/* Init */
-	strncpy( conf->hostname, "bulk.p2p", BUF_OFF1 );
+	snprintf( opt_hostname, BUF_SIZE, "%s", CONF_SRVNAME );
 
-	/* Hostname from args */
-	value = ben_dict_search_str( opts, "-a" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->hostname, BUF_SIZE, "%s.%s",
-				(char *)ben_str_s( value ), conf->domain );
-		return;
-	}
-
-	/* Hostname from file */
 	if( ! file_isreg( CONF_HOSTFILE ) ) {
 		return;
 	}
@@ -225,26 +202,9 @@ void conf_hostname( struct obj_conf *conf, BEN *opts ) {
 		*p = '\0';
 	}
 
-	snprintf( conf->hostname, BUF_SIZE, "%s.%s", f, conf->domain );
+	snprintf( opt_hostname, BUF_SIZE, "%s", f );
 
 	myfree( f );
-}
-
-void conf_groupname( struct obj_conf *conf, BEN *opts ) {
-	BEN *value = NULL;
-
-	/* Init */
-	strncpy( conf->groupname, "None", BUF_OFF1 );
-
-	value = ben_dict_search_str( opts, "-g" );
-	if( ben_is_str( value ) && ben_str_i( value ) >= 1 ) {
-		snprintf( conf->groupname, BUF_SIZE, "%s.%s",
-				(char *)ben_str_s( value ), conf->domain );
-		conf->bool_group = TRUE;
-		return;
-	} else {
-		conf->bool_group = FALSE;
-	}
 }
 
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
@@ -274,29 +234,23 @@ void conf_print( void ) {
 		info( NULL, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
 	}
 
-	info( NULL, "Cores: %i", _main->conf->cores );
-
-	if( _main->conf->mode == CONF_CONSOLE ) {
-		info( NULL, "Mode: Console (-f)" );
-	} else {
-		info( NULL, "Mode: Daemon (-f)" );
-	}
-
-	if( _main->conf->verbosity == CONF_BEQUIET ) {
-		info( NULL, "Verbosity: Quiet (-q/-v)" );
-	} else {
-		info( NULL, "Verbosity: Verbose (-q/-v)" );
-	}
-
-	info( NULL, "Workdir: %s", _main->conf->home );
-
-	info( NULL, "Config file: %s", _main->conf->file );
-
-	info( NULL, "Listen to UDP/%i (-p)", _main->conf->port );
-
-	info( NULL, "Domain: %s (-d)", _main->conf->domain );
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
+	info( NULL, "Domain: %s (-d)", _main->conf->domain );
 	info( NULL, "Group: %s (-g)", _main->conf->groupname );
+
+	if( _main->conf->bool_realm == 1 ) {
+		info( NULL, "Realm: %s (-r)", _main->conf->realm );
+	} else {
+		info( NULL, "Realm: None (-r)" );
+	}
+
+#ifdef POLARSSL
+	if( _main->conf->bool_encryption == 1 ) {
+		info( NULL, "Encryption key: %s (-k)", _main->conf->key );
+	} else {
+		info( NULL, "Encryption key: None (-k)" );
+	}
+#endif
 
 	hex_hash_encode( hex, _main->conf->node_id );
 	info( NULL, "Node ID: %s", hex );
@@ -309,6 +263,7 @@ void conf_print( void ) {
 		info( NULL, "Group ID: %s", hex );
 	}
 
+	info( NULL, "Listen to UDP/%i (-p)", _main->conf->port );
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	if( _main->conf->strict ) {
@@ -317,21 +272,22 @@ void conf_print( void ) {
 		info( NULL, "Strict mode: No (-s)" );
 	}
 
-	/* Realm */
-	if( _main->conf->bool_realm == 1 ) {
-		info( NULL, "Realm: %s (-r)", _main->conf->realm );
+	info( NULL, "Workdir: %s", _main->conf->home );
+	info( NULL, "Config file: %s", _main->conf->file );
+
+	if( _main->conf->mode == CONF_CONSOLE ) {
+		info( NULL, "Mode: Console (-f)" );
 	} else {
-		info( NULL, "Realm: None (-r)" );
+		info( NULL, "Mode: Daemon (-f)" );
 	}
 
-	/* Encryption */
-#ifdef POLARSSL
-	if( _main->conf->bool_encryption == 1 ) {
-		info( NULL, "Encryption key: %s (-k)", _main->conf->key );
+	if( _main->conf->verbosity == CONF_BEQUIET ) {
+		info( NULL, "Verbosity: Quiet (-q)" );
 	} else {
-		info( NULL, "Encryption key: None (-k)" );
+		info( NULL, "Verbosity: Verbose (-q)" );
 	}
-#endif
+
+	info( NULL, "Cores: %i", _main->conf->cores );
 }
 
 void conf_write( void ) {

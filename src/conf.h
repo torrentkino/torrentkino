@@ -24,8 +24,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "malloc.h"
 #include "fail.h"
 #include "file.h"
-#include "opts.h"
-
 
 #include "sha1.h"
 #include "random.h"
@@ -63,12 +61,12 @@ struct obj_conf {
 struct obj_conf *conf_init( int argc, char **argv );
 void conf_free( void );
 
+void conf_usage( char *command );
 void conf_print( void );
 void conf_write( void );
 
-void conf_home( struct obj_conf *conf, BEN *opts );
-void conf_hostname( struct obj_conf *conf, BEN *opts );
-void conf_groupname( struct obj_conf *conf, BEN *opts );
+void conf_home_from_env( struct obj_conf *conf );
+void conf_hostname_from_file( char *opt_hostname );
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
 
 int conf_verbosity( void );
