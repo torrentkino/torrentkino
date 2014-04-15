@@ -34,7 +34,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	struct obj_conf *conf = myalloc( sizeof( struct obj_conf ) );
 	int opt = 0;
 	char opt_hostname[BUF_SIZE];
-	char opt_group[BUF_SIZE];
 
 	/* Defaults */
 	conf->mode = CONF_CONSOLE;
@@ -43,7 +42,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf->bootstrap_port = PORT_DHT_DEFAULT;
 	conf->cores = unix_cpus();
 	conf->strict = FALSE;
-	conf->bool_group = FALSE;
 	conf->bool_realm = FALSE;
 #ifdef POLARSSL
 	conf->bool_encryption = FALSE;
@@ -54,13 +52,12 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	strncpy( conf->realm, CONF_REALM, BUF_OFF1 );
 	strncpy( conf->bootstrap_node, MULTICAST_DEFAULT, BUF_OFF1 );
 	strncpy( opt_hostname, CONF_SRVNAME, BUF_OFF1 );
-	strncpy( opt_group, "None", BUF_OFF1 );
 	conf_hostname_from_file( opt_hostname );
 	conf_home_from_env( conf );
 	rand_urandom( conf->node_id, SHA1_SIZE );
 
 	/* Arguments */
-	while( ( opt = getopt( argc, argv, "a:d:fg:hk:ln:p:qr:sx:y:" ) ) != -1 ) {
+	while( ( opt = getopt( argc, argv, "a:d:fhk:ln:p:qr:sx:y:" ) ) != -1 ) {
 		switch( opt ) {
 			case 'a':
 				snprintf( opt_hostname, BUF_SIZE, "%s", optarg );
@@ -70,10 +67,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 				break;
 			case 'f':
 				conf->mode = CONF_DAEMON;
-				break;
-			case 'g':
-				snprintf( opt_group, BUF_SIZE, "%s", optarg );
-				conf->bool_group = TRUE;
 				break;
 			case 'h':
 				conf_usage( argv[0] );
@@ -119,15 +112,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	snprintf( conf->hostname, BUF_SIZE, "%s.%s",
 			opt_hostname, conf->domain );
 
-	/* Put domain and group together */
-	if( conf->bool_group ) {
-		snprintf( conf->groupname, BUF_SIZE, "%s.%s",
-				opt_group, conf->domain );
-	} else {
-		snprintf( conf->groupname, BUF_SIZE, "%s",
-				opt_group );
-	}
-
 	if( conf->port == 0 ) {
 		fail( "Invalid port number (-p)" );
 	}
@@ -142,10 +126,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 
 	/* Compute host_id. Respect the realm. */
 	conf_hostid( conf->host_id, conf->hostname,
-		conf->realm, conf->bool_realm );
-
-	/* Compute group_id. Respect the realm. */
-	conf_hostid( conf->group_id, conf->groupname,
 		conf->realm, conf->bool_realm );
 
 	/* I don't want to be responsible for myself */
@@ -169,7 +149,7 @@ void conf_free( void ) {
 
 void conf_usage( char *command ) {
 	fail(
-		"Usage: %s [-q] [-p port] [-a hostname] [-g group] "
+		"Usage: %s [-q] [-p port] [-a hostname] "
 		"[-d domain] [-r realm] [-s] [-l] [-x server] [-y port]",
 		command );
 }
@@ -241,7 +221,6 @@ void conf_print( void ) {
 
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
 	info( NULL, "Domain: %s (-d)", _main->conf->domain );
-	info( NULL, "Group: %s (-g)", _main->conf->groupname );
 
 	if( _main->conf->bool_realm == 1 ) {
 		info( NULL, "Realm: %s (-r)", _main->conf->realm );
@@ -262,11 +241,6 @@ void conf_print( void ) {
 
 	hex_hash_encode( hex, _main->conf->host_id );
 	info( NULL, "Host ID: %s", hex );
-
-	if( _main->conf->bool_group ) {
-		hex_hash_encode( hex, _main->conf->group_id );
-		info( NULL, "Group ID: %s", hex );
-	}
 
 	info( NULL, "Listen to UDP/%i (-p)", _main->conf->port );
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );

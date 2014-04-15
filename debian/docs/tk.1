@@ -7,7 +7,7 @@
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtorrentkino\fR [\-q] [\-p port] [\-a hostname] [\-g group] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
+\fBtorrentkino\fR [\-q] [\-p port] [\-a hostname] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -40,10 +40,6 @@ This file gets written by the Torrentkino daemon when started by root for exampl
 .TP
 \fB\-a\fR \fIhostname\fR
 Announce this hostname\. By default /etc/hostname is used to determine your hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
-.
-.TP
-\fB\-g\fR \fIgroup\fR
-Announce this group to organize different nodes in a workgroup\. This can be used as a discovery service\. Lookup the group and you will see the other members\.
 .
 .TP
 \fB\-d\fR \fIdomain\fR

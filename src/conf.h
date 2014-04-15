@@ -34,7 +34,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 struct obj_conf {
 	char hostname[BUF_SIZE];
-	char groupname[BUF_SIZE];
 	char domain[BUF_SIZE];
 	char home[BUF_SIZE];
 	char file[BUF_SIZE];
@@ -48,7 +47,6 @@ struct obj_conf {
 	int verbosity;
 	int mode;
 	int strict;
-	int bool_group;
 	int bool_realm;
 	unsigned int port;
 	unsigned int bootstrap_port;

@@ -40,7 +40,6 @@ struct obj_p2p {
 	time_t time_maintainance;
 	time_t time_multicast;
 	time_t time_announce_host;
-	time_t time_announce_group;
 	time_t time_restart;
 	time_t time_expire;
 	time_t time_cache;

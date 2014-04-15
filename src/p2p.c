@@ -72,7 +72,6 @@ P2P *p2p_init( void ) {
 	p2p->time_maintainance = 0;
 	p2p->time_multicast = 0;
 	p2p->time_announce_host = 0;
-	p2p->time_announce_group = 0;
 	p2p->time_restart = 0;
 	p2p->time_expire = 0;
 	p2p->time_cache = 0;
@@ -185,16 +184,6 @@ void p2p_cron( void ) {
 			p2p_localhost_lookup_remote( _main->conf->host_id,
 				P2P_ANNOUNCE_START, NULL, NULL );
 			time_add_5_min_approx( &_main->p2p->time_announce_host );
-		}
-
-		/* Announce my group every ~5 minutes. This includes a full search
-		 * to get the needed tokens first. */
-		if( _main->conf->bool_group ) {
-			if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_group ) {
-				p2p_localhost_lookup_remote( _main->conf->group_id,
-					P2P_ANNOUNCE_START, NULL, NULL );
-				time_add_5_min_approx( &_main->p2p->time_announce_group );
-			}
 		}
 
 		/* Ping all nodes every ~5 minutes. Run once a minute. */

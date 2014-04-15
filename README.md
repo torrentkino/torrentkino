@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-q] [-p port] [-a hostname] [-g group] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
+`torrentkino` [-q] [-p port] [-a hostname] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -46,11 +46,6 @@ your Linux OS.
   * `-a` *hostname*:
 	Announce this hostname. By default /etc/hostname is used to determine your
 	hostname. The SHA1 hash of the hostname becomes the announced info_hash.
-
-  * `-g` *group*:
-	Announce this group to organize different nodes in a workgroup. This can
-	be used as a discovery service. Lookup the group and you will see the other
-	members.
 
   * `-d` *domain*:
 	Instead of using the default TLD *.p2p*, you may chose a differrent TLD like
