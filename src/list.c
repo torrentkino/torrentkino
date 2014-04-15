@@ -152,7 +152,7 @@ ITEM *list_ins( LIST *list, ITEM *here, void *payload ) {
 	if( list_size( list ) == 0 ) {
 		return list_put( list, payload );
 	}
-	
+
 	/* Payload */
 	item = (ITEM *) myalloc( sizeof(ITEM) );
 	item->val = payload;

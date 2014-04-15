@@ -74,15 +74,7 @@ ITEM *tdb_put( int type ) {
 	/* Availability */
 	time_add_1_min( &tid->time );
 
-	/* More details */
-//	switch( type ) {
-//		case P2P_GET_PEERS:
-//		case P2P_ANNOUNCE_START:
-//			tid->lookup = ldb_init( target, from );
-//			break;
-//		default:
-//			tid->lookup = NULL;
-//	}
+	/* More details for ANNOUNCE_PEER and GET_PEERS requests */
 	tid->lookup = NULL;
 
 	item = list_put( _main->transaction->list, tid );
@@ -127,7 +119,7 @@ void tdb_expire( time_t now ) {
 
 			switch( tid->type ) {
 				case P2P_ANNOUNCE_START:
-					p2p_cron_announce_engage( item );
+					p2p_cron_announce( item );
 					break;
 			}
 

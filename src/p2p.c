@@ -182,7 +182,8 @@ void p2p_cron( void ) {
 		/* Announce my hostname every ~5 minutes. This includes a full search
 		 * to get the needed tokens first. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_host ) {
-			p2p_cron_announce_start( _main->conf->host_id );
+			p2p_localhost_lookup_remote( _main->conf->host_id,
+				P2P_ANNOUNCE_START, NULL, NULL );
 			time_add_5_min_approx( &_main->p2p->time_announce_host );
 		}
 
@@ -190,7 +191,8 @@ void p2p_cron( void ) {
 		 * to get the needed tokens first. */
 		if( _main->conf->bool_group ) {
 			if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_group ) {
-				p2p_cron_announce_start( _main->conf->group_id );
+				p2p_localhost_lookup_remote( _main->conf->group_id,
+					P2P_ANNOUNCE_START, NULL, NULL );
 				time_add_5_min_approx( &_main->p2p->time_announce_group );
 			}
 		}
@@ -304,43 +306,7 @@ void p2p_cron_find( UCHAR *target ) {
 	}
 }
 
-void p2p_cron_announce_start( UCHAR *target ) {
-	LOOKUP *l = NULL;
-	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
-	ITEM *ti = NULL;
-	UCHAR *p = NULL;
-	int nodes_compact_size = 0;
-	int j = 0;
-	IP sin;
-	UCHAR *id = NULL;
-
-	/* Start the incremental remote search program */
-	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket,
-		nodes_compact_list, target );
-
-	/* Create tid and get the lookup table */
-	ti = tdb_put( P2P_ANNOUNCE_START );
-	l = ldb_init( target, NULL, NULL );
-	tdb_link_ldb( ti, l );
-
-	p = nodes_compact_list;
-	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_TRIPLE ) {
-
-		/* ID */
-		id = p;	p += SHA1_SIZE;
-
-		/* IP + Port */
-		p = ip_bytes_to_sin( &sin, p );
-
-		/* Remember queried node */
-		ldb_put( l, id, &sin );
-
-		/* Query node */
-		send_get_peers_request( &sin, target, tdb_tid( ti ) );
-	}
-}
-
-void p2p_cron_announce_engage( ITEM *ti ) {
+void p2p_cron_announce( ITEM *ti ) {
 	ITEM *item = NULL;
 	ITEM *t_new = NULL;
 	int j = 0;
@@ -1003,7 +969,6 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 	BEN *val = NULL;
 	ITEM *item = NULL;
 	long int j = 0;
-	int type = tdb_type( ti );
 	char hex[HEX_LEN];
 
 	if( l == NULL ) {
@@ -1012,7 +977,7 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 
 	ldb_update( l, node_id, token, from );
 
-	/* Get values */
+	/* Extract values and create a nodes_compact_list */
 	item = list_start( values->v.l );
 	while( item != NULL && j < 8 ) {
 		val = list_value( item );
@@ -1030,32 +995,35 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 		j++;
 	}
 
-	/* Lookup request? */
-	if( type == P2P_GET_PEERS && nodes_compact_size > 0 ) {
-
-		/* Info */
-		hex_hash_encode( hex, l->target );
-		info( from, "Found %s at", hex );
-
-		/* Cache result */
-		cache_put( l->target, nodes_compact_list, nodes_compact_size );
-
-		/* tknss and tkcli are not involved. */
-		if( ! l->send_reply ) {
-			return;
-		}
-
-		/* Get the compact_list from the cache, because not all the data above
-		 * might enter the cache. */
-		nodes_compact_size = cache_compact_list( nodes_compact_list, l->target );
-		if( nodes_compact_size <= 0 ) {
-			return;
-		}
-
-		/* Send the result back to tknss / tkcli */
-		send_get_peers_values( &l->c_addr,
-			nodes_compact_list, nodes_compact_size,	l->tid, l->tid_size );
+	if( nodes_compact_size <= 0 ) {
+		return;
 	}
+
+	/* Info */
+	hex_hash_encode( hex, l->target );
+	info( from, "Found %s at", hex );
+
+	/* tknss and tkcli are not involved:
+	 * Random lookups are not initiated by a client.
+	 * Periodic announces are not initiated by a client.
+	 * Stop.
+	 */
+	if( ! l->send_reply ) {
+		return;
+	}
+
+	/* Cache result: It must come from tknss or tkcli. */
+	cache_put( l->target, nodes_compact_list, nodes_compact_size );
+
+	/* Get the merged compact_list from the cache. */
+	nodes_compact_size = cache_compact_list( nodes_compact_list, l->target );
+	if( nodes_compact_size <= 0 ) {
+		return;
+	}
+
+	/* Send the result back to tknss / tkcli */
+	send_get_peers_values( &l->c_addr,
+		nodes_compact_list, nodes_compact_size,	l->tid, l->tid_size );
 }
 
 /*
@@ -1160,7 +1128,7 @@ void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from ) {
 		info( from, "Missing or broken hostname from" );
 		return;
 	}
-	if( ben_str_i( entity ) > 256 ) {
+	if( ben_str_i( entity ) > 255 ) {
 		info( from, "Name too long from" );
 		return;
 	}
@@ -1193,11 +1161,8 @@ void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from ) {
 	}
 
 	/* Start remote search */
-	result = p2p_localhost_lookup_remote( target, tid, from );
-	if( result == TRUE ) {
-		info( NULL, "LOOKUP %s (remote)", hostname );
-		return;
-	}
+	p2p_localhost_lookup_remote( target, P2P_GET_PEERS, tid, from );
+	info( NULL, "LOOKUP %s (remote)", hostname );
 }
 
 int p2p_localhost_lookup_cache( UCHAR *target, BEN *tid, IP *from ) {
@@ -1235,22 +1200,22 @@ int p2p_localhost_lookup_local( UCHAR *target, BEN *tid, IP *from ) {
 	return TRUE;
 }
 
-int p2p_localhost_lookup_remote( UCHAR *target, BEN *tid, IP *from ) {
+void p2p_localhost_lookup_remote( UCHAR *target, int type, BEN *tid, IP *from ) {
 	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
 	int nodes_compact_size = 0;
-	IP sin;
+	LOOKUP *l = NULL;
 	UCHAR *p = NULL;
 	UCHAR *id = NULL;
-	int j = 0;
 	ITEM *ti = NULL;
-	LOOKUP *l = NULL;
+	int j = 0;
+	IP sin;
 
 	/* Start the incremental remote search program */
 	nodes_compact_size = bckt_compact_list( _main->nbhd->bucket,
 		nodes_compact_list, target );
 
 	/* Create tid and get the lookup table */
-	ti = tdb_put( P2P_GET_PEERS );
+	ti = tdb_put( type );
 	l = ldb_init( target, from, tid );
 	tdb_link_ldb( ti, l );
 
@@ -1269,8 +1234,6 @@ int p2p_localhost_lookup_remote( UCHAR *target, BEN *tid, IP *from ) {
 		/* Query node */
 		send_get_peers_request( &sin, target, tdb_tid( ti ) );
 	}
-
-	return TRUE;
 }
 
 int p2p_is_hash( BEN *node ) {

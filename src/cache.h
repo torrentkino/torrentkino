@@ -57,6 +57,7 @@ void cache_free( void );
 void cache_clean( void );
 void cache_put( UCHAR *target_id, UCHAR *nodes_compact_list, int nodes_compact_size );
 void cache_del( ITEM *i );
+TARGET_C *cache_prepare( UCHAR *target_id );
 void cache_expire( time_t now );
 void cache_renew( time_t now );
 void cache_print( void );

@@ -45,17 +45,13 @@ void cache_clean( void ) {
 }
 
 void cache_put( UCHAR *target_id, UCHAR *nodes_compact_list, int nodes_compact_size ) {
-	TARGET_C *target = NULL;
+	TARGET_C *target = cache_prepare( target_id );
 	UCHAR *pair = NULL;
 	int j = 0;
 
-	target = cache_find( target_id );
-
-	/* Create a new target if necessary  */
-	if ( target == NULL ) {
-		target = tgt_c_init( target_id );
-		list_ins( _main->cache->list, list_start( _main->cache->list ), target );
-		hash_put( _main->cache->hash, target->target, SHA1_SIZE, target );
+	/* Overflow */
+	if( target == NULL ) {
+		return;
 	}
 
 	/* Update target list */
@@ -84,6 +80,31 @@ void cache_del( ITEM *i ) {
 	hash_del( _main->cache->hash, target->target, SHA1_SIZE );
 	list_del( _main->cache->list, i );
 	tgt_c_free( target );
+}
+
+TARGET_C *cache_prepare( UCHAR *target_id ) {
+	TARGET_C *target = cache_find( target_id );
+	ITEM *i = NULL;
+
+	/* Target is in the cache */
+	if( target != NULL ) {
+		return target;
+	}
+
+	/* Create a new target */
+	target = tgt_c_init( target_id );
+	i = list_ins( _main->cache->list,
+		list_start( _main->cache->list ), target );
+
+	/* Overflow */
+	if( i == NULL ) {
+		tgt_c_free( target );
+		return NULL;
+	}
+
+	hash_put( _main->cache->hash, target->target, SHA1_SIZE, target );
+
+	return target;
 }
 
 void cache_expire( time_t now ) {
@@ -119,7 +140,7 @@ void cache_renew( time_t now ) {
 		/* Lookup target on my own every 5 minutes */
 		t = list_value( i );
 		if( now > t->refresh ) {
-			p2p_localhost_lookup_remote( t->target, NULL, NULL );
+			p2p_localhost_lookup_remote( t->target, P2P_GET_PEERS, NULL, NULL );
 			time_add_5_min_approx( &t->refresh );
 			cache_print();
 		}
@@ -179,8 +200,8 @@ int cache_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id ) {
 		j++;
 	}
 
-	/* Extend valid lifetime: This request has been made by a client. So keep
-	 * this cache item alive. */
+	/* Request for existing cache entry.
+	   Extend its valid lifetime to keep in warm. */
 	time_add_30_min( &target->lifetime );
 
 	return size;
@@ -278,7 +299,7 @@ void tgt_c_update( TARGET_C *target, UCHAR *pair ) {
 	NODE_C *node = NULL;
 	ITEM *i = NULL;
 
-	if ( ( i = tgt_c_find( target, pair ) ) == NULL ) {
+	if( ( i = tgt_c_find( target, pair ) ) == NULL ) {
 
 		/* New node */
 		tgt_c_put( target, pair );
