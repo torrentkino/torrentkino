@@ -1,3 +1,10 @@
+torrentkino (0.26) wheezy; urgency=low
+
+  * Renamed commands
+  * Use getopt() instead of homebrew()
+  * Enhanced cli
+
+ -- Aiko Barz <aiko@torrentkino.de>  Thu, 17 Apr 2014 23:52:00 +0100
 torrentkino (0.25) wheezy; urgency=low
 
   * Switch -t: Chose a different TLD. This mainly affects the NSS module.
