@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`torrentkino` [-q] [-p port] [-a hostname] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
+`tk[46]` [-q] [-p port] [-a hostname] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
 
 ## DESCRIPTION
 
@@ -93,25 +93,25 @@ your Linux OS.
 
 Announce the hostname *my.cloud* globally.
 
-	$ torrentkino6 -a my -d cloud -l
+	$ tk6 -a my -d cloud -l
 	$ getent hosts my.cloud
-	$ tk my.cloud
-	$ tk http://my.cloud/index.html
+	$ tkc my.cloud
+	$ tkc http://my.cloud/index.html
 
 Announce the hostname *mycloud.p2p* within the LAN.
 
-	$ torrentkino4 -a mycloud
+	$ tk4 -a mycloud
 	$ getent hosts mycloud.p2p
-	$ tk mycloud.p2p
-	$ tk http://mycloud.p2p/index.html
+	$ tkc mycloud.p2p
+	$ tkc http://mycloud.p2p/index.html
 
 Isolate your nodes within a realm *darkness*, fork the process into background
 and log everything to syslog.
 
-	$ torrentkino6 -a torrentkino -d cloud -r darkness -l -s -f -v
+	$ tk6 -a torrentkino -d cloud -r darkness -l -s -f -v
 	$ getent hosts torrentkino.cloud
-	$ tk torrentkino.cloud
-	$ tk http://torrentkino.cloud/index.html
+	$ tkc torrentkino.cloud
+	$ tkc http://torrentkino.cloud/index.html
 
 ## INSTALLATION
 

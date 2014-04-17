@@ -7,7 +7,7 @@
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtorrentkino\fR [\-q] [\-p port] [\-a hostname] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
+\fBtk[46]\fR [\-q] [\-p port] [\-a hostname] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -88,10 +88,10 @@ Announce the hostname \fImy\.cloud\fR globally\.
 .
 .nf
 
-$ torrentkino6 \-a my \-d cloud \-l
+$ tk6 \-a my \-d cloud \-l
 $ getent hosts my\.cloud
-$ tk my\.cloud
-$ tk http://my\.cloud/index\.html
+$ tkc my\.cloud
+$ tkc http://my\.cloud/index\.html
 .
 .fi
 .
@@ -104,10 +104,10 @@ Announce the hostname \fImycloud\.p2p\fR within the LAN\.
 .
 .nf
 
-$ torrentkino4 \-a mycloud
+$ tk4 \-a mycloud
 $ getent hosts mycloud\.p2p
-$ tk mycloud\.p2p
-$ tk http://mycloud\.p2p/index\.html
+$ tkc mycloud\.p2p
+$ tkc http://mycloud\.p2p/index\.html
 .
 .fi
 .
@@ -120,10 +120,10 @@ Isolate your nodes within a realm \fIdarkness\fR, fork the process into backgrou
 .
 .nf
 
-$ torrentkino6 \-a torrentkino \-d cloud \-r darkness \-l \-s \-f \-v
+$ tk6 \-a torrentkino \-d cloud \-r darkness \-l \-s \-f \-v
 $ getent hosts torrentkino\.cloud
-$ tk torrentkino\.cloud
-$ tk http://torrentkino\.cloud/index\.html
+$ tkc torrentkino\.cloud
+$ tkc http://torrentkino\.cloud/index\.html
 .
 .fi
 .

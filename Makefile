@@ -1,4 +1,4 @@
-SUBDIRS = torrentkino6 torrentkino4 tknss tkcli
+SUBDIRS = tk6 tk4 tkc tknss
 #SUBDIRS = tumbleweed
 
 .PHONY : all clean install docs sync debian ubuntu $(SUBDIRS)

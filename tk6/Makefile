@@ -1,4 +1,4 @@
-export CODENAME = torrentkino6
+export CODENAME = tk6
 export CC = gcc
 
 export CFLAGS_MIN = -O2 -std=gnu99

@@ -21,6 +21,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <getopt.h>
 
 #include "tkcli.h"
 
@@ -164,6 +165,8 @@ int main( int argc, char **argv ) {
 	if( argv == NULL ) {
 		return 1;
 	}
+
+	hostname = argv[1];
 
 	torrentkino_url( argv[1], &hostname, &handler, &path );
 
