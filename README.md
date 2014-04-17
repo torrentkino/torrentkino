@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`tk[46]` [-q] [-p port] [-a hostname] [-d domain] [-r realm] [-s] [-l] [-x server] [-y port]
+`tk[46]` [-a hostname] [-b port] [-d domain] [-r realm] [-p port] [-x server] [-y port] [-q] [-l] [-s]
 
 ## DESCRIPTION
 
@@ -47,6 +47,9 @@ your Linux OS.
 	Announce this hostname. By default /etc/hostname is used to determine your
 	hostname. The SHA1 hash of the hostname becomes the announced info_hash.
 
+  * `-b` *port*:
+	Announce this port together with your hostname. (Default: "8080")
+
   * `-d` *domain*:
 	Instead of using the default TLD *.p2p*, you may chose a differrent TLD like
 	*.darknet*, *.cloud* or *.files*. This setting primarely affects
@@ -64,11 +67,6 @@ your Linux OS.
 	This is useful to handle duplicate hostnames. With different realms
 	everybody may have his own http://mycloud.p2p for example.
 
-  * `-s`:
-	Strict mode: In this mode all friendly nodes must operate on the same port
-	to find each other. Nodes, that operate/announce different ports, do not
-	show up in search results, even if they announce the *right* SHA1 hash.
-
   * `-p` *port*:
 	Listen to this port (Default: UDP/6881)
 
@@ -82,6 +80,11 @@ your Linux OS.
   * `-l`:
 	Lazy mode: This option sets a predefined bootstrap server like
 	*router.utorrent.com* for example.
+
+  * `-s`:
+	Strict mode: In this mode all friendly nodes must operate on the same port
+	to find each other. Nodes, that operate/announce different ports, do not
+	show up in search results, even if they announce the *right* SHA1 hash.
 
   * `-f`:
 	Fork and become a daemon.

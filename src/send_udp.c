@@ -566,7 +566,7 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list,
 	"a": {
 		"id": "abcdefghij0123456789",
 		"info_hash": "mnopqrstuvwxyz123456",
-		"port": 6881,
+		"port": 8080,
 		"token": "aoeusnth"
 		}
 	}
@@ -599,7 +599,7 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *target,
 	key = ben_init( BEN_STR );
 	val = ben_init( BEN_INT );
 	ben_str( key,( UCHAR *)"port", 4 );
-	ben_int( val, _main->conf->port );
+	ben_int( val, _main->conf->announce_port );
 	ben_dict( arg, key, val );
 
 	/* Token */

@@ -26,10 +26,11 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "tksrc.h"
 
 int torrentkino_lookup( const char *handler, const char *hostname,
-		const char *path, unsigned int port, int mode );
+		const char *path, unsigned int port, int mode,
+		int opt_num, int opt_port );
 void torrenkino_print6( struct sockaddr_in6 *sin, const char *handler,
-		const char *path );
+		const char *path, const char *hostname, int opt_num, int opt_port );
 void torrenkino_print( struct sockaddr_in *sin, const char *handler,
-		const char *path );
+		const char *path, const char *hostname, int opt_num, int opt_port );
 
 #endif

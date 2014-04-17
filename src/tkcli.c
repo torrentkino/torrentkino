@@ -26,7 +26,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "tkcli.h"
 
 int torrentkino_lookup( const char *handler, const char *hostname,
-		const char *path, unsigned int port, int mode ) {
+		const char *path, unsigned int port, int mode,
+		int opt_num, int opt_port ) {
 	UCHAR bencode[BUF_SIZE];
 	int bensize = 0;
 	int j = 0;
@@ -93,10 +94,12 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 
 		if( mode == 6 ) {
 			_nss_tk_bytes_to_sin6( &sin6, ben_str_s( ip_bin ) );
-			torrenkino_print6( &sin6, handler, path );
+			torrenkino_print6( &sin6, handler, path, hostname,
+				opt_num, opt_port );
 		} else {
 			_nss_tk_bytes_to_sin( &sin, ben_str_s( ip_bin ) );
-			torrenkino_print( &sin, handler, path );
+			torrenkino_print( &sin, handler, path, hostname, 
+				opt_num, opt_port );
 		}
 
 		if( path != NULL && *path != '\0' ) {
@@ -114,16 +117,24 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 }
 
 void torrenkino_print6( struct sockaddr_in6 *sin, const char *handler,
-		const char *path ) {
+		const char *path, const char *hostname, int opt_num, int opt_port ) {
 	char ip_buf[INET6_ADDRSTRLEN+1];
-	memset( ip_buf, '\0', INET6_ADDRSTRLEN+1);
-	printf("[%s]:%i",
-			inet_ntop( AF_INET6, &sin->sin6_addr, ip_buf, INET6_ADDRSTRLEN ),
-			ntohs( sin->sin6_port ) );
+
+	if( opt_num == TRUE ) {
+		memset( ip_buf, '\0', INET6_ADDRSTRLEN+1);
+		printf("[%s]",
+			inet_ntop( AF_INET6, &sin->sin6_addr, ip_buf, INET6_ADDRSTRLEN ) );
+	} else {
+		printf("%s", hostname );
+	}
+
+	if( opt_port == TRUE ) {
+		printf(":%i", ntohs( sin->sin6_port ) );
+	}
 }
 
 void torrenkino_print( struct sockaddr_in *sin, const char *handler,
-		const char *path ) {
+		const char *path, const char *hostname, int opt_num, int opt_port ) {
 	char ip_buf[INET_ADDRSTRLEN+1];
 	memset( ip_buf, '\0', INET_ADDRSTRLEN+1);
 	printf("%s:%i",
@@ -152,39 +163,51 @@ void torrentkino_url( char *url, char **hostname, char **handler,
 }
 
 int main( int argc, char **argv ) {
+	char domain[BUF_SIZE];
 	char *hostname = NULL;
 	char *handler = NULL;
 	char *path = NULL;
 	unsigned int port = 0;
 	int mode = 0;
-	char domain[BUF_SIZE];
+	int opt = 0;
+	int opt_port = FALSE;
+	int opt_num = FALSE;
+	int i = 0;
 
-	if( argc != 2 ) {
-		return 1;
-	}
-	if( argv == NULL ) {
-		return 1;
-	}
-
-	hostname = argv[1];
-
-	torrentkino_url( argv[1], &hostname, &handler, &path );
-
-	/* Get some hints */
-	if( !_nss_tk_conf( &port, &mode, domain ) ) {
-		fail( "Reading configuration failed" );
-	}
-
-	if( !str_valid_hostname( hostname, strlen( hostname ) ) ) {
-		fail( "%s is not a valid hostname", hostname );
+	/* Arguments */
+	while( ( opt = getopt( argc, argv, "np" ) ) != -1 ) {
+		switch( opt ) {
+			case 'n':
+				opt_num = TRUE;
+				break;
+			case 'p':
+				opt_port = TRUE;
+				break;
+			default:
+				fail( "%s [-n] [-p] hostname", argv[0] );
+		}
 	}
 
-	if( !str_valid_tld( hostname, strlen( hostname ), domain ) ) {
-		fail( "The TLD of %s does not match .%s", hostname, domain );
-	}
+	for( i = optind; i < argc; i++ ) {
+		torrentkino_url( argv[i], &hostname, &handler, &path );
 
-	if( ! torrentkino_lookup( handler, hostname, path, port, mode ) ) {
-		fail( "Looking up %s failed", hostname );
+		/* Get some hints */
+		if( !_nss_tk_conf( &port, &mode, domain ) ) {
+			fail( "Reading configuration failed" );
+		}
+
+		if( !str_valid_hostname( hostname, strlen( hostname ) ) ) {
+			fail( "%s is not a valid hostname", hostname );
+		}
+
+		if( !str_valid_tld( hostname, strlen( hostname ), domain ) ) {
+			fail( "The TLD of %s does not match .%s", hostname, domain );
+		}
+
+		if( ! torrentkino_lookup( handler, hostname, path, port, mode,
+			opt_num, opt_port ) ) {
+			fail( "Looking up %s failed", hostname );
+		}
 	}
 
 	return 0;

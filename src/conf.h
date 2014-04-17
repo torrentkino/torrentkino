@@ -50,6 +50,7 @@ struct obj_conf {
 	int bool_realm;
 	unsigned int port;
 	unsigned int bootstrap_port;
+	unsigned int announce_port;
 #ifdef POLARSSL
 	char key[BUF_SIZE];
 	int bool_encryption;

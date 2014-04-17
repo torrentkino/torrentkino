@@ -40,6 +40,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf->port = PORT_DHT_DEFAULT;
 	conf->verbosity = CONF_VERBOSE;
 	conf->bootstrap_port = PORT_DHT_DEFAULT;
+	conf->announce_port = 8080;
 	conf->cores = unix_cpus();
 	conf->strict = FALSE;
 	conf->bool_realm = FALSE;
@@ -57,10 +58,13 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	rand_urandom( conf->node_id, SHA1_SIZE );
 
 	/* Arguments */
-	while( ( opt = getopt( argc, argv, "a:d:fhk:ln:p:qr:sx:y:" ) ) != -1 ) {
+	while( ( opt = getopt( argc, argv, "a:b:d:fhk:ln:p:qr:sx:y:" ) ) != -1 ) {
 		switch( opt ) {
 			case 'a':
 				snprintf( opt_hostname, BUF_SIZE, "%s", optarg );
+				break;
+			case 'b':
+				conf->announce_port = str_safe_port( optarg );
 				break;
 			case 'd':
 				snprintf( conf->domain, BUF_SIZE, "%s", optarg );
@@ -149,8 +153,8 @@ void conf_free( void ) {
 
 void conf_usage( char *command ) {
 	fail(
-		"Usage: %s [-q] [-p port] [-a hostname] "
-		"[-d domain] [-r realm] [-s] [-l] [-x server] [-y port]",
+		"Usage: %s [-a hostname] [-b port] [-d domain] [-r realm] [-p port] "
+		"[-x server] [-y port] [-q] [-l] [-s]", 
 		command );
 }
 
@@ -242,6 +246,7 @@ void conf_print( void ) {
 	hex_hash_encode( hex, _main->conf->host_id );
 	info( NULL, "Host ID: %s", hex );
 
+	info( NULL, "Announce this port: %i (-b)", _main->conf->announce_port );
 	info( NULL, "Listen to UDP/%i (-p)", _main->conf->port );
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
