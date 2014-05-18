@@ -74,7 +74,7 @@ void udp_start( void ) {
 
 #ifdef IPV6
 	/* Disable IPv4 */
-	if( setsockopt( _main->udp->sockfd, 
+	if( setsockopt( _main->udp->sockfd,
 		IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int ) ) == -1 ) {
 		fail( "Setting IPV6_V6ONLY failed" );
 	}
@@ -94,10 +94,10 @@ void udp_start( void ) {
 }
 
 void udp_stop( void ) {
-	
+
 	/* Stop multicast */
 	udp_multicast( UDP_LEAVE_MCAST );
-	
+
 	/* Close socket */
 	if( close( _main->udp->sockfd ) != 0 ) {
 		fail( "close() failed." );
