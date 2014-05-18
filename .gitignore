@@ -1,7 +1,7 @@
 tk4/tk4
 tk6/tk6
-tkc/tkc
-tknss/libnss_tk.so.2
+tk/tk
+nss/libnss_tk.so.2
 debian/torrentkino/
 debian/torrentkino.debhelper.log
 debian/substvars

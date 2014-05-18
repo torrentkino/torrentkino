@@ -1,4 +1,4 @@
-SUBDIRS = tk6 tk4 tkc tknss
+SUBDIRS = tk6 tk4 tk nss
 #SUBDIRS = tumbleweed
 
 .PHONY : all clean install docs sync debian ubuntu $(SUBDIRS)

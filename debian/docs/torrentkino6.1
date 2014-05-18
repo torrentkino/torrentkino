@@ -1,13 +1,13 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TORRENTKINO" "1" "April 2014" "" ""
+.TH "TORRENTKINO" "1" "May 2014" "" ""
 .
 .SH "NAME"
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtk[46]\fR [\-q] [\-p port] [\-a hostname] [\-d domain] [\-r realm] [\-s] [\-l] [\-x server] [\-y port]
+\fBtk[46]\fR [\-a hostname] [\-b port] [\-d domain] [\-r realm] [\-p port] [\-x server] [\-y port] [\-q] [\-l] [\-s]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -42,6 +42,10 @@ This file gets written by the Torrentkino daemon when started by root for exampl
 Announce this hostname\. By default /etc/hostname is used to determine your hostname\. The SHA1 hash of the hostname becomes the announced info_hash\.
 .
 .TP
+\fB\-b\fR \fIport\fR
+Announce this port together with your hostname\. (Default: "8080")
+.
+.TP
 \fB\-d\fR \fIdomain\fR
 Instead of using the default TLD \fI\.p2p\fR, you may chose a differrent TLD like \fI\.darknet\fR, \fI\.cloud\fR or \fI\.files\fR\. This setting primarely affects the NSS module, because it needs to know for what TLD it shall be responsible\.
 .
@@ -52,10 +56,6 @@ By default a random node id gets computed on every startup\. For testing purpose
 .TP
 \fB\-r\fR \fIrealm\fR
 Creating a realm affects the method how to compute the info hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own http://mycloud\.p2p for example\.
-.
-.TP
-\fB\-s\fR
-Strict mode: In this mode all friendly nodes must operate on the same port to find each other\. Nodes, that operate/announce different ports, do not show up in search results, even if they announce the \fIright\fR SHA1 hash\.
 .
 .TP
 \fB\-p\fR \fIport\fR
@@ -74,6 +74,10 @@ The bootstrap server will be addressed at this port\. (Default: UDP/6881)
 Lazy mode: This option sets a predefined bootstrap server like \fIrouter\.utorrent\.com\fR for example\.
 .
 .TP
+\fB\-s\fR
+Strict mode: In this mode all friendly nodes must operate on the same port to find each other\. Nodes, that operate/announce different ports, do not show up in search results, even if they announce the \fIright\fR SHA1 hash\.
+.
+.TP
 \fB\-f\fR
 Fork and become a daemon\.
 .
@@ -90,8 +94,8 @@ Announce the hostname \fImy\.cloud\fR globally\.
 
 $ tk6 \-a my \-d cloud \-l
 $ getent hosts my\.cloud
-$ tkc my\.cloud
-$ tkc http://my\.cloud/index\.html
+$ tk my\.cloud
+$ tk http://my\.cloud/index\.html
 .
 .fi
 .
@@ -106,8 +110,8 @@ Announce the hostname \fImycloud\.p2p\fR within the LAN\.
 
 $ tk4 \-a mycloud
 $ getent hosts mycloud\.p2p
-$ tkc mycloud\.p2p
-$ tkc http://mycloud\.p2p/index\.html
+$ tk mycloud\.p2p
+$ tk http://mycloud\.p2p/index\.html
 .
 .fi
 .
@@ -122,8 +126,8 @@ Isolate your nodes within a realm \fIdarkness\fR, fork the process into backgrou
 
 $ tk6 \-a torrentkino \-d cloud \-r darkness \-l \-s \-f \-v
 $ getent hosts torrentkino\.cloud
-$ tkc torrentkino\.cloud
-$ tkc http://torrentkino\.cloud/index\.html
+$ tk torrentkino\.cloud
+$ tk http://torrentkino\.cloud/index\.html
 .
 .fi
 .

@@ -98,23 +98,23 @@ Announce the hostname *my.cloud* globally.
 
 	$ tk6 -a my -d cloud -l
 	$ getent hosts my.cloud
-	$ tkc my.cloud
-	$ tkc http://my.cloud/index.html
+	$ tk my.cloud
+	$ tk http://my.cloud/index.html
 
 Announce the hostname *mycloud.p2p* within the LAN.
 
 	$ tk4 -a mycloud
 	$ getent hosts mycloud.p2p
-	$ tkc mycloud.p2p
-	$ tkc http://mycloud.p2p/index.html
+	$ tk mycloud.p2p
+	$ tk http://mycloud.p2p/index.html
 
 Isolate your nodes within a realm *darkness*, fork the process into background
 and log everything to syslog.
 
 	$ tk6 -a torrentkino -d cloud -r darkness -l -s -f -v
 	$ getent hosts torrentkino.cloud
-	$ tkc torrentkino.cloud
-	$ tkc http://torrentkino.cloud/index.html
+	$ tk torrentkino.cloud
+	$ tk http://torrentkino.cloud/index.html
 
 ## INSTALLATION
 

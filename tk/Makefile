@@ -1,4 +1,4 @@
-CODENAME = tkc
+CODENAME = tk
 export CC = gcc
 export CFLAGS = -O2 -std=gnu99
 CFLAGS += -Wall -Wwrite-strings -pedantic

@@ -27,7 +27,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 int torrentkino_lookup( const char *handler, const char *hostname,
 		const char *path, unsigned int port, int mode,
-		int opt_num, int opt_port ) {
+		int opt_ip, int opt_port ) {
 	UCHAR bencode[BUF_SIZE];
 	int bensize = 0;
 	int j = 0;
@@ -95,11 +95,11 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 		if( mode == 6 ) {
 			_nss_tk_bytes_to_sin6( &sin6, ben_str_s( ip_bin ) );
 			torrenkino_print6( &sin6, handler, path, hostname,
-				opt_num, opt_port );
+				opt_ip, opt_port );
 		} else {
 			_nss_tk_bytes_to_sin( &sin, ben_str_s( ip_bin ) );
 			torrenkino_print( &sin, handler, path, hostname, 
-				opt_num, opt_port );
+				opt_ip, opt_port );
 		}
 
 		if( path != NULL && *path != '\0' ) {
@@ -117,10 +117,10 @@ int torrentkino_lookup( const char *handler, const char *hostname,
 }
 
 void torrenkino_print6( struct sockaddr_in6 *sin, const char *handler,
-		const char *path, const char *hostname, int opt_num, int opt_port ) {
+		const char *path, const char *hostname, int opt_ip, int opt_port ) {
 	char ip_buf[INET6_ADDRSTRLEN+1];
 
-	if( opt_num == TRUE ) {
+	if( opt_ip == TRUE ) {
 		memset( ip_buf, '\0', INET6_ADDRSTRLEN+1);
 		printf("[%s]",
 			inet_ntop( AF_INET6, &sin->sin6_addr, ip_buf, INET6_ADDRSTRLEN ) );
@@ -134,7 +134,7 @@ void torrenkino_print6( struct sockaddr_in6 *sin, const char *handler,
 }
 
 void torrenkino_print( struct sockaddr_in *sin, const char *handler,
-		const char *path, const char *hostname, int opt_num, int opt_port ) {
+		const char *path, const char *hostname, int opt_ip, int opt_port ) {
 	char ip_buf[INET_ADDRSTRLEN+1];
 	memset( ip_buf, '\0', INET_ADDRSTRLEN+1);
 	printf("%s:%i",
@@ -171,14 +171,14 @@ int main( int argc, char **argv ) {
 	int mode = 0;
 	int opt = 0;
 	int opt_port = FALSE;
-	int opt_num = FALSE;
+	int opt_ip = TRUE;
 	int i = 0;
 
 	/* Arguments */
 	while( ( opt = getopt( argc, argv, "np" ) ) != -1 ) {
 		switch( opt ) {
 			case 'n':
-				opt_num = TRUE;
+				opt_ip = FALSE;
 				break;
 			case 'p':
 				opt_port = TRUE;
@@ -205,7 +205,7 @@ int main( int argc, char **argv ) {
 		}
 
 		if( ! torrentkino_lookup( handler, hostname, path, port, mode,
-			opt_num, opt_port ) ) {
+			opt_ip, opt_port ) ) {
 			fail( "Looking up %s failed", hostname );
 		}
 	}
