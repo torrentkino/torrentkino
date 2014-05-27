@@ -96,9 +96,6 @@ int main( int argc, char **argv ) {
 		unix_fork();
 	}
 
-	/* Write configuration */
-	conf_write();
-
 	/* Create kademlia token */
 	tkn_put();
 

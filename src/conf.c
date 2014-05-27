@@ -54,7 +54,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	strncpy( conf->bootstrap_node, MULTICAST_DEFAULT, BUF_OFF1 );
 	strncpy( opt_hostname, CONF_SRVNAME, BUF_OFF1 );
 	conf_hostname_from_file( opt_hostname );
-	conf_home_from_env( conf );
 	rand_urandom( conf->node_id, SHA1_SIZE );
 
 	/* Arguments */
@@ -137,13 +136,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		fail( "The host id and the node id must not be the same" );
 	}
 
-	/* UID dependent configuration file */
-	if( getuid() == 0 ) {
-		snprintf( conf->file, BUF_SIZE, "%s/%s", conf->home, CONF_FILE );
-	} else {
-		snprintf( conf->file, BUF_SIZE, "%s/.%s", conf->home, CONF_FILE );
-	}
-
 	return conf;
 }
 
@@ -156,19 +148,6 @@ void conf_usage( char *command ) {
 		"Usage: %s [-a hostname] [-b port] [-d domain] [-r realm] [-p port] "
 		"[-x server] [-y port] [-q] [-l] [-s]", 
 		command );
-}
-
-void conf_home_from_env( struct obj_conf *conf ) {
-
-	if( getenv( "HOME" ) == NULL || getuid() == 0 ) {
-		strncpy( conf->home, "/etc", BUF_OFF1 );
-	} else {
-		snprintf( conf->home,  BUF_SIZE, "%s", getenv( "HOME") );
-	}
-
-	if( !file_isdir( conf->home ) ) {
-		fail( "%s does not exist", conf->home );
-	}
 }
 
 void conf_hostname_from_file( char *opt_hostname ) {
@@ -217,12 +196,6 @@ void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
 void conf_print( void ) {
 	char hex[HEX_LEN];
 
-	if ( getenv( "PWD" ) == NULL || getenv( "HOME" ) == NULL ) {
-		info( NULL, "# Hint: Reading environment variables failed. sudo?");
-		info( NULL, "# This is not a problem. But in some cases it might be useful" );
-		info( NULL, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
-	}
-
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
 	info( NULL, "Domain: %s (-d)", _main->conf->domain );
 
@@ -256,9 +229,6 @@ void conf_print( void ) {
 		info( NULL, "Strict mode: No (-s)" );
 	}
 
-	info( NULL, "Workdir: %s", _main->conf->home );
-	info( NULL, "Config file: %s", _main->conf->file );
-
 	if( _main->conf->mode == CONF_CONSOLE ) {
 		info( NULL, "Mode: Console (-f)" );
 	} else {
@@ -272,49 +242,6 @@ void conf_print( void ) {
 	}
 
 	info( NULL, "Cores: %i", _main->conf->cores );
-}
-
-void conf_write( void ) {
-	BEN *dict = ben_init( BEN_DICT );
-	BEN *key = NULL;
-	BEN *val = NULL;
-	RAW *raw = NULL;
-
-	/* Port */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_INT );
-	ben_str( key, (UCHAR *)"port", 4 );
-	ben_int( val, _main->conf->port );
-	ben_dict( dict, key, val );
-
-	/* IP mode */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_INT );
-	ben_str( key, (UCHAR *)"ip_version", 10 );
-#ifdef IPV6
-	ben_int( val, 6 );
-#elif IPV4
-	ben_int( val, 4 );
-#endif
-	ben_dict( dict, key, val );
-
-	/* Domain */
-	key = ben_init( BEN_STR );
-	val = ben_init( BEN_STR );
-	ben_str( key, (UCHAR *)"domain", 6 );
-	ben_str( val, (UCHAR *)_main->conf->domain, strlen( _main->conf->domain ) );
-	ben_dict( dict, key, val );
-
-	/* Encode */
-	raw = ben_enc( dict );
-
-	/* Write */
-	if( !file_write( _main->conf->file, (char *)raw->code, raw->size ) ) {
-		fail( "Writing %s failed", _main->conf->file );
-	}
-
-	raw_free( raw );
-	ben_free( dict );
 }
 
 int conf_verbosity( void ) {

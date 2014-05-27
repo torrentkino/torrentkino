@@ -36,8 +36,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 struct obj_conf {
 	char hostname[BUF_SIZE];
 	char domain[BUF_SIZE];
-	char home[BUF_SIZE];
-	char file[BUF_SIZE];
 	char realm[BUF_SIZE];
 	char bootstrap_node[BUF_SIZE];
 	UCHAR group_id[SHA1_SIZE];
@@ -63,7 +61,6 @@ void conf_free( void );
 
 void conf_usage( char *command );
 void conf_print( void );
-void conf_write( void );
 
 void conf_home_from_env( struct obj_conf *conf );
 void conf_hostname_from_file( char *opt_hostname );
