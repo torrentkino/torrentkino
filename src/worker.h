@@ -29,15 +29,9 @@ struct obj_work {
 	int active;
 	int id;
 
-	/* Global lock */
 	pthread_t **threads;
 	pthread_attr_t attr;
 	pthread_mutex_t *mutex;
-
-#ifdef TUMBLEWEED
-	/* TCP nodes */
-	pthread_mutex_t *tcp_node;
-#endif
 };
 
 struct obj_work *work_init( void );
