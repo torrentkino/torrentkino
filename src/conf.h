@@ -20,6 +20,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef CONF_H
 #define CONF_H
 
+#include "torrentkino.h"
 #include "main.h"
 #include "malloc.h"
 #include "fail.h"

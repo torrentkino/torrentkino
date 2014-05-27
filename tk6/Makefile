@@ -8,10 +8,10 @@ CFLAGS_MIN += -Wall -Wwrite-strings
 
 export LDFLAGS = -lpthread
 
-OBJS = ben.o bucket.o cache.o conf.o fail.o \
+OBJS = ben.o bucket.o cache.o conf.o dns.o fail.o \
 	file.o hash.o hex.o ip.o value.o list.o \
 	log.o lookup.o malloc.o torrentkino.o \
-	neighbourhood.o node_udp.o p2p.o random.o send_udp.o \
+	neighbourhood.o node_udp.o p2p.o random.o resolver.o send_udp.o \
 	sha1.o str.o thrd.o time.o token.o transaction.o \
 	udp.o unix.o worker.o
 

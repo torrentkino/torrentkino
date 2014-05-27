@@ -37,20 +37,17 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "lookup.h"
 #include "hex.h"
 
-LOOKUP *ldb_init( UCHAR *target, IP *from, BEN *tid ) {
+LOOKUP *ldb_init( UCHAR *target, IP *from, DNS_MSG *msg ) {
 	LOOKUP *l = (LOOKUP *) myalloc( sizeof(LOOKUP) );
 
 	memcpy( l->target, target, SHA1_SIZE );
 	l->send_reply = FALSE;
 	memset( &l->c_addr, '\0', sizeof( IP ) );
-	memset( &l->tid, '\0', TID_SIZE_MAX );
-	l->tid_size = 0;
 
 	if( from != NULL ) {
 		l->send_reply = TRUE;
 		memcpy( &l->c_addr, from, sizeof( IP ) );
-		memcpy( &l->tid, ben_str_s( tid ), ben_str_i( tid ) );
-		l->tid_size = ben_str_i( tid );
+		memcpy( &l->msg, msg, sizeof( DNS_MSG ) );
 	}
 
 	l->hash = hash_init( 1000 );

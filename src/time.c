@@ -28,6 +28,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <pthread.h>
 #include <signal.h>
 #include <netdb.h>
+#include <sys/epoll.h>
 
 #include "malloc.h"
 #include "thrd.h"

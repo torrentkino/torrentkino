@@ -85,6 +85,7 @@ typedef long int LONG;
 
 #ifdef IPV6
 #define IP_SIZE 16
+#define IP_SIZE_LIST 128
 #define IP_SIZE_META_PAIR 18
 #define IP_SIZE_META_PAIR8 144
 #define IP_SIZE_META_TRIPLE 38
@@ -94,6 +95,7 @@ typedef struct sockaddr_in6 IP;
 typedef struct in6_addr IN_ADDR;
 #elif IPV4
 #define IP_SIZE 4
+#define IP_SIZE_LIST 32
 #define IP_SIZE_META_PAIR 6
 #define IP_SIZE_META_PAIR8 48
 #define IP_SIZE_META_TRIPLE 26

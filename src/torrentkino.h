@@ -35,16 +35,10 @@ struct obj_main {
 	struct obj_token *token;
 	struct obj_nbhd *nbhd;
 	struct obj_udp *udp;
+	struct obj_dns *dns;
 	struct obj_p2p *p2p;
 	struct obj_val *value;
 #endif
-	
-#ifdef TUMBLEWEED
-	struct obj_list *node;
-	struct obj_mdb *mime;
-	struct obj_tcp *tcp;
-#endif
-
 };
 
 extern struct obj_main *_main;

@@ -181,8 +181,7 @@ void p2p_cron( void ) {
 		/* Announce my hostname every ~5 minutes. This includes a full search
 		 * to get the needed tokens first. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_host ) {
-			p2p_localhost_lookup_remote( _main->conf->host_id,
-				P2P_ANNOUNCE_START, NULL, NULL );
+			p2p_cron_lookup( _main->conf->host_id, P2P_ANNOUNCE_START );
 			time_add_5_min_approx( &_main->p2p->time_announce_host );
 		}
 
@@ -536,12 +535,6 @@ void p2p_request( BEN *packet, IP *from ) {
 	/* ANNOUNCE */
 	if( ben_str_i( q ) == 13 && memcmp( ben_str_s( q ), "announce_peer", 13 ) == 0 ) {
 		p2p_announce_get_request( a, ben_str_s( id ), t, from );
-		return;
-	}
-
-	/* LOOKUP */
-	if( ben_str_i( q ) == 6 && memcmp( ben_str_s( q ), "lookup", 6 ) == 0 ) {
-		p2p_localhost_get_request( a, t, from );
 		return;
 	}
 
@@ -1011,8 +1004,7 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 	}
 
 	/* Send the result back to tknss / tkcli */
-	send_get_peers_values( &l->c_addr,
-		nodes_compact_list, nodes_compact_size,	l->tid, l->tid_size );
+	r_success( &l->c_addr, &l->msg, nodes_compact_list, nodes_compact_size );
 }
 
 /*
@@ -1087,109 +1079,7 @@ void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
 	/* Nothing to do */
 }
 
-/*
-	{
-	"t": "aa",
-	"y": "q",
-	"q": "lookup",
-	"a": {
-		"id": "mnopqrstuvwxyz123456"
-		"hostname": "owncloud.p2p",
-		}
-	}
-*/
-
-void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from ) {
-	UCHAR target[SHA1_SIZE];
-	int result = FALSE;
-	char *hostname = NULL;
-	int hostsize = 0;
-	BEN *entity = NULL;
-
-	/* Limit lookups to localhost */
-	if( !ip_is_localhost( from ) ) {
-		return;
-	}
-
-	/* Get hostname */
-	entity = ben_dict_search_str( arg, "hostname" );
-	if( !ben_is_str( entity ) || ben_str_i( entity ) <= 0 ) {
-		info( from, "Missing or broken hostname from" );
-		return;
-	}
-	if( ben_str_i( entity ) > 255 ) {
-		info( from, "Name too long from" );
-		return;
-	}
-
-	hostname = (char *) ben_str_s( entity );
-	hostsize = ben_str_i( entity );
-
-	/* Validate hostname */
-	if ( !str_valid_hostname( hostname, hostsize ) ) {
-		info( NULL, "LOOKUP %s (Invalid hostname)", hostname );
-		return;
-	}
-
-	/* Compute lookup key */
-	conf_hostid( target, hostname,
-		_main->conf->realm, _main->conf->bool_realm );
-
-	/* Check local cache */
-	result = p2p_localhost_lookup_cache( target, tid, from );
-	if( result == TRUE ) {
-		info( NULL, "LOOKUP %s (cached)", hostname );
-		return;
-	}
-
-	/* Check local database */
-	result = p2p_localhost_lookup_local( target, tid, from );
-	if( result == TRUE ) {
-		info( NULL, "LOOKUP %s (local)", hostname );
-		return;
-	}
-
-	/* Start remote search */
-	p2p_localhost_lookup_remote( target, P2P_GET_PEERS, tid, from );
-	info( NULL, "LOOKUP %s (remote)", hostname );
-}
-
-int p2p_localhost_lookup_cache( UCHAR *target, BEN *tid, IP *from ) {
-	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
-	int nodes_compact_size = 0;
-
-	/* Check cache for hostname */
-	nodes_compact_size = cache_compact_list( nodes_compact_list, target );
-	if( nodes_compact_size <= 0 ) {
-		return FALSE;
-	}
-
-	send_get_peers_values( from, nodes_compact_list, nodes_compact_size,
-		ben_str_s( tid ), ben_str_i( tid ) );
-
-	return TRUE;
-}
-
-/* Use local info_hash database for lookups too. This is nessecary if only 2
- * nodes are active: Node A announces its name to node B. But Node B cannot
- * talk to itself to lookup A. So, it must use its database directly. */
-int p2p_localhost_lookup_local( UCHAR *target, BEN *tid, IP *from ) {
-	UCHAR nodes_compact_list[IP_SIZE_META_PAIR8];
-	int nodes_compact_size = 0;
-
-	/* Check cache for hostname */
-	nodes_compact_size = val_compact_list( nodes_compact_list, target );
-	if( nodes_compact_size <= 0 ) {
-		return FALSE;
-	}
-
-	send_get_peers_values( from, nodes_compact_list, nodes_compact_size,
-		ben_str_s( tid ), ben_str_i( tid ) );
-
-	return TRUE;
-}
-
-void p2p_localhost_lookup_remote( UCHAR *target, int type, BEN *tid, IP *from ) {
+void p2p_cron_lookup( UCHAR *target, int type ) {
 	UCHAR nodes_compact_list[IP_SIZE_META_TRIPLE8];
 	int nodes_compact_size = 0;
 	LOOKUP *l = NULL;
@@ -1205,7 +1095,7 @@ void p2p_localhost_lookup_remote( UCHAR *target, int type, BEN *tid, IP *from ) 
 
 	/* Create tid and get the lookup table */
 	ti = tdb_put( type );
-	l = ldb_init( target, from, tid );
+	l = ldb_init( target, NULL, NULL );
 	tdb_link_ldb( ti, l );
 
 	p = nodes_compact_list;

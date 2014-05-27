@@ -20,6 +20,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <sys/epoll.h>
 
 #include "cache.h"
 
@@ -140,7 +141,7 @@ void cache_renew( time_t now ) {
 		/* Lookup target on my own every 5 minutes */
 		t = list_value( i );
 		if( now > t->refresh ) {
-			p2p_localhost_lookup_remote( t->target, P2P_GET_PEERS, NULL, NULL );
+			p2p_cron_lookup( t->target, P2P_GET_PEERS );
 			time_add_5_min_approx( &t->refresh );
 			cache_print();
 		}

@@ -20,6 +20,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <sys/epoll.h>
 
 #include "value.h"
 

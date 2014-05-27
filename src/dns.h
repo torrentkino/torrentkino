@@ -1,5 +1,5 @@
 /*
-Copyright 2011 Aiko Barz
+Copyright 2014 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,41 +17,40 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOOKUP_H
-#define LOOKUP_H
+#ifndef DNS_H
+#define DNS_H
 
-#include "main.h"
-#include "malloc.h"
-#include "neighbourhood.h"
 #include "resolver.h"
+#include "torrentkino.h"
+#include "worker.h"
 
-typedef struct {
-	/* What are we looking for */
-    UCHAR target[SHA1_SIZE];
+#define DNS_BUF 1460
 
-	LIST *list;
-	HASH *hash;
+struct obj_dns {
+	/* Socket data */
+	IP s_addr;
+	socklen_t s_addrlen;
+	int sockfd;
 
-	/* Caller */
-	IP c_addr;
-	DNS_MSG msg;
-	int send_reply;
+	/* Epoll */
+	int epollfd;
+};
+typedef struct obj_dns DNS;
 
-} LOOKUP;
+DNS *dns_init( void );
+void dns_free( void );
 
-typedef struct {
-	UCHAR id[SHA1_SIZE];
-	IP c_addr;
-	UCHAR token[TOKEN_SIZE_MAX];
-	int token_size;
-} NODE_L;
+void dns_start( void );
+void dns_stop( void );
 
-LOOKUP *ldb_init( UCHAR *target, IP *from, DNS_MSG *msg );
-void ldb_free( LOOKUP *l );
+int dns_nonblocking( int sock );
+void dns_event( void );
 
-LONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );
+void *dns_thread( void *arg );
+void *dns_client( void *arg );
+void dns_worker( struct epoll_event *events, int nfds );
+void dns_rearm( int sockfd );
 
-NODE_L *ldb_find( LOOKUP *l, UCHAR *node_id );
-void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from );
+void dns_input( int sockfd );
 
 #endif

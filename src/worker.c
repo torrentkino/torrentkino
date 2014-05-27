@@ -43,6 +43,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef TORRENTKINO
 #include "udp.h"
+#include "dns.h"
 #include "torrentkino.h"
 #endif
 
@@ -54,7 +55,7 @@ struct obj_work *work_init( void ) {
 	work->active = 0;
 #ifdef TORRENTKINO
 	/* The bootstrap thread immediately stops after the start procedure. */
-	work->number_of_threads = _main->conf->cores + 1;
+	work->number_of_threads = 3;
 #endif
 #ifdef TUMBLEWEED
 	work->number_of_threads = ( _main->conf->cores > 2 ) ? _main->conf->cores : 2;
@@ -72,8 +73,8 @@ void work_free( void ) {
 }
 
 void work_start( void ) {
-	int i = 0;
 #ifdef TUMBLEWEED
+	int i = 0;
 	int number_of_worker = _main->work->number_of_threads;
 #elif TORRENTKINO
 	int number_of_worker = _main->work->number_of_threads-1;
@@ -99,23 +100,26 @@ void work_start( void ) {
 #endif
 
 #ifdef TORRENTKINO
-	_main->work->threads = (pthread_t **) myalloc( 
+	_main->work->threads = (pthread_t **) myalloc(
 		_main->work->number_of_threads * sizeof(pthread_t *) );
 
-	while( i < _main->work->number_of_threads - 1 ) {
-		_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t) );
-		if( pthread_create( _main->work->threads[i], &_main->work->attr, udp_thread, NULL ) != 0 ) {
-			fail( "pthread_create()" );
-		}
-		i++;
+	/* P2P Server */
+	_main->work->threads[0] = (pthread_t *) myalloc( sizeof(pthread_t) );
+	if( pthread_create( _main->work->threads[0], &_main->work->attr, udp_thread, NULL ) != 0 ) {
+		fail( "pthread_create()" );
+	}
+
+	/* UDP Server */
+	_main->work->threads[1] = (pthread_t *) myalloc( sizeof(pthread_t) );
+	if( pthread_create( _main->work->threads[1], &_main->work->attr, dns_thread, NULL ) != 0 ) {
+		fail( "pthread_create()" );
 	}
 
 	/* Send 1st request while the UDP worker is starting */
-	_main->work->threads[i] = (pthread_t *) myalloc( sizeof(pthread_t) );
-	if( pthread_create( _main->work->threads[i], &_main->work->attr, udp_client, NULL ) != 0 ) {
+	_main->work->threads[2] = (pthread_t *) myalloc( sizeof(pthread_t) );
+	if( pthread_create( _main->work->threads[2], &_main->work->attr, udp_client, NULL ) != 0 ) {
 		fail( "pthread_create()" );
 	}
-	i++;
 #endif
 }
 

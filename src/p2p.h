@@ -61,6 +61,7 @@ void p2p_cron_find_myself( void );
 void p2p_cron_find_random( void );
 void p2p_cron_find( UCHAR *target );
 void p2p_cron_announce( ITEM *ti );
+void p2p_cron_lookup( UCHAR *target, int type );
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );
 #ifdef POLARSSL
@@ -85,11 +86,6 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token
 
 void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from );
 void p2p_announce_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from );
-
-void p2p_localhost_get_request( BEN *arg, BEN *tid, IP *from );
-int p2p_localhost_lookup_cache( UCHAR *target, BEN *tid, IP *from );
-int p2p_localhost_lookup_local( UCHAR *target, BEN *tid, IP *from );
-void p2p_localhost_lookup_remote( UCHAR *target, int type, BEN *tid, IP *from );
 
 int p2p_packet_from_myself( UCHAR *node_id );
 
