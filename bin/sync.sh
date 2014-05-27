@@ -18,8 +18,6 @@ cp -f debian/gbp.conf $TGT/debian/
 cp -f debian/rules $TGT/debian/
 cp -f debian/source/format $TGT/debian/source/
 
-cp -f src/ben.c $TGT/src/
-cp -f src/ben.h $TGT/src/
 cp -f src/fail.c $TGT/src/
 cp -f src/fail.h $TGT/src/
 cp -f src/file.c $TGT/src/
@@ -39,5 +37,3 @@ cp -f src/thrd.c $TGT/src/
 cp -f src/thrd.h $TGT/src/
 cp -f src/unix.c $TGT/src/
 cp -f src/unix.h $TGT/src/
-cp -f src/worker.c $TGT/src/
-cp -f src/worker.h $TGT/src/
