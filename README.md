@@ -3,7 +3,7 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`tk[46]` [-a hostname] [-b port] [-d domain] [-r realm] [-p port] [-x server] [-y port] [-q] [-l] [-s]
+`tk[46]` [-a hostname] [-b port] [-r realm] [-p port] [-x server] [-y port] [-q] [-l] [-s]
 
 ## DESCRIPTION
 
@@ -21,26 +21,6 @@ below. Your client becomes a full member of the swarm and resolves info hashes
 to IP/port tuples. The swarm on the other end does the same for you. But in
 your case, the info hash represents a hostname instead of a torrent file.
 
-A NSS module makes any hostname with a *.p2p* TLD transparently available to
-your Linux OS.
-
-## FILES
-
-  * **/etc/nsswitch.conf**:
-	Add **tk** to the *hosts* line and your Linux OS will forward *.p2p*
-	requests to the Torrentkino DHT daemon.
-
-  * **$HOME/.torrentkino.conf**:
-	This file gets written by the Torrentkino daemon and contains the server
-	port number and some other hints like the TLD it shall be responsible for.
-	Those hints are used by **libnss_tk.so.2** 	and the **tk** cli program.
-
-  * **/etc/torrentkino.conf**:
-	This file gets written by the Torrentkino daemon when started by root for
-	example at boot time or by using sudo. It works like the file above.
-	**libnss_tk.so.2** and the **tk** cli program will look for
-	**$HOME/.torrentkino.conf** first.
-
 ## OPTIONS
 
   * `-a` *hostname*:
@@ -49,12 +29,6 @@ your Linux OS.
 
   * `-b` *port*:
 	Announce this port together with your hostname. (Default: "8080")
-
-  * `-d` *domain*:
-	Instead of using the default TLD *.p2p*, you may chose a differrent TLD like
-	*.darknet*, *.cloud* or *.files*. This setting primarely affects
-	the NSS module, because it needs to know for what TLD it shall be
-	responsible.
 
   * `-n` *node id string*:
 	By default a random node id gets computed on every startup. For testing
@@ -96,25 +70,19 @@ your Linux OS.
 
 Announce the hostname *my.cloud* globally.
 
-	$ tk6 -a my -d cloud -l
-	$ getent hosts my.cloud
-	$ tk my.cloud
-	$ tk http://my.cloud/index.html
+	$ tk6 -a my.cloud -l
+	$ host my.cloud ::1
 
 Announce the hostname *mycloud.p2p* within the LAN.
 
-	$ tk4 -a mycloud
-	$ getent hosts mycloud.p2p
-	$ tk mycloud.p2p
-	$ tk http://mycloud.p2p/index.html
+	$ tk4 -a mycloud.p2p
+	$ host mycloud.p2p 127.0.0.1
 
 Isolate your nodes within a realm *darkness*, fork the process into background
 and log everything to syslog.
 
-	$ tk6 -a torrentkino -d cloud -r darkness -l -s -f -v
-	$ getent hosts torrentkino.cloud
-	$ tk torrentkino.cloud
-	$ tk http://torrentkino.cloud/index.html
+	$ tk6 -a torrentkino.cloud -r darkness -l -s -f -v
+	$ host torrentkino.cloud ::1
 
 ## INSTALLATION
 
@@ -128,10 +96,6 @@ Otherwise, you may use
 
 	$ make
 	$ sudo make install
-
-Add **tk** to the */etc/nsswitch.conf*. Example:
-
-	hosts: files tk dns
 
 ## SEE ALSO
 

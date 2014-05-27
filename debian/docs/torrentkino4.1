@@ -7,7 +7,7 @@
 \fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtk[46]\fR [\-a hostname] [\-b port] [\-d domain] [\-r realm] [\-p port] [\-x server] [\-y port] [\-q] [\-l] [\-s]
+\fBtk[46]\fR [\-a hostname] [\-b port] [\-r realm] [\-p port] [\-x server] [\-y port] [\-q] [\-l] [\-s]
 .
 .SH "DESCRIPTION"
 \fBtorrentkino\fR is a P2P name resolution daemon\. It resolves hostnames into IP addresses by using a Kademlia distributed hash table\. This DHT is compatible to the DHT as used in Bittorrent clients like Transmission\.
@@ -18,23 +18,6 @@ By default, torrentkino sends the first packet to a multicast address\. So, for 
 .P
 If you would like to connect nodes around the globe, you may use the Bittorrent network\. Simply select a Bittorrent bootstrap server as seen in the example below\. Your client becomes a full member of the swarm and resolves info hashes to IP/port tuples\. The swarm on the other end does the same for you\. But in your case, the info hash represents a hostname instead of a torrent file\.
 .
-.P
-A NSS module makes any hostname with a \fI\.p2p\fR TLD transparently available to your Linux OS\.
-.
-.SH "FILES"
-.
-.TP
-\fB/etc/nsswitch\.conf\fR
-Add \fBtk\fR to the \fIhosts\fR line and your Linux OS will forward \fI\.p2p\fR requests to the Torrentkino DHT daemon\.
-.
-.TP
-\fB$HOME/\.torrentkino\.conf\fR
-This file gets written by the Torrentkino daemon and contains the server port number and some other hints like the TLD it shall be responsible for\. Those hints are used by \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program\.
-.
-.TP
-\fB/etc/torrentkino\.conf\fR
-This file gets written by the Torrentkino daemon when started by root for example at boot time or by using sudo\. It works like the file above\. \fBlibnss_tk\.so\.2\fR and the \fBtk\fR cli program will look for \fB$HOME/\.torrentkino\.conf\fR first\.
-.
 .SH "OPTIONS"
 .
 .TP
@@ -44,10 +27,6 @@ Announce this hostname\. By default /etc/hostname is used to determine your host
 .TP
 \fB\-b\fR \fIport\fR
 Announce this port together with your hostname\. (Default: "8080")
-.
-.TP
-\fB\-d\fR \fIdomain\fR
-Instead of using the default TLD \fI\.p2p\fR, you may chose a differrent TLD like \fI\.darknet\fR, \fI\.cloud\fR or \fI\.files\fR\. This setting primarely affects the NSS module, because it needs to know for what TLD it shall be responsible\.
 .
 .TP
 \fB\-n\fR \fInode id string\fR
@@ -92,10 +71,8 @@ Announce the hostname \fImy\.cloud\fR globally\.
 .
 .nf
 
-$ tk6 \-a my \-d cloud \-l
-$ getent hosts my\.cloud
-$ tk my\.cloud
-$ tk http://my\.cloud/index\.html
+$ tk6 \-a my\.cloud \-l
+$ host my\.cloud ::1
 .
 .fi
 .
@@ -108,10 +85,8 @@ Announce the hostname \fImycloud\.p2p\fR within the LAN\.
 .
 .nf
 
-$ tk4 \-a mycloud
-$ getent hosts mycloud\.p2p
-$ tk mycloud\.p2p
-$ tk http://mycloud\.p2p/index\.html
+$ tk4 \-a mycloud\.p2p
+$ host mycloud\.p2p 127\.0\.0\.1
 .
 .fi
 .
@@ -124,10 +99,8 @@ Isolate your nodes within a realm \fIdarkness\fR, fork the process into backgrou
 .
 .nf
 
-$ tk6 \-a torrentkino \-d cloud \-r darkness \-l \-s \-f \-v
-$ getent hosts torrentkino\.cloud
-$ tk torrentkino\.cloud
-$ tk http://torrentkino\.cloud/index\.html
+$ tk6 \-a torrentkino\.cloud \-r darkness \-l \-s \-f \-v
+$ host torrentkino\.cloud ::1
 .
 .fi
 .
@@ -156,19 +129,6 @@ Otherwise, you may use
 
 $ make
 $ sudo make install
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Add \fBtk\fR to the \fI/etc/nsswitch\.conf\fR\. Example:
-.
-.IP "" 4
-.
-.nf
-
-hosts: files tk dns
 .
 .fi
 .

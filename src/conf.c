@@ -49,7 +49,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	memset( conf->key, '\0', BUF_SIZE );
 #endif
 	memset( conf->null_id, '\0', SHA1_SIZE );
-	strncpy( conf->domain, TLD_DEFAULT, BUF_OFF1 );
 	strncpy( conf->realm, CONF_REALM, BUF_OFF1 );
 	strncpy( conf->bootstrap_node, MULTICAST_DEFAULT, BUF_OFF1 );
 	strncpy( opt_hostname, CONF_SRVNAME, BUF_OFF1 );
@@ -57,16 +56,13 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	rand_urandom( conf->node_id, SHA1_SIZE );
 
 	/* Arguments */
-	while( ( opt = getopt( argc, argv, "a:b:d:fhk:ln:p:qr:sx:y:" ) ) != -1 ) {
+	while( ( opt = getopt( argc, argv, "a:b:fhk:ln:p:qr:sx:y:" ) ) != -1 ) {
 		switch( opt ) {
 			case 'a':
 				snprintf( opt_hostname, BUF_SIZE, "%s", optarg );
 				break;
 			case 'b':
 				conf->announce_port = str_safe_port( optarg );
-				break;
-			case 'd':
-				snprintf( conf->domain, BUF_SIZE, "%s", optarg );
 				break;
 			case 'f':
 				conf->mode = CONF_DAEMON;
@@ -112,8 +108,8 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	}
 
 	/* Put domain and hostname together */
-	snprintf( conf->hostname, BUF_SIZE, "%s.%s",
-			opt_hostname, conf->domain );
+	snprintf( conf->hostname, BUF_SIZE, "%s",
+			opt_hostname );
 
 	if( conf->port == 0 ) {
 		fail( "Invalid port number (-p)" );
@@ -145,7 +141,7 @@ void conf_free( void ) {
 
 void conf_usage( char *command ) {
 	fail(
-		"Usage: %s [-a hostname] [-b port] [-d domain] [-r realm] [-p port] "
+		"Usage: %s [-a hostname] [-b port] [-r realm] [-p port] "
 		"[-x server] [-y port] [-q] [-l] [-s]", 
 		command );
 }
@@ -197,7 +193,6 @@ void conf_print( void ) {
 	char hex[HEX_LEN];
 
 	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
-	info( NULL, "Domain: %s (-d)", _main->conf->domain );
 
 	if( _main->conf->bool_realm == 1 ) {
 		info( NULL, "Realm: %s (-r)", _main->conf->realm );
