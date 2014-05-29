@@ -21,7 +21,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define SEND_H
 
 #include "torrentkino.h"
-#include "udp.h"
+#include "dns.h"
 #include "conf.h"
 #include "aes.h"
 #include "hex.h"

@@ -3,32 +3,37 @@ torrentkino(1) -- Kademlia DHT
 
 ## SYNOPSIS
 
-`tk[46]` [-a hostname] [-b port] [-r realm] [-p port] [-x server] [-y port] [-q] [-l] [-s]
+`tk[46]` [-p port] [-r realm] [-d port] [-a port] [-x server] [-y port] [-q] [-l] [-s] hostname
 
 ## DESCRIPTION
 
-**torrentkino** is a P2P name resolution daemon. It resolves hostnames into IP
-addresses by using a Kademlia distributed hash table. This DHT is compatible to
-the DHT as used in Bittorrent clients like Transmission.
+**Torrentkino** is a Bittorrent DNS resolver. All DNS queries to Torrentkino get
+translated into SHA1 hashes and are getting resolved by looking these up in a
+Kademlia distributed hash table. It is fully compatible to the DHT as used in
+most Bittorrent clients. The swarm becomes the DNS backend for Torrentkino.
 
-By default, torrentkino sends the first packet to a multicast address. So, for
-intranet use cases, you do not need a bootstrap server. Just start torrentkino
-on 2 nodes without any parameters. It simply works.
+By default, Torrentkino sends the first packet to a multicast address. So, for
+intranet use cases, you do not need a Bittorrent bootstrap server. Just start
+Torrentkino on 2 nodes without any parameters. It simply works.
 
 If you would like to connect nodes around the globe, you may use the Bittorrent
 network. Simply select a Bittorrent bootstrap server as seen in the example
-below. Your client becomes a full member of the swarm and resolves info hashes
-to IP/port tuples. The swarm on the other end does the same for you. But in
-your case, the info hash represents a hostname instead of a torrent file.
+below. Your client becomes a full member of the swarm and resolves Bittorrent
+SHA1 hashes to IP/port tuples. The swarm on the other end does the same for you.
+But in your case, the SHA1 hash represents a hostname instead of a torrent file.
+
+Torrentkino runs as user *nobody* when started with root priviledges.
 
 ## OPTIONS
 
-  * `-a` *hostname*:
-	Announce this hostname. By default /etc/hostname is used to determine your
-	hostname. The SHA1 hash of the hostname becomes the announced info_hash.
+  * `-p` *port*:
+	Listen to this port and use it for the DHT operations. (Default: UDP/6881)
 
-  * `-b` *port*:
-	Announce this port together with your hostname. (Default: "8080")
+  * `-d` *port*:
+	Listen to this port and use it for the DNS operations. (Default: UDP/5353)
+
+  * `-a` *port*:
+	Announce this port (Default: UDP/6881)
 
   * `-n` *node id string*:
 	By default a random node id gets computed on every startup. For testing
@@ -36,13 +41,12 @@ your case, the info hash represents a hostname instead of a torrent file.
 	string is not used directly. Instead its SHA1 hash is used.
 
   * `-r` *realm*:
-	Creating a realm affects the method how to compute the info hash. It helps
+	Creating a realm affects the method to compute the "SHA1" hash. It helps
 	you to isolate your nodes and be part of a bigger swarm at the same time.
 	This is useful to handle duplicate hostnames. With different realms
-	everybody may have his own http://mycloud.p2p for example.
-
-  * `-p` *port*:
-	Listen to this port (Default: UDP/6881)
+	everybody may have his own https://owncloud.p2p for example.
+	Technically, the realm is a SHA1 hash too. It gets merged to the hostname's
+	SHA1 hash by using XOR.
 
   * `-x` *server*:
 	Use server as a bootstrap server. Otherwise a multicast address is used.
@@ -55,11 +59,6 @@ your case, the info hash represents a hostname instead of a torrent file.
 	Lazy mode: This option sets a predefined bootstrap server like
 	*router.utorrent.com* for example.
 
-  * `-s`:
-	Strict mode: In this mode all friendly nodes must operate on the same port
-	to find each other. Nodes, that operate/announce different ports, do not
-	show up in search results, even if they announce the *right* SHA1 hash.
-
   * `-f`:
 	Fork and become a daemon.
 
@@ -68,20 +67,20 @@ your case, the info hash represents a hostname instead of a torrent file.
 
 ## EXAMPLES
 
-Announce the hostname *my.cloud* globally.
+Announce the hostname *owncloud.p2p* globally.
 
-	$ tk6 -a my.cloud -l
-	$ host my.cloud ::1
+	$ sudo tk6 -d 53 -l owncloud.p2p
+	$ host owncloud ::1
 
 Announce the hostname *mycloud.p2p* within the LAN.
 
-	$ tk4 -a mycloud.p2p
+	$ sudo tk4 -d 53 mycloud.p2p
 	$ host mycloud.p2p 127.0.0.1
 
 Isolate your nodes within a realm *darkness*, fork the process into background
 and log everything to syslog.
 
-	$ tk6 -a torrentkino.cloud -r darkness -l -s -f -v
+	$ sudo tk6 -r darkness -l -d 53 -f -v torrentkino.cloud
 	$ host torrentkino.cloud ::1
 
 ## INSTALLATION
@@ -97,6 +96,6 @@ Otherwise, you may use
 	$ make
 	$ sudo make install
 
-## SEE ALSO
+## CREDITS
 
-nsswitch.conf(5)
+Thanks to Moritz Warning for his help with the DNS API.

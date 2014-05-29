@@ -1,3 +1,10 @@
+torrentkino (0.30) wheezy; urgency=low
+
+  * Make hostname a non-option parameter
+  * Do not read /etc/hostname
+  * Merge code from both UDP workers
+
+ -- Aiko Barz <aiko@torrentkino.de>  Thu, 29 May 2014 22:33:00 +0100
 torrentkino (0.29) wheezy; urgency=low
 
   * Do not write a config file.

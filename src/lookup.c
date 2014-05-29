@@ -35,7 +35,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/epoll.h>
 
 #include "lookup.h"
-#include "hex.h"
 
 LOOKUP *ldb_init( UCHAR *target, IP *from, DNS_MSG *msg ) {
 	LOOKUP *l = (LOOKUP *) myalloc( sizeof(LOOKUP) );

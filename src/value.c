@@ -273,7 +273,7 @@ void tgt_v_print( TARGET_V *target ) {
 		node = list_value( i );
 
 		ip_bytes_to_sin( &sin, node->pair );
-		info( &sin, "  IP:");
+		info( &sin, "  " );
 
 		i = list_next( i );
 	}

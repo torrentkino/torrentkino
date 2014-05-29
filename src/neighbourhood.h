@@ -23,6 +23,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "list.h"
 #include "hash.h"
 #include "node_udp.h"
+#include "bucket.h"
 
 struct obj_nbhd {
 	LIST *bucket;

@@ -35,36 +35,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/epoll.h>
 #include <limits.h>
 
-#include "malloc.h"
-#include "thrd.h"
-#include "torrentkino.h"
-#include "str.h"
-#include "list.h"
-#include "hash.h"
-#include "log.h"
-#include "conf.h"
-#include "file.h"
-#include "unix.h"
-#include "udp.h"
-#include "ben.h"
-#ifdef POLARSSL
-#include "aes.h"
-#endif
-#include "token.h"
-#include "neighbourhood.h"
-#include "bucket.h"
-#include "lookup.h"
-#include "transaction.h"
 #include "p2p.h"
-#include "send_udp.h"
-#include "search.h"
-#include "time.h"
-#include "random.h"
-#include "sha1.h"
-#include "hex.h"
-#include "value.h"
-#include "cache.h"
-#include "worker.h"
 
 P2P *p2p_init( void ) {
 	P2P *p2p = (P2P *) myalloc( sizeof(P2P) );
@@ -97,6 +68,11 @@ void p2p_bootstrap( void ) {
 	int i = 0;
 	ITEM *ti = NULL;
 	char port[6];
+
+	/* Do nothing if neighbourhood is crowded */
+	if( ! nbhd_is_empty() ) {
+		return;
+	}
 
 	snprintf( port, 6, "%i", _main->conf->bootstrap_port );
 
@@ -207,7 +183,7 @@ void p2p_cron( void ) {
 	/* Try to register multicast address until it works. */
 	if( _main->udp->multicast == FALSE ) {
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_multicast ) {
-			udp_multicast( UDP_JOIN_MCAST );
+			udp_multicast( _main->udp, multicast_enabled, multicast_start );
 			time_add_5_min_approx( &_main->p2p->time_multicast );
 		}
 	}

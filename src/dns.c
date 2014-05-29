@@ -17,208 +17,251 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
-#include <pthread.h>
-#include <sys/epoll.h>
-#include <signal.h>
-#include <netdb.h>
-#include <arpa/inet.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <signal.h>
+#include <arpa/inet.h>
+#include <sys/epoll.h>
 
 #include "dns.h"
 
-DNS *dns_init( void ) {
-	DNS *dns = ( DNS * ) myalloc( sizeof( DNS ) );
-
-	/* Init server structure */
-	dns->s_addrlen = sizeof( IP );
-	memset( ( char * ) &dns->s_addr, '\0', dns->s_addrlen );
-	dns->sockfd = -1;
-
-	return dns;
+int p_get16bits( const UCHAR** buffer ) {
+	size_t value = (*buffer)[0];
+	value = value << 8;
+	value += (*buffer)[1];
+	(*buffer) += 2;
+	return value;
 }
 
-void dns_free( void ) {
-	myfree( _main->dns );
+void p_put16bits( UCHAR** buffer, unsigned int value ) {
+	(*buffer)[0] = (value & 0xFF00) >> 8;
+	(*buffer)[1] = value & 0xFF;
+	(*buffer) += 2;
 }
 
-void dns_start( void ) {
-#if 0
-	int optval = 1;
-#endif
-
-#ifdef IPV6
-	if( ( _main->dns->sockfd = socket( PF_INET6, SOCK_DGRAM, 0 ) ) < 0 ) {
-		fail( "Creating socket failed." );
-	}
-	_main->dns->s_addr.sin6_family = AF_INET6;
-	_main->dns->s_addr.sin6_port = htons( 53 );
-	_main->dns->s_addr.sin6_addr = in6addr_any;
-#elif IPV4
-	if( ( _main->dns->sockfd = socket( PF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
-		fail( "Creating socket failed." );
-	}
-	_main->dns->s_addr.sin_family = AF_INET;
-	_main->dns->s_addr.sin_port = htons( 53 );
-	_main->dns->s_addr.sin_addr.s_addr = htonl( INADDR_ANY );
-#endif
-
-#if 0
-	/* Disable IPv4 */
-	if( setsockopt( _main->dns->sockfd,
-		IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int ) ) == -1 ) {
-		fail( "Setting IPV6_V6ONLY failed" );
-	}
-#endif
-
-	if( bind( _main->dns->sockfd,
-		( struct sockaddr * ) &_main->dns->s_addr, _main->dns->s_addrlen ) ) {
-		fail( "bind() to socket failed." );
-	}
-
-	if( dns_nonblocking( _main->dns->sockfd ) < 0 ) {
-		fail( "dns_nonblocking( _main->dns->sockfd ) failed" );
-	}
-
-	/* Setup epoll */
-	dns_event();
+void p_put32bits( UCHAR** buffer, unsigned long long value ) {
+	(*buffer)[0] = (value & 0xFF000000) >> 24;
+	(*buffer)[1] = (value & 0xFF0000) >> 16;
+	(*buffer)[2] = (value & 0xFF00) >> 16;
+	(*buffer)[3] = (value & 0xFF) >> 16;
+	(*buffer) += 4;
 }
 
-void dns_stop( void ) {
+/* 3foo3bar3com0 => foo.bar.com */
+int p_decode_domain( char *domain, const UCHAR** buffer, int size ) {
+	const UCHAR *p = *buffer;
+	const UCHAR *beg = p;
+	size_t i = 0;
+	size_t len = 0;
 
-	/* Close socket */
-	if( close( _main->dns->sockfd ) != 0 ) {
-		fail( "close() failed." );
-	}
+	while( *p != '\0' ) {
 
-	/* Close epoll */
-	if( close( _main->dns->epollfd ) != 0 ) {
-		fail( "close() failed." );
-	}
-}
-
-void dns_event( void ) {
-	struct epoll_event ev;
-
-	_main->dns->epollfd = epoll_create( 23 );
-	if( _main->dns->epollfd == -1 ) {
-		fail( "epoll_create() failed" );
-	}
-
-	memset( &ev, '\0', sizeof( struct epoll_event ) );
-	ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-	ev.data.fd = _main->dns->sockfd;
-
-	if( epoll_ctl( _main->dns->epollfd, EPOLL_CTL_ADD, _main->dns->sockfd,
-		&ev ) == -1 ) {
-		fail( "dns_event: epoll_ctl() failed" );
-	}
-}
-
-void *dns_thread( void *arg ) {
-	struct epoll_event events[CONF_EPOLL_MAX_EVENTS];
-	int nfds;
-	int id = 0;
-
-	mutex_block( _main->work->mutex );
-	id = _main->work->id++;
-	mutex_unblock( _main->work->mutex );
-
-	info( NULL, "DNS Thread[%i] - Max events: %i", id,
-		CONF_EPOLL_MAX_EVENTS );
-
-	while( status == RUMBLE ) {
-
-		nfds = epoll_wait( _main->dns->epollfd, events,
-			CONF_EPOLL_MAX_EVENTS, CONF_EPOLL_WAIT );
-
-		/* Shutdown server */
-		if( status != RUMBLE ) {
-			break;
+		if( i != 0 ) {
+			domain[i] = '.';
+			i += 1;
 		}
 
-		if( nfds == -1 ) {
-			if( errno != EINTR ) {
-				fail( "dns_thread: epoll_wait() failed / %s",
-					strerror( errno ) );
-			}
-		} else if( nfds == 0 ) {
-			/* Timeout wakeup */
-		} else if( nfds > 0 ) {
-			dns_worker( events, nfds );
+		len = *p;
+		p += 1;
+
+		if( i+len >=  256 || i+len >= size ) {
+			return -1;
 		}
+
+		memcpy( domain+i, p, len );
+		p += len;
+		i += len;
 	}
 
-	pthread_exit( NULL );
+	domain[i] = '\0';
+
+	/* also jump over the last 0 */
+	*buffer = p + 1;
+
+	return (*buffer) - beg;
 }
 
-void dns_worker( struct epoll_event *events, int nfds ) {
-	int i;
+/* foo.bar.com => 3foo3bar3com0 */
+void p_encode_domain( UCHAR** buffer, const char *domain ) {
+	char *buf = (char*) *buffer;
+	const char *beg = domain;
+	const char *pos;
+	size_t len = 0;
+	size_t i = 0;
 
-	for( i=0; i<nfds; i++ ) {
-		if( ( events[i].events & EPOLLIN ) == EPOLLIN ) {
-			dns_input( events[i].data.fd );
-			dns_rearm( events[i].data.fd );
-		} else {
-			info( NULL, "dns_worker: Unknown event" );
-		}
+	while( (pos = strchr(beg, '.')) != NULL ) {
+		len = pos - beg;
+		buf[i] = len;
+		i += 1;
+		memcpy( buf+i, beg, len );
+		i += len;
+
+		beg = pos + 1;
 	}
+
+	len = strlen( domain ) - (beg - domain);
+
+	buf[i] = len;
+	i += 1;
+
+	memcpy( buf + i, beg, len );
+	i += len;
+
+	buf[i] = 0;
+	i += 1;
+
+	*buffer += i;
 }
 
-void dns_rearm( int sockfd ) {
-	struct epoll_event ev;
+int p_decode_header( DNS_MSG *msg, const UCHAR** buffer, int size ) {
+	unsigned int fields;
 
-	memset( &ev, '\0', sizeof( struct epoll_event ) );
-	ev.events = EPOLLET | EPOLLIN | EPOLLONESHOT;
-	ev.data.fd = sockfd;
-
-	if( epoll_ctl( _main->dns->epollfd, EPOLL_CTL_MOD, sockfd, &ev ) == -1 ) {
-		fail( "dns_rearm: epoll_ctl() failed / %s", strerror( errno ) );
-	}
-}
-
-int dns_nonblocking( int sock ) {
-	int opts = fcntl( sock,F_GETFL );
-	if( opts < 0 ) {
+	if( size < 12 ) {
 		return -1;
 	}
-	opts = opts|O_NONBLOCK;
-	if( fcntl( sock,F_SETFL,opts ) < 0 ) {
+
+	msg->id = p_get16bits( buffer );
+	fields = p_get16bits( buffer );
+	msg->qr = fields & QR_MASK;
+	msg->opcode = fields & OPCODE_MASK;
+	msg->aa = fields & AA_MASK;
+	msg->tc = fields & TC_MASK;
+	msg->rd = fields & RD_MASK;
+	msg->ra = fields & RA_MASK;
+	msg->rcode = fields & RCODE_MASK;
+
+	msg->qdCount = p_get16bits( buffer );
+	msg->anCount = p_get16bits( buffer );
+	msg->nsCount = p_get16bits( buffer );
+	msg->arCount = p_get16bits( buffer );
+
+	return 12;
+}
+
+void p_encode_header( DNS_MSG *msg, UCHAR** buffer ) {
+	p_put16bits( buffer, msg->id );
+
+	/* Set response flag only */
+	p_put16bits( buffer, (1 << 15) );
+
+	p_put16bits( buffer, msg->qdCount );
+	p_put16bits( buffer, msg->anCount );
+	p_put16bits( buffer, msg->nsCount );
+	p_put16bits( buffer, msg->arCount );
+}
+
+int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size ) {
+	ssize_t n;
+
+	if( (n = p_decode_header( msg, &buffer, size )) < 0 ) {
 		return -1;
 	}
+	size -= n;
+
+	if( msg->anCount != 0 ) {
+		info( NULL, "DNS: Only questions expected." );
+		return -1;
+	}
+	if( msg->nsCount != 0 ) {
+		info( NULL, "DNS: Only questions expected." );
+		return -1;
+	}
+	if( msg->qdCount != 1 ) {
+		info( NULL, "DNS: Only only 1 question expected." );
+		return -1;
+	}
+#if 0
+	if( msg->arCount != 0 ) {
+		info( NULL, "DNS: Only questions expected." );
+		return -1;
+	}
+#endif
+	/* parse questions */
+	n = p_decode_domain( msg->qName_buffer, &buffer, size );
+	if( n < 0 ) {
+		return -1;
+	}
+
+	size -= n;
+
+	if( size < 4 ) {
+		return -1;
+	}
+
+	int qType = p_get16bits( &buffer );
+	int qClass = p_get16bits( &buffer );
+
+	msg->question.qName = msg->qName_buffer;
+	msg->question.qType = qType;
+	msg->question.qClass = qClass;
 
 	return 1;
 }
 
-void dns_input( int sockfd ) {
-	UCHAR buffer[DNS_BUF+1];
-	ssize_t bytes = 0;
-	IP c_addr;
-	socklen_t c_addrlen = sizeof( IP );
+UCHAR *p_encode_response( DNS_MSG *msg, UCHAR *buffer ) {
+	int i = 0;
 
-	while( status == RUMBLE ) {
-		memset( &c_addr, '\0', c_addrlen );
-		memset( buffer, '\0', DNS_BUF+1 );
+	p_encode_header( msg, &buffer );
 
-		bytes = recvfrom( sockfd, buffer, DNS_BUF, 0, 
-			( struct sockaddr* )&c_addr, &c_addrlen );
+	p_encode_domain( &buffer, msg->question.qName );
+	p_put16bits( &buffer, msg->question.qType );
+	p_put16bits( &buffer, msg->question.qClass );
 
-		if( bytes < 0 ) {
-			if( errno != EAGAIN && errno != EWOULDBLOCK ) {
-				info( &c_addr, "DNS error while recvfrom" );
-			}
-			return;
-		}
+	if( msg->anCount == 0 ) {
+		return buffer;
+	}
 
-		if( bytes == 0 ) {
-			info( &c_addr, "DNS error 0 bytes" );
-			return;
-		}
+	for( i=0; i<msg->anCount; i++ ) {
+		p_encode_domain( &buffer, msg->answer[i].name );
+		p_put16bits( &buffer, msg->answer[i].type );
+		p_put16bits( &buffer, msg->answer[i].class );
+		p_put32bits( &buffer, msg->answer[i].ttl );
+		p_put16bits( &buffer, msg->answer[i].rd_length );
 
-		/* Parse DNS packet */
-		r_parse( buffer, bytes, &c_addr );
+		memcpy( buffer, msg->answer[i].rd_data.x_record.addr, IP_SIZE );
+		buffer += IP_SIZE;
+	}
+
+	return buffer;
+}
+
+void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_size ) {
+	DNS_RR *rr;
+	DNS_Q *qu;
+	UCHAR *p = NULL;
+	int i = 0;
+
+	qu = &msg->question;
+	rr = &msg->answer[0];
+
+	msg->rcode = Ok_ResponseType;
+	msg->qr = 1;
+	msg->aa = 1;
+	msg->ra = 0;
+	msg->anCount = nodes_compact_size / IP_SIZE_META_PAIR;
+	msg->nsCount = 0;
+	msg->arCount = 0;
+
+	p = nodes_compact_list;
+	for( i = 0; i < msg->anCount; i++ ) {
+
+		rr[i].name = qu->qName;
+		rr[i].class = qu->qClass;
+		rr[i].ttl = 0;
+		rr[i].rd_length = IP_SIZE;
+
+#ifdef IPV4
+		rr[i].type = A_Resource_RecordType;
+#endif
+
+#ifdef IPV6
+		rr[i].type = AAAA_Resource_RecordType;
+#endif
+
+		memcpy( rr[i].rd_data.x_record.addr, p, IP_SIZE );
+		p += IP_SIZE_META_PAIR;
 	}
 }

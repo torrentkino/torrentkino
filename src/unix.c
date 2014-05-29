@@ -62,8 +62,12 @@ void unix_set_time( int seconds ) {
 	alarm( seconds );
 }
 
-void unix_fork( void ) {
+void unix_fork( int mode ) {
 	pid_t pid = 0;
+
+	if( mode == CONF_CONSOLE ) {
+		return;
+	}
 
 	pid = fork();
 	if( pid < 0 ) {

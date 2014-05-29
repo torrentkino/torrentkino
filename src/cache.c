@@ -59,11 +59,13 @@ void cache_put( UCHAR *target_id, UCHAR *nodes_compact_list, int nodes_compact_s
 	pair = nodes_compact_list;
 	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_PAIR ) {
 
+#if 0
 		/* Compare the port in the reply to my own announced port. */
 		if( cache_strict_error( pair ) ) {
 			pair += IP_SIZE_META_PAIR;
 			continue;
 		}
+#endif
 
 		/* Update cache */
 		tgt_c_update( target, pair );
@@ -333,6 +335,7 @@ void node_c_update( NODE_C *node_c, UCHAR *pair ) {
 	time_add_30_min( &node_c->eol );
 }
 
+#if 0
 int cache_strict_error( UCHAR *p ) {
 	IP sin;
 	unsigned int port = 0;
@@ -351,9 +354,10 @@ int cache_strict_error( UCHAR *p ) {
 #endif
 
 	/* Limit cache replies to those matching my port. */
-	if( port == _main->conf->port ) {
+	if( port == _main->conf->p2p_port ) {
 		return FALSE;
 	}
 
 	return TRUE;
 }
+#endif

@@ -46,9 +46,10 @@ struct obj_conf {
 	int mode;
 	int strict;
 	int bool_realm;
-	unsigned int port;
-	unsigned int bootstrap_port;
+	unsigned int p2p_port;
+	unsigned int dns_port;
 	unsigned int announce_port;
+	unsigned int bootstrap_port;
 #ifdef POLARSSL
 	char key[BUF_SIZE];
 	int bool_encryption;
@@ -61,8 +62,6 @@ void conf_free( void );
 void conf_usage( char *command );
 void conf_print( void );
 
-void conf_home_from_env( struct obj_conf *conf );
-void conf_hostname_from_file( char *opt_hostname );
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
 
 int conf_verbosity( void );

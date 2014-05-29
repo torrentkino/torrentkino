@@ -35,7 +35,7 @@ struct obj_main {
 	struct obj_token *token;
 	struct obj_nbhd *nbhd;
 	struct obj_udp *udp;
-	struct obj_dns *dns;
+	struct obj_udp *dns;
 	struct obj_p2p *p2p;
 	struct obj_val *value;
 #endif

@@ -33,14 +33,15 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 struct obj_conf *conf_init( int argc, char **argv ) {
 	struct obj_conf *conf = myalloc( sizeof( struct obj_conf ) );
 	int opt = 0;
-	char opt_hostname[BUF_SIZE];
+	int i = 0;
 
 	/* Defaults */
 	conf->mode = CONF_CONSOLE;
-	conf->port = PORT_DHT_DEFAULT;
+	conf->p2p_port = PORT_DHT_DEFAULT;
+	conf->dns_port = PORT_DNS_DEFAULT;
 	conf->verbosity = CONF_VERBOSE;
 	conf->bootstrap_port = PORT_DHT_DEFAULT;
-	conf->announce_port = 8080;
+	conf->announce_port = PORT_DHT_DEFAULT;
 	conf->cores = unix_cpus();
 	conf->strict = FALSE;
 	conf->bool_realm = FALSE;
@@ -49,20 +50,19 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	memset( conf->key, '\0', BUF_SIZE );
 #endif
 	memset( conf->null_id, '\0', SHA1_SIZE );
+	memset( conf->hostname, '\0', BUF_SIZE );
 	strncpy( conf->realm, CONF_REALM, BUF_OFF1 );
 	strncpy( conf->bootstrap_node, MULTICAST_DEFAULT, BUF_OFF1 );
-	strncpy( opt_hostname, CONF_SRVNAME, BUF_OFF1 );
-	conf_hostname_from_file( opt_hostname );
 	rand_urandom( conf->node_id, SHA1_SIZE );
 
 	/* Arguments */
-	while( ( opt = getopt( argc, argv, "a:b:fhk:ln:p:qr:sx:y:" ) ) != -1 ) {
+	while( ( opt = getopt( argc, argv, "a:d:fhk:ln:p:qr:x:y:" ) ) != -1 ) {
 		switch( opt ) {
 			case 'a':
-				snprintf( opt_hostname, BUF_SIZE, "%s", optarg );
-				break;
-			case 'b':
 				conf->announce_port = str_safe_port( optarg );
+				break;
+			case 'd':
+				conf->dns_port = str_safe_port( optarg );
 				break;
 			case 'f':
 				conf->mode = CONF_DAEMON;
@@ -84,7 +84,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 				sha1_hash( conf->node_id, optarg, strlen( optarg ) );
 				break;
 			case 'p':
-				conf->port = str_safe_port( optarg );
+				conf->p2p_port = str_safe_port( optarg );
 				break;
 			case 'q':
 				conf->verbosity = CONF_BEQUIET;
@@ -107,16 +107,36 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		}
 	}
 
-	/* Put domain and hostname together */
-	snprintf( conf->hostname, BUF_SIZE, "%s",
-			opt_hostname );
+	/* Get non-option values. Make it possible to announce multiple
+	   hostnames later. */
+	for( i=optind; i<argc; i++ ) {
+		snprintf( conf->hostname, BUF_SIZE, "%s", argv[i] );
+	}
+	if( strlen( conf->hostname ) <= 0 ) {
+		conf_usage( argv[0] );
+	}
+	if( !str_valid_hostname( conf->hostname, strlen(conf->hostname) ) ) {
+		conf_usage( argv[0] );
+	}
 
-	if( conf->port == 0 ) {
-		fail( "Invalid port number (-p)" );
+	if( conf->p2p_port == 0 ) {
+		fail( "Invalid P2P port number (-p)" );
+	}
+
+	if( conf->dns_port == 0 ) {
+		fail( "Invalid DNS port number (-d)" );
+	}
+
+	if( conf->dns_port == conf->p2p_port ) {
+		fail( "P2P port (-p) and DNS port (-d) must not be the same." );
 	}
 
 	if( conf->bootstrap_port == 0 ) {
 		fail( "Invalid bootstrap port number (-y)" );
+	}
+
+	if( conf->announce_port == 0 ) {
+		fail( "Invalid announce port number (-a)" );
 	}
 
 	if( conf->cores < 1 || conf->cores > 128 ) {
@@ -141,34 +161,9 @@ void conf_free( void ) {
 
 void conf_usage( char *command ) {
 	fail(
-		"Usage: %s [-a hostname] [-b port] [-r realm] [-p port] "
-		"[-x server] [-y port] [-q] [-l] [-s]", 
+		"Usage: %s [-p port] [-r realm] [-d port] [-a port] "
+		"[-x server] [-y port] [-n string] [-q] [-l] hostname", 
 		command );
-}
-
-void conf_hostname_from_file( char *opt_hostname ) {
-	char *f = NULL;
-	char *p = NULL;
-
-	snprintf( opt_hostname, BUF_SIZE, "%s", CONF_SRVNAME );
-
-	if( ! file_isreg( CONF_HOSTFILE ) ) {
-		return;
-	}
-
-	f = (char *) file_load( CONF_HOSTFILE, 0, file_size( CONF_HOSTFILE ) );
-
-	if( f == NULL ) {
-		return;
-	}
-
-	if( ( p = strchr( f, '\n')) != NULL ) {
-		*p = '\0';
-	}
-
-	snprintf( opt_hostname, BUF_SIZE, "%s", f );
-
-	myfree( f );
 }
 
 void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
@@ -192,7 +187,7 @@ void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
 void conf_print( void ) {
 	char hex[HEX_LEN];
 
-	info( NULL, "Hostname: %s (-a)", _main->conf->hostname );
+	info( NULL, "Hostname: %s", _main->conf->hostname );
 
 	if( _main->conf->bool_realm == 1 ) {
 		info( NULL, "Realm: %s (-r)", _main->conf->realm );
@@ -214,10 +209,11 @@ void conf_print( void ) {
 	hex_hash_encode( hex, _main->conf->host_id );
 	info( NULL, "Host ID: %s", hex );
 
-	info( NULL, "Announce this port: %i (-b)", _main->conf->announce_port );
-	info( NULL, "Listen to UDP/%i (-p)", _main->conf->port );
+	info( NULL, "P2P daemon is listening to UDP/%i (-p)", _main->conf->p2p_port );
+	info( NULL, "DNS daemon is listening to UDP/%i (-d)", _main->conf->dns_port );
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
+	info( NULL, "Announced port: %i (-y)", _main->conf->announce_port );
 	if( _main->conf->strict ) {
 		info( NULL, "Strict mode: Yes (-s)" );
 	} else {

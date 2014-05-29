@@ -20,10 +20,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef LOOKUP_H
 #define LOOKUP_H
 
-#include "main.h"
 #include "malloc.h"
-#include "neighbourhood.h"
-#include "resolver.h"
+#include "list.h"
+#include "dns.h"
+#include "token.h"
 
 typedef struct {
 	/* What are we looking for */

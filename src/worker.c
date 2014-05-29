@@ -70,19 +70,22 @@ void work_start( void ) {
 
 	/* P2P Server */
 	_main->work->threads[0] = (pthread_t *) myalloc( sizeof(pthread_t) );
-	if( pthread_create( _main->work->threads[0], &_main->work->attr, udp_thread, NULL ) != 0 ) {
+	if( pthread_create( _main->work->threads[0], &_main->work->attr,
+			udp_thread, _main->udp ) != 0 ) {
 		fail( "pthread_create()" );
 	}
 
 	/* UDP Server */
 	_main->work->threads[1] = (pthread_t *) myalloc( sizeof(pthread_t) );
-	if( pthread_create( _main->work->threads[1], &_main->work->attr, dns_thread, NULL ) != 0 ) {
+	if( pthread_create( _main->work->threads[1], &_main->work->attr,
+			udp_thread, _main->dns ) != 0 ) {
 		fail( "pthread_create()" );
 	}
 
 	/* Send 1st request while the UDP worker is starting */
 	_main->work->threads[2] = (pthread_t *) myalloc( sizeof(pthread_t) );
-	if( pthread_create( _main->work->threads[2], &_main->work->attr, udp_client, NULL ) != 0 ) {
+	if( pthread_create( _main->work->threads[2], &_main->work->attr,
+			udp_client, _main->udp ) != 0 ) {
 		fail( "pthread_create()" );
 	}
 }

@@ -41,93 +41,101 @@ UDP *udp_init( void ) {
 	/* Multicast listener state */
 	udp->multicast = FALSE;
 
+	udp->type = udp_p2p_worker;
+
 	return udp;
 }
 
-void udp_free( void ) {
-	myfree( _main->udp );
+void udp_free( UDP *udp ) {
+	myfree( udp );
 }
 
-void udp_start( void ) {
+void udp_start( UDP *udp, int port, int multicast_mode ) {
 #ifdef IPV6
 	int optval = 1;
 #endif
 
 #ifdef IPV6
-	if( ( _main->udp->sockfd = socket( PF_INET6, SOCK_DGRAM, 0 ) ) < 0 ) {
+	if( ( udp->sockfd = socket( PF_INET6, SOCK_DGRAM, 0 ) ) < 0 ) {
 		fail( "Creating socket failed." );
 	}
-	_main->udp->s_addr.sin6_family = AF_INET6;
-	_main->udp->s_addr.sin6_port = htons( _main->conf->port );
-	_main->udp->s_addr.sin6_addr = in6addr_any;
+	udp->s_addr.sin6_family = AF_INET6;
+	udp->s_addr.sin6_port = htons( port );
+	udp->s_addr.sin6_addr = in6addr_any;
 #elif IPV4
-	if( ( _main->udp->sockfd = socket( PF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
+	if( ( udp->sockfd = socket( PF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
 		fail( "Creating socket failed." );
 	}
-	_main->udp->s_addr.sin_family = AF_INET;
-	_main->udp->s_addr.sin_port = htons( _main->conf->port );
-	_main->udp->s_addr.sin_addr.s_addr = htonl( INADDR_ANY );
+	udp->s_addr.sin_family = AF_INET;
+	udp->s_addr.sin_port = htons( port );
+	udp->s_addr.sin_addr.s_addr = htonl( INADDR_ANY );
 #endif
 
 	/* Start multicast */
-	udp_multicast( UDP_JOIN_MCAST );
+	udp_multicast( udp, multicast_mode, multicast_start );
+
+	/* Type of operation */
+	udp->type = ( port == _main->conf->p2p_port ) ? udp_p2p_worker : udp_dns_worker;
 
 #ifdef IPV6
-	/* Disable IPv4 */
-	if( setsockopt( _main->udp->sockfd,
-		IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int ) ) == -1 ) {
-		fail( "Setting IPV6_V6ONLY failed" );
+	/* Disable IPv4 P2P when operating on IPv6 */
+	if( udp->type == udp_p2p_worker ) {
+		if( setsockopt( udp->sockfd,
+			IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int ) ) == -1 ) {
+			fail( "Setting IPV6_V6ONLY failed" );
+		}
 	}
 #endif
 
-	if( bind( _main->udp->sockfd,
-		( struct sockaddr * ) &_main->udp->s_addr, _main->udp->s_addrlen ) ) {
+	if( bind( udp->sockfd,
+		( struct sockaddr * ) &udp->s_addr, udp->s_addrlen ) ) {
 		fail( "bind() to socket failed." );
 	}
 
-	if( udp_nonblocking( _main->udp->sockfd ) < 0 ) {
-		fail( "udp_nonblocking( _main->udp->sockfd ) failed" );
+	if( udp_nonblocking( udp->sockfd ) < 0 ) {
+		fail( "udp_nonblocking() failed" );
 	}
 
 	/* Setup epoll */
-	udp_event();
+	udp_event( udp );
 }
 
-void udp_stop( void ) {
+void udp_stop( UDP *udp, int multicast_mode ) {
 
 	/* Stop multicast */
-	udp_multicast( UDP_LEAVE_MCAST );
+	udp_multicast( udp, multicast_mode, multicast_stop );
 
 	/* Close socket */
-	if( close( _main->udp->sockfd ) != 0 ) {
+	if( close( udp->sockfd ) != 0 ) {
 		fail( "close() failed." );
 	}
 
 	/* Close epoll */
-	if( close( _main->udp->epollfd ) != 0 ) {
+	if( close( udp->epollfd ) != 0 ) {
 		fail( "close() failed." );
 	}
 }
 
-void udp_event( void ) {
+void udp_event( UDP *udp ) {
 	struct epoll_event ev;
 
-	_main->udp->epollfd = epoll_create( 23 );
-	if( _main->udp->epollfd == -1 ) {
+	udp->epollfd = epoll_create( 23 );
+	if( udp->epollfd == -1 ) {
 		fail( "epoll_create() failed" );
 	}
 
 	memset( &ev, '\0', sizeof( struct epoll_event ) );
 	ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-	ev.data.fd = _main->udp->sockfd;
+	ev.data.fd = udp->sockfd;
 
-	if( epoll_ctl( _main->udp->epollfd, EPOLL_CTL_ADD, _main->udp->sockfd,
+	if( epoll_ctl( udp->epollfd, EPOLL_CTL_ADD, udp->sockfd,
 		&ev ) == -1 ) {
 		fail( "udp_event: epoll_ctl() failed" );
 	}
 }
 
 void *udp_thread( void *arg ) {
+	UDP *udp = arg;
 	struct epoll_event events[CONF_EPOLL_MAX_EVENTS];
 	int nfds;
 	int id = 0;
@@ -141,7 +149,7 @@ void *udp_thread( void *arg ) {
 
 	while( status == RUMBLE ) {
 
-		nfds = epoll_wait( _main->udp->epollfd, events,
+		nfds = epoll_wait( udp->epollfd, events,
 			CONF_EPOLL_MAX_EVENTS, CONF_EPOLL_WAIT );
 
 		/* Shutdown server */
@@ -156,11 +164,9 @@ void *udp_thread( void *arg ) {
 			}
 		} else if( nfds == 0 ) {
 			/* Timeout wakeup */
-			if( id == 0 ) {
-				udp_cron();
-			}
+			udp_cron( udp );
 		} else if( nfds > 0 ) {
-			udp_worker( events, nfds );
+			udp_worker( udp, events, nfds );
 		}
 	}
 
@@ -168,36 +174,37 @@ void *udp_thread( void *arg ) {
 }
 
 void *udp_client( void *arg ) {
+	UDP *udp = arg;
 
-	if( nbhd_is_empty() ) {
-		p2p_bootstrap();
-		time_add_1_min_approx( &_main->p2p->time_restart );
+	if( udp->type != udp_p2p_worker ) {
+		pthread_exit( NULL );
 	}
 
+	p2p_bootstrap();
 	pthread_exit( NULL );
 }
 
-void udp_worker( struct epoll_event *events, int nfds ) {
+void udp_worker( UDP *udp, struct epoll_event *events, int nfds ) {
 	int i;
 
 	for( i=0; i<nfds; i++ ) {
 		if( ( events[i].events & EPOLLIN ) == EPOLLIN ) {
-			udp_input( events[i].data.fd );
-			udp_rearm( events[i].data.fd );
+			udp_input( udp, events[i].data.fd );
+			udp_rearm( udp, events[i].data.fd );
 		} else {
 			info( NULL, "udp_worker: Unknown event" );
 		}
 	}
 }
 
-void udp_rearm( int sockfd ) {
+void udp_rearm( UDP *udp, int sockfd ) {
 	struct epoll_event ev;
 
 	memset( &ev, '\0', sizeof( struct epoll_event ) );
 	ev.events = EPOLLET | EPOLLIN | EPOLLONESHOT;
 	ev.data.fd = sockfd;
 
-	if( epoll_ctl( _main->udp->epollfd, EPOLL_CTL_MOD, sockfd, &ev ) == -1 ) {
+	if( epoll_ctl( udp->epollfd, EPOLL_CTL_MOD, sockfd, &ev ) == -1 ) {
 		fail( "udp_rearm: epoll_ctl() failed / %s", strerror( errno ) );
 	}
 }
@@ -215,7 +222,7 @@ int udp_nonblocking( int sock ) {
 	return 1;
 }
 
-void udp_input( int sockfd ) {
+void udp_input( UDP *udp, int sockfd ) {
 	UCHAR buffer[UDP_BUF+1];
 	ssize_t bytes = 0;
 	IP c_addr;
@@ -240,25 +247,38 @@ void udp_input( int sockfd ) {
 			return;
 		}
 
-		/* Parse UDP packet */
-		p2p_parse( buffer, bytes, &c_addr );
-
-		/* Cron jobs */
-		udp_cron();
+		if( udp->type == udp_p2p_worker ) {
+			/* Parse UDP packet */
+			p2p_parse( buffer, bytes, &c_addr );
+			udp_cron( udp );
+		} else {
+			/* Parse DNS packet */
+			r_parse( buffer, bytes, &c_addr );
+		}
 	}
 }
 
-void udp_cron( void ) {
+void udp_cron( UDP *udp ) {
+	if( udp->type != udp_p2p_worker ) {
+		return;
+	}
+
 	mutex_block( _main->work->mutex );
 	p2p_cron();
 	mutex_unblock( _main->work->mutex );
 }
 
 #ifdef IPV6
-void udp_multicast( int mode ) {
+void udp_multicast( UDP *udp, int mode, int runmode ) {
 	struct ipv6_mreq mreq;
-	int action = ( mode == UDP_JOIN_MCAST ) ? IPV6_JOIN_GROUP : IPV6_LEAVE_GROUP;
+	int action;
 	IP sin;
+
+	if( mode == multicast_disabled ) {
+		return;
+	}
+
+	action = ( runmode == multicast_start ) ? IPV6_JOIN_GROUP : IPV6_LEAVE_GROUP;
 
 	memset( &sin, '\0', sizeof( IP ) );
 	sin.sin6_family = AF_INET6;
@@ -272,20 +292,26 @@ void udp_multicast( int mode ) {
 		sizeof(	mreq.ipv6mr_multiaddr ) );
 	mreq.ipv6mr_interface = 0;
 
-	if( setsockopt( _main->udp->sockfd, IPPROTO_IPV6, action,
+	if( setsockopt( udp->sockfd, IPPROTO_IPV6, action,
 		&mreq, sizeof( mreq ) ) != 0 ) {
 		info( NULL, "Joining multicast group failed: %s",
 			strerror( errno ) );
 		return;
 	}
 
-	_main->udp->multicast = ( mode == UDP_JOIN_MCAST ) ? TRUE : FALSE;
+	udp->multicast = ( runmode == multicast_start ) ? TRUE : FALSE;
 }
 #elif IPV4
-void udp_multicast( int mode ) {
+void udp_multicast( UDP *udp, int mode, int runmode ) {
 	struct ip_mreq mreq;
-	int action = ( mode == UDP_JOIN_MCAST ) ? IP_ADD_MEMBERSHIP : IP_DROP_MEMBERSHIP;
+	int action;
 	IP sin;
+
+	if( mode == multicast_disabled ) {
+		return;
+	}
+
+	action = ( runmode == multicast_start ) ? IP_ADD_MEMBERSHIP : IP_DROP_MEMBERSHIP;
 
 	memset( &sin, '\0', sizeof( IP ) );
 	sin.sin_family = AF_INET;
@@ -299,13 +325,13 @@ void udp_multicast( int mode ) {
 		sizeof( mreq.imr_multiaddr ) );
 	mreq.imr_interface.s_addr = INADDR_ANY;
 
-	if( setsockopt( _main->udp->sockfd, IPPROTO_IP, action,
+	if( setsockopt( udp->sockfd, IPPROTO_IP, action,
 		&mreq, sizeof( mreq ) ) != 0 ) {
 		info( NULL, "Joining multicast group failed: %s",
 			strerror( errno ) );
 		return;
 	}
 
-	_main->udp->multicast = ( mode == UDP_JOIN_MCAST ) ? TRUE : FALSE;
+	udp->multicast = ( runmode == multicast_start ) ? TRUE : FALSE;
 }
 #endif

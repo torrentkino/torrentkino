@@ -22,8 +22,16 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ip.h"
 #include "ben.h"
-#include "transaction.h"
 #include "token.h"
+#include "cache.h"
+#include "send_udp.h"
+#include "value.h"
+#include "dns.h"
+#include "resolver.h"
+#include "udp.h"
+#ifdef POLARSSL
+#include "aes.h"
+#endif
 
 #define P2P_MAX_BOOTSTRAP_NODES 20
 

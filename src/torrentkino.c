@@ -37,6 +37,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "udp.h"
 #include "dns.h"
 #include "cache.h"
+#include "neighbourhood.h"
+#include "transaction.h"
 
 #include "worker.h"
 
@@ -82,7 +84,7 @@ int main( int argc, char **argv ) {
 	_main->token = tkn_init();
 	_main->p2p = p2p_init();
 	_main->udp = udp_init();
-	_main->dns = dns_init();
+	_main->dns = udp_init();
 	_main->cache = cache_init();
 
 	/* Check configuration */
@@ -92,9 +94,7 @@ int main( int argc, char **argv ) {
 	unix_signal( &sig_stop, &sig_time );
 
 	/* Fork daemon */
-	if( _main->conf->mode == CONF_DAEMON ) {
-		unix_fork();
-	}
+	unix_fork( _main->conf->mode );
 
 	/* Create kademlia token */
 	tkn_put();
@@ -103,8 +103,8 @@ int main( int argc, char **argv ) {
 	unix_limits( _main->conf->cores, CONF_EPOLL_MAX_EVENTS );
 
 	/* Prepare UDP daemon */
-	udp_start();
-	dns_start();
+	udp_start( _main->udp, _main->conf->p2p_port, multicast_enabled );
+	udp_start( _main->dns, _main->conf->dns_port, multicast_disabled );
 
 	/* Drop privileges */
 	unix_dropuid0();
@@ -116,8 +116,8 @@ int main( int argc, char **argv ) {
 	work_stop();
 
 	/* Stop UDP daemon */
-	dns_stop();
-	udp_stop();
+	udp_stop( _main->dns, multicast_disabled );
+	udp_stop( _main->udp, multicast_enabled );
 
 	cache_free();
 	val_free();
@@ -125,8 +125,8 @@ int main( int argc, char **argv ) {
 	tdb_free();
 	tkn_free();
 	p2p_free();
-	udp_free();
-	dns_free();
+	udp_free( _main->dns );
+	udp_free( _main->udp );
 
 	work_free();
 	conf_free();

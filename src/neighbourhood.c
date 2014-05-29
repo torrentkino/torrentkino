@@ -34,26 +34,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/epoll.h>
 
-#include "malloc.h"
-#include "thrd.h"
-#include "torrentkino.h"
-#include "str.h"
-#include "list.h"
-#include "hash.h"
-#include "log.h"
-#include "conf.h"
-#include "file.h"
-#include "unix.h"
-#include "udp.h"
-#include "ben.h"
-#include "token.h"
 #include "neighbourhood.h"
-#include "bucket.h"
-#include "send_udp.h"
-#include "time.h"
-#include "lookup.h"
-#include "transaction.h"
-#include "p2p.h"
 
 NBHD *nbhd_init( void ) {
 	NBHD *nbhd = (NBHD *) myalloc( sizeof(NBHD) );
