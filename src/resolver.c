@@ -40,9 +40,15 @@ void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 	DNS_MSG msg;
 	const char *hostname = NULL;
 
-	/* UDP packet too small */
-	if( bufsize < 1 ) {
-		info( from, "DNS: Zero size packet from" );
+	/* 12 bytes DNS header to start with */
+	if( bufsize < 12 ) {
+		info( from, "DNS: Too few bytes to even start from" );
+		return;
+	}
+
+	/* 512 bytes is enough for everybody */
+	if( bufsize > 512 ) {
+		info( from, "DNS: Packet greater than 512 bytes from" );
 		return;
 	}
 
@@ -52,14 +58,13 @@ void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 		return;
 	}
 
-	info( from, "DNS: Received query from" );
-
 	if( p_decode_query( &msg, buffer, bufsize ) < 0 ) {
 		return;
 	}
 
 	hostname = msg.question.qName;
 
+	/* FIXME? */
 	if ( hostname == NULL ) {
 		info( from, "DNS: Missing hostname" );
 		return;
@@ -78,14 +83,14 @@ void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 
 #ifdef IPV6
 	if( msg.question.qType != AAAA_Resource_RecordType ) {
-		r_empty( from, &msg );
+		r_failure( from, &msg );
 		return;
 	}
 #endif
 
 #ifdef IPV4
 	if( msg.question.qType != A_Resource_RecordType ) {
-		r_empty( from, &msg );
+		r_failure( from, &msg );
 		return;
 	}
 #endif
@@ -209,34 +214,13 @@ void r_success( IP *from, DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_com
 		(struct sockaddr*) from, sizeof(IP) );
 }
 
-void r_empty_msg( DNS_MSG *msg ) {
-	DNS_RR *rr;
-	DNS_Q *qu;
-
-	qu = &msg->question;
-	rr = msg->answer;
-
-	msg->rcode = Ok_ResponseType;
-	msg->qr = 1;
-	msg->aa = 1;
-	msg->ra = 0;
-	msg->anCount = 0;
-	msg->nsCount = 0;
-	msg->arCount = 0;
-
-	rr->name = qu->qName;
-	rr->class = qu->qClass;
-	rr->ttl = 0;
-	rr->type = 0;
-	rr->rd_length = 0;
-}
-
-void r_empty( IP *from, DNS_MSG *msg ) {
+/* Send empty reply if the requested */
+void r_failure( IP *from, DNS_MSG *msg ) {
 	UCHAR buffer[UDP_BUF];
 	UCHAR *p = buffer;
 	int buflen = 0;
 
-	r_empty_msg( msg );
+	p_reset_msg( msg );
 	p = p_encode_response( msg, buffer );
 
 	buflen = p - buffer;

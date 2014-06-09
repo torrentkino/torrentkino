@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* http://www.networksorcery.com/enp/protocol/dns.htm */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -125,13 +127,14 @@ int p_decode_header( DNS_MSG *msg, const UCHAR** buffer, int size ) {
 
 	msg->id = p_get16bits( buffer );
 	fields = p_get16bits( buffer );
-	msg->qr = fields & QR_MASK;
-	msg->opcode = fields & OPCODE_MASK;
-	msg->aa = fields & AA_MASK;
-	msg->tc = fields & TC_MASK;
-	msg->rd = fields & RD_MASK;
-	msg->ra = fields & RA_MASK;
-	msg->rcode = fields & RCODE_MASK;
+
+	msg->qr = (fields & QR_MASK) >> 15;
+	msg->opcode = (fields & OPCODE_MASK) >> 11;
+	msg->aa = (fields & AA_MASK) >> 10;
+	msg->tc = (fields & TC_MASK) >> 9;
+	msg->rd = (fields & RD_MASK) >> 8;
+	msg->ra = (fields & RA_MASK) >> 7;
+	msg->rcode = (fields & RCODE_MASK) >> 0;
 
 	msg->qdCount = p_get16bits( buffer );
 	msg->anCount = p_get16bits( buffer );
@@ -142,10 +145,13 @@ int p_decode_header( DNS_MSG *msg, const UCHAR** buffer, int size ) {
 }
 
 void p_encode_header( DNS_MSG *msg, UCHAR** buffer ) {
+	int fields = 0;
+
 	p_put16bits( buffer, msg->id );
 
-	/* Set response flag only */
-	p_put16bits( buffer, (1 << 15) );
+	fields |= (msg->qr << 15) & QR_MASK;
+	fields |= (msg->rcode << 0) & RCODE_MASK;
+	p_put16bits( buffer, fields );
 
 	p_put16bits( buffer, msg->qdCount );
 	p_put16bits( buffer, msg->anCount );
@@ -265,3 +271,27 @@ void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_siz
 		p += IP_SIZE_META_PAIR;
 	}
 }
+
+void p_reset_msg( DNS_MSG *msg ) {
+	DNS_RR *rr;
+	DNS_Q *qu;
+
+	qu = &msg->question;
+	rr = msg->answer;
+
+	msg->rcode = Ok_ResponseType;
+	msg->qr = 1;
+	msg->aa = 1;
+	msg->ra = 0;
+	msg->anCount = 0;
+	msg->nsCount = 0;
+	msg->arCount = 0;
+
+	rr->name = qu->qName;
+	rr->class = qu->qClass;
+	rr->ttl = 0;
+	rr->type = 0;
+	rr->rd_length = 0;
+}
+
+

@@ -44,7 +44,6 @@ struct obj_conf {
 	int cores;
 	int verbosity;
 	int mode;
-	int strict;
 	int bool_realm;
 	unsigned int p2p_port;
 	unsigned int dns_port;

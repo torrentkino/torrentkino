@@ -43,7 +43,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf->bootstrap_port = PORT_DHT_DEFAULT;
 	conf->announce_port = PORT_DHT_DEFAULT;
 	conf->cores = unix_cpus();
-	conf->strict = FALSE;
 	conf->bool_realm = FALSE;
 #ifdef POLARSSL
 	conf->bool_encryption = FALSE;
@@ -92,9 +91,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 			case 'r':
 				snprintf( conf->realm, BUF_SIZE, "%s", optarg );
 				conf->bool_realm = TRUE;
-				break;
-			case 's':
-				conf->strict = TRUE;
 				break;
 			case 'x':
 				snprintf( conf->bootstrap_node, BUF_SIZE, "%s", optarg );
@@ -214,11 +210,6 @@ void conf_print( void ) {
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	info( NULL, "Announced port: %i (-y)", _main->conf->announce_port );
-	if( _main->conf->strict ) {
-		info( NULL, "Strict mode: Yes (-s)" );
-	} else {
-		info( NULL, "Strict mode: No (-s)" );
-	}
 
 	if( _main->conf->mode == CONF_CONSOLE ) {
 		info( NULL, "Mode: Console (-f)" );

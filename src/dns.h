@@ -147,5 +147,6 @@ int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size );
 UCHAR *p_encode_response( DNS_MSG *msg, UCHAR *buffer );
 
 void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_size );
+void p_reset_msg( DNS_MSG *msg );
 
 #endif /* PACKER_H */
