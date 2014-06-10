@@ -32,13 +32,12 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "unix.h"
 #include "str.h"
 #include "ben.h"
+#include "time.h"
+#include "hostname.h"
 
 struct obj_conf {
-	char hostname[BUF_SIZE];
 	char realm[BUF_SIZE];
 	char bootstrap_node[BUF_SIZE];
-	UCHAR group_id[SHA1_SIZE];
-	UCHAR host_id[SHA1_SIZE];
 	UCHAR node_id[SHA1_SIZE];
 	UCHAR null_id[SHA1_SIZE];
 	int cores;
@@ -54,14 +53,13 @@ struct obj_conf {
 	int bool_encryption;
 #endif
 };
+typedef struct obj_conf CONF;
 
 struct obj_conf *conf_init( int argc, char **argv );
 void conf_free( void );
 
 void conf_usage( char *command );
 void conf_print( void );
-
-void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
 
 int conf_verbosity( void );
 int conf_mode( void );

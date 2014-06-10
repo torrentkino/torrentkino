@@ -1,5 +1,5 @@
 /*
-Copyright 2010 Aiko Barz
+Copyright 2006 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,35 +17,27 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef HOSTNAME_H
+#define HOSTNAME_H
 
+#include "torrentkino.h"
 #include "main.h"
-#include "list.h"
+#include "sha1.h"
+#include "str.h"
+#include "hex.h"
+#include "log.h"
 
-struct obj_main {
-	char **argv;
-	int argc;
+typedef struct {
+	char hostname[BUF_SIZE];
+	UCHAR host_id[SHA1_SIZE];
+	time_t time_announce_host;
+} HOSTNAME;
 
-	struct obj_conf	*conf;
-	struct obj_work	*work;
+LIST *hostname_init( void );
+void hostname_free( LIST *l );
 
-#ifdef TORRENTKINO
-	struct obj_transaction *transaction;
-	struct obj_cache *cache;
-	struct obj_token *token;
-	struct obj_nbhd *nbhd;
-	struct obj_udp *udp;
-	struct obj_udp *dns;
-	struct obj_p2p *p2p;
-	struct obj_val *value;
-	LIST *hostname;
-#endif
-};
+void hostname_put( char *hostname, UCHAR *node_id, char *realm, int bool_realm );
+void hostname_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
+void hostname_print( void );
 
-extern struct obj_main *_main;
-
-struct obj_main *main_init( int argc, char **argv );
-void main_free( void );
-
-#endif
+#endif /* HOSTNAME_H */

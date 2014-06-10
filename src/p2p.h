@@ -29,6 +29,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "dns.h"
 #include "resolver.h"
 #include "udp.h"
+#include "hostname.h"
 #ifdef POLARSSL
 #include "aes.h"
 #endif
@@ -69,6 +70,7 @@ void p2p_cron_find_myself( void );
 void p2p_cron_find_random( void );
 void p2p_cron_find( UCHAR *target );
 void p2p_cron_announce( ITEM *ti );
+void p2p_cron_lookup_all( void );
 void p2p_cron_lookup( UCHAR *target, int type );
 
 void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );

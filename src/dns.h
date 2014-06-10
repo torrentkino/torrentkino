@@ -48,7 +48,8 @@ enum {
 	PTR_Resource_RecordType = 12,
 	MX_Resource_RecordType = 15,
 	TXT_Resource_RecordType = 16,
-	AAAA_Resource_RecordType = 28
+	AAAA_Resource_RecordType = 28,
+	SRV_Resource_RecordType = 33
 };
 
 enum {
@@ -100,53 +101,65 @@ typedef union {
 	struct {
 		UCHAR addr[IP_SIZE];
 	} x_record;
+	struct {
+		USHORT priority;
+		USHORT weight;
+		USHORT port;
+		const char *target;
+	} srv_record;
 } DNS_RD;
 
 typedef struct {
 	char *name;
-	unsigned int type;
-	unsigned int class;
-	unsigned int ttl;
-	unsigned int rd_length;
+	USHORT type;
+	USHORT class;
+	USHORT ttl;
+	USHORT rd_length;
 	DNS_RD rd_data;
 } DNS_RR;
 
 typedef struct {
-	unsigned int id;
+	USHORT id;
 
-	unsigned int qr;
-	unsigned int opcode;
-	unsigned int aa;
-	unsigned int tc;
-	unsigned int rd;
-	unsigned int ra;
-	unsigned int rcode;
+	USHORT qr;
+	USHORT opcode;
+	USHORT aa;
+	USHORT tc;
+	USHORT rd;
+	USHORT ra;
+	USHORT rcode;
 
-	unsigned int qdCount;
-	unsigned int anCount;
-	unsigned int nsCount;
-	unsigned int arCount;
+	USHORT qdCount;
+	USHORT anCount;
+	USHORT nsCount;
+	USHORT arCount;
 
 	DNS_Q question;
-	DNS_RR answer[8];
+	DNS_RR answer[16];
 
 	char qName_buffer[256];
 } DNS_MSG;
 
 int p_get16bits( const UCHAR** buffer );
-void p_put16bits( UCHAR** buffer, unsigned int value );
+void p_put16bits( UCHAR** buffer, USHORT value );
 void p_put32bits( UCHAR** buffer, unsigned long long value );
 
-int p_decode_domain( char *domain, const UCHAR** buffer, int size );
+int p_decode_domain( char *domain, const UCHAR** buffer, size_t size );
 void p_encode_domain( UCHAR** buffer, const char *domain );
 
-int p_decode_header( DNS_MSG *msg, const UCHAR** buffer, int size );
+int p_decode_header( DNS_MSG *msg, const UCHAR** buffer );
 void p_encode_header( DNS_MSG *msg, UCHAR** buffer );
 
 int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size );
 UCHAR *p_encode_response( DNS_MSG *msg, UCHAR *buffer );
 
+void p_prepare_msg( DNS_MSG *msg, USHORT arCount );
 void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_size );
 void p_reset_msg( DNS_MSG *msg );
+
+void p_put_srv( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name );
+void p_put_addr( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name );
+
+char *p_get_domain_from_srv_record( char *name );
 
 #endif /* PACKER_H */

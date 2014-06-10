@@ -80,6 +80,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 typedef unsigned long int ULONG;
+typedef unsigned short USHORT;
 typedef unsigned int UINT;
 typedef unsigned char UCHAR;
 typedef long int LONG;

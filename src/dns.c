@@ -34,14 +34,14 @@ int p_get16bits( const UCHAR** buffer ) {
 	size_t value = (*buffer)[0];
 	value = value << 8;
 	value += (*buffer)[1];
-	(*buffer) += 2;
+	*buffer += 2;
 	return value;
 }
 
-void p_put16bits( UCHAR** buffer, unsigned int value ) {
+void p_put16bits( UCHAR** buffer, USHORT value ) {
 	(*buffer)[0] = (value & 0xFF00) >> 8;
 	(*buffer)[1] = value & 0xFF;
-	(*buffer) += 2;
+	*buffer += 2;
 }
 
 void p_put32bits( UCHAR** buffer, unsigned long long value ) {
@@ -49,11 +49,11 @@ void p_put32bits( UCHAR** buffer, unsigned long long value ) {
 	(*buffer)[1] = (value & 0xFF0000) >> 16;
 	(*buffer)[2] = (value & 0xFF00) >> 16;
 	(*buffer)[3] = (value & 0xFF) >> 16;
-	(*buffer) += 4;
+	*buffer += 4;
 }
 
 /* 3foo3bar3com0 => foo.bar.com */
-int p_decode_domain( char *domain, const UCHAR** buffer, int size ) {
+int p_decode_domain( char *domain, const UCHAR** buffer, size_t size ) {
 	const UCHAR *p = *buffer;
 	const UCHAR *beg = p;
 	size_t i = 0;
@@ -80,7 +80,6 @@ int p_decode_domain( char *domain, const UCHAR** buffer, int size ) {
 
 	domain[i] = '\0';
 
-	/* also jump over the last 0 */
 	*buffer = p + 1;
 
 	return (*buffer) - beg;
@@ -90,40 +89,37 @@ int p_decode_domain( char *domain, const UCHAR** buffer, int size ) {
 void p_encode_domain( UCHAR** buffer, const char *domain ) {
 	char *buf = (char*) *buffer;
 	const char *beg = domain;
-	const char *pos;
-	size_t len = 0;
+	const char *pos = NULL;
+	size_t len = strlen( domain );
+	size_t plen = 0;
 	size_t i = 0;
 
 	while( (pos = strchr(beg, '.')) != NULL ) {
-		len = pos - beg;
-		buf[i] = len;
+		plen = pos - beg;
+		buf[i] = plen;
 		i += 1;
-		memcpy( buf+i, beg, len );
-		i += len;
+		memcpy( buf + i, beg, plen );
+		i += plen;
 
 		beg = pos + 1;
 	}
 
-	len = strlen( domain ) - (beg - domain);
+	plen = len - (beg - domain);
 
-	buf[i] = len;
+	buf[i] = plen;
 	i += 1;
 
-	memcpy( buf + i, beg, len );
-	i += len;
+	memcpy( buf + i, beg, plen );
+	i += plen;
 
-	buf[i] = 0;
+	buf[i] = '\0';
 	i += 1;
 
 	*buffer += i;
 }
 
-int p_decode_header( DNS_MSG *msg, const UCHAR** buffer, int size ) {
-	unsigned int fields;
-
-	if( size < 12 ) {
-		return -1;
-	}
+int p_decode_header( DNS_MSG *msg, const UCHAR** buffer ) {
+	size_t fields;
 
 	msg->id = p_get16bits( buffer );
 	fields = p_get16bits( buffer );
@@ -145,7 +141,7 @@ int p_decode_header( DNS_MSG *msg, const UCHAR** buffer, int size ) {
 }
 
 void p_encode_header( DNS_MSG *msg, UCHAR** buffer ) {
-	int fields = 0;
+	size_t fields = 0;
 
 	p_put16bits( buffer, msg->id );
 
@@ -162,7 +158,7 @@ void p_encode_header( DNS_MSG *msg, UCHAR** buffer ) {
 int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size ) {
 	ssize_t n;
 
-	if( (n = p_decode_header( msg, &buffer, size )) < 0 ) {
+	if( (n = p_decode_header( msg, &buffer )) < 0 ) {
 		return -1;
 	}
 	size -= n;
@@ -208,6 +204,7 @@ int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size ) {
 }
 
 UCHAR *p_encode_response( DNS_MSG *msg, UCHAR *buffer ) {
+	DNS_RR *rr = NULL;
 	int i = 0;
 
 	p_encode_header( msg, &buffer );
@@ -220,78 +217,132 @@ UCHAR *p_encode_response( DNS_MSG *msg, UCHAR *buffer ) {
 		return buffer;
 	}
 
-	for( i=0; i<msg->anCount; i++ ) {
-		p_encode_domain( &buffer, msg->answer[i].name );
-		p_put16bits( &buffer, msg->answer[i].type );
-		p_put16bits( &buffer, msg->answer[i].class );
-		p_put32bits( &buffer, msg->answer[i].ttl );
-		p_put16bits( &buffer, msg->answer[i].rd_length );
+	for( i=0; i<msg->anCount+msg->arCount; i++ ) {
+		rr = &msg->answer[i];
+		p_encode_domain( &buffer, rr->name );
+		p_put16bits( &buffer, rr->type );
+		p_put16bits( &buffer, rr->class );
+		p_put32bits( &buffer, rr->ttl );
+		p_put16bits( &buffer, rr->rd_length );
 
-		memcpy( buffer, msg->answer[i].rd_data.x_record.addr, IP_SIZE );
-		buffer += IP_SIZE;
+		switch( rr->type ) {
+			case SRV_Resource_RecordType:
+				p_put16bits( &buffer, rr->rd_data.srv_record.priority );
+				p_put16bits( &buffer, rr->rd_data.srv_record.weight );
+				p_put16bits( &buffer, rr->rd_data.srv_record.port );
+				p_encode_domain( &buffer, rr->rd_data.srv_record.target );
+				break;
+			default:
+				memcpy( buffer, rr->rd_data.x_record.addr, IP_SIZE );
+				buffer += IP_SIZE;
+		}
 	}
 
 	return buffer;
 }
 
-void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_size ) {
-	DNS_RR *rr;
-	DNS_Q *qu;
-	UCHAR *p = NULL;
-	int i = 0;
-
-	qu = &msg->question;
-	rr = &msg->answer[0];
-
+void p_prepare_msg( DNS_MSG *msg, USHORT anCount ) {
 	msg->rcode = Ok_ResponseType;
 	msg->qr = 1;
 	msg->aa = 1;
 	msg->ra = 0;
-	msg->anCount = nodes_compact_size / IP_SIZE_META_PAIR;
+
+	msg->qdCount = 1;
+	msg->anCount = anCount;
 	msg->nsCount = 0;
 	msg->arCount = 0;
+}
 
-	p = nodes_compact_list;
-	for( i = 0; i < msg->anCount; i++ ) {
+void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_size ) {
+	DNS_Q *qu = &msg->question;
+	UCHAR *p = nodes_compact_list;
+	char *domain = NULL;
+	int i = 0, j = 0;
 
-		rr[i].name = qu->qName;
-		rr[i].class = qu->qClass;
-		rr[i].ttl = 0;
-		rr[i].rd_length = IP_SIZE;
+	p_prepare_msg( msg, nodes_compact_size / IP_SIZE_META_PAIR );
 
-#ifdef IPV4
-		rr[i].type = A_Resource_RecordType;
-#endif
+	switch( msg->question.qType ) {
+		case SRV_Resource_RecordType:
+			msg->arCount = msg->anCount;
+			domain = p_get_domain_from_srv_record( qu->qName );
+
+			p = nodes_compact_list;
+			for( i = 0; i < msg->anCount; i++ ) {
+				p_put_srv( &msg->answer[i], qu, p, domain );
+				p += IP_SIZE_META_PAIR;
+			}
+
+			p = nodes_compact_list;
+			for( j = i; j < msg->anCount + msg->arCount; j++ ) {
+				p_put_addr( &msg->answer[j], qu, p, domain );
+				p += IP_SIZE_META_PAIR;
+			}
+			break;
+		default:
+			for( i = 0; i < msg->anCount; i++ ) {
+				p_put_addr( &msg->answer[i], qu, p, qu->qName );
+				p += IP_SIZE_META_PAIR;
+			}
+	}
+
+}
+
+char *p_get_domain_from_srv_record( char *name ) {
+	char *domain = NULL;
+
+	/* _http._tcp.owncloud.p2p -> owncloud.p2p */
+	if( ( domain = strstr( name, "._tcp." ) ) != NULL ) {
+		domain += 6;
+		return domain;
+	} else if( ( domain = strstr( name, "._udp." ) ) != NULL ) {
+		domain += 6;
+		return domain;
+	} /* FIXME */
+
+	/* owncloud.p2p -> owncloud.p2p */
+	return name;
+}
+
+void p_put_srv( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name ) {
+	const UCHAR *p_port = p+IP_SIZE;
+
+	rr->name = qu->qName;
+	rr->type = SRV_Resource_RecordType;
+	rr->class = 1;
+	rr->ttl = 0;
+	rr->rd_length = 6 + strlen( name ) + 2;
+
+	rr->rd_data.srv_record.priority = 0;
+	rr->rd_data.srv_record.weight = 0;
+	rr->rd_data.srv_record.port = p_get16bits( &p_port );
+	rr->rd_data.srv_record.target = name;
+}
+
+void p_put_addr( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name ) {
+	rr->name = name;
+	rr->class = qu->qClass;
+	rr->ttl = 0;
+	rr->rd_length = IP_SIZE;
 
 #ifdef IPV6
-		rr[i].type = AAAA_Resource_RecordType;
+	rr->type = AAAA_Resource_RecordType;
+#elif IPV4
+	rr->type = A_Resource_RecordType;
 #endif
 
-		memcpy( rr[i].rd_data.x_record.addr, p, IP_SIZE );
-		p += IP_SIZE_META_PAIR;
-	}
+	memcpy( rr->rd_data.x_record.addr, p, IP_SIZE );
 }
 
 void p_reset_msg( DNS_MSG *msg ) {
-	DNS_RR *rr;
-	DNS_Q *qu;
+	DNS_RR *rr = msg->answer;
+	DNS_Q *qu = &msg->question;
 
-	qu = &msg->question;
+	p_prepare_msg( msg, 0 );
+
 	rr = msg->answer;
-
-	msg->rcode = Ok_ResponseType;
-	msg->qr = 1;
-	msg->aa = 1;
-	msg->ra = 0;
-	msg->anCount = 0;
-	msg->nsCount = 0;
-	msg->arCount = 0;
-
 	rr->name = qu->qName;
 	rr->class = qu->qClass;
 	rr->ttl = 0;
 	rr->type = 0;
 	rr->rd_length = 0;
 }
-
-

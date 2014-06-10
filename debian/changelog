@@ -1,3 +1,9 @@
+torrentkino (0.31) wheezy; urgency=low
+
+  * Announce multiple hostnames at the same time
+  * DNS API: SRV Records
+
+ -- Aiko Barz <aiko@torrentkino.de>  Tue, 10 Jun 2014 21:06:00 +0100
 torrentkino (0.30) wheezy; urgency=low
 
   * Make hostname a non-option parameter

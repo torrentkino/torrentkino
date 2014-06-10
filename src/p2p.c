@@ -157,8 +157,8 @@ void p2p_cron( void ) {
 		/* Announce my hostname every ~5 minutes. This includes a full search
 		 * to get the needed tokens first. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_host ) {
-			p2p_cron_lookup( _main->conf->host_id, P2P_ANNOUNCE_START );
-			time_add_5_min_approx( &_main->p2p->time_announce_host );
+			p2p_cron_lookup_all();
+			time_add_1_min_approx( &_main->p2p->time_announce_host );
 		}
 
 		/* Ping all nodes every ~5 minutes. Run once a minute. */
@@ -1053,6 +1053,22 @@ void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from ) {
 void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
 	ITEM *ti, IP *from ) {
 	/* Nothing to do */
+}
+
+void p2p_cron_lookup_all( void ) {
+	ITEM *i = list_start( _main->hostname );
+	HOSTNAME *hostname = NULL;
+
+	while( i != NULL ) {
+		hostname = list_value( i );
+
+		if( _main->p2p->time_now.tv_sec > hostname->time_announce_host ) {
+			p2p_cron_lookup( hostname->host_id, P2P_ANNOUNCE_START );
+			time_add_5_min_approx( &hostname->time_announce_host );
+		}
+
+		i = list_next( i );
+	}
 }
 
 void p2p_cron_lookup( UCHAR *target, int type ) {

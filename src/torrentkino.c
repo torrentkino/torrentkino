@@ -55,6 +55,7 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->work = NULL;
 
 	_main->transaction = NULL;
+	_main->hostname = NULL;
 	_main->cache = NULL;
 	_main->token = NULL;
 	_main->nbhd = NULL;
@@ -75,6 +76,7 @@ int main( int argc, char **argv ) {
 	struct sigaction sig_time;
 
 	_main = main_init( argc, argv );
+	_main->hostname = hostname_init();
 	_main->conf = conf_init( argc, argv );
 	_main->work = work_init();
 
@@ -127,7 +129,7 @@ int main( int argc, char **argv ) {
 	p2p_free();
 	udp_free( _main->dns );
 	udp_free( _main->udp );
-
+	hostname_free( _main->hostname );
 	work_free();
 	conf_free();
 	main_free();

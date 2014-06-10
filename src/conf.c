@@ -49,7 +49,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	memset( conf->key, '\0', BUF_SIZE );
 #endif
 	memset( conf->null_id, '\0', SHA1_SIZE );
-	memset( conf->hostname, '\0', BUF_SIZE );
 	strncpy( conf->realm, CONF_REALM, BUF_OFF1 );
 	strncpy( conf->bootstrap_node, MULTICAST_DEFAULT, BUF_OFF1 );
 	rand_urandom( conf->node_id, SHA1_SIZE );
@@ -106,12 +105,10 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	/* Get non-option values. Make it possible to announce multiple
 	   hostnames later. */
 	for( i=optind; i<argc; i++ ) {
-		snprintf( conf->hostname, BUF_SIZE, "%s", argv[i] );
+		hostname_put( argv[i], conf->node_id, conf->realm, conf->bool_realm );
 	}
-	if( strlen( conf->hostname ) <= 0 ) {
-		conf_usage( argv[0] );
-	}
-	if( !str_valid_hostname( conf->hostname, strlen(conf->hostname) ) ) {
+
+	if( list_size( _main->hostname ) <= 0 ) {
 		conf_usage( argv[0] );
 	}
 
@@ -139,14 +136,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		fail( "Invalid number of CPU cores" );
 	}
 
-	/* Compute host_id. Respect the realm. */
-	conf_hostid( conf->host_id, conf->hostname,
-		conf->realm, conf->bool_realm );
-
-	/* I don't want to be responsible for myself */
-	if( memcmp( conf->host_id, conf->node_id, SHA1_SIZE ) == 0 ) {
-		fail( "The host id and the node id must not be the same" );
-	}
 
 	return conf;
 }
@@ -158,32 +147,17 @@ void conf_free( void ) {
 void conf_usage( char *command ) {
 	fail(
 		"Usage: %s [-p port] [-r realm] [-d port] [-a port] "
-		"[-x server] [-y port] [-n string] [-q] [-l] hostname", 
+		"[-x server] [-y port] [-n string] [-q] [-l] hostname1 hostname2", 
 		command );
-}
-
-void conf_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
-	UCHAR sha1_buf1[SHA1_SIZE];
-	UCHAR sha1_buf2[SHA1_SIZE];
-	int j = 0;
-
-	/* The realm influences the way, the lookup hash gets computed */
-	if( bool == TRUE ) {
-		sha1_hash( sha1_buf1, hostname, strlen( hostname ) );
-		sha1_hash( sha1_buf2, realm, strlen( realm ) );
-
-		for( j = 0; j < SHA1_SIZE; j++ ) {
-			host_id[j] = sha1_buf1[j] ^ sha1_buf2[j];
-		}
-	} else {
-		sha1_hash( host_id, hostname, strlen( hostname ) );
-	}
 }
 
 void conf_print( void ) {
 	char hex[HEX_LEN];
 
-	info( NULL, "Hostname: %s", _main->conf->hostname );
+	hex_hash_encode( hex, _main->conf->node_id );
+	info( NULL, "Node ID: %s", hex );
+
+	hostname_print();
 
 	if( _main->conf->bool_realm == 1 ) {
 		info( NULL, "Realm: %s (-r)", _main->conf->realm );
@@ -198,12 +172,6 @@ void conf_print( void ) {
 		info( NULL, "Encryption key: None (-k)" );
 	}
 #endif
-
-	hex_hash_encode( hex, _main->conf->node_id );
-	info( NULL, "Node ID: %s", hex );
-
-	hex_hash_encode( hex, _main->conf->host_id );
-	info( NULL, "Host ID: %s", hex );
 
 	info( NULL, "P2P daemon is listening to UDP/%i (-p)", _main->conf->p2p_port );
 	info( NULL, "DNS daemon is listening to UDP/%i (-d)", _main->conf->dns_port );

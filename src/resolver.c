@@ -81,22 +81,22 @@ void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 		return;
 	}
 
+	switch( msg.question.qType ) {
 #ifdef IPV6
-	if( msg.question.qType != AAAA_Resource_RecordType ) {
-		r_failure( from, &msg );
-		return;
-	}
+		case AAAA_Resource_RecordType:
+			r_lookup( (char *)hostname, from, &msg );
+			break;
+#elif IPV4
+		case A_Resource_RecordType:
+			r_lookup( (char *)hostname, from, &msg );
+			break;
 #endif
-
-#ifdef IPV4
-	if( msg.question.qType != A_Resource_RecordType ) {
-		r_failure( from, &msg );
-		return;
+		case SRV_Resource_RecordType:
+			r_lookup( (char *)hostname, from, &msg );
+			break;
+		default:
+			r_failure( from, &msg );
 	}
-#endif
-
-	/* Start lookup */
-	r_lookup( (char *)hostname, from, &msg );
 }
 
 void r_lookup( char *hostname, IP *from, DNS_MSG *msg ) {
@@ -104,7 +104,7 @@ void r_lookup( char *hostname, IP *from, DNS_MSG *msg ) {
 	int result = FALSE;
 
 	/* Compute lookup key */
-	conf_hostid( target, hostname,
+	hostname_hostid( target, hostname,
 		_main->conf->realm, _main->conf->bool_realm );
 
 	/* Check local cache */
