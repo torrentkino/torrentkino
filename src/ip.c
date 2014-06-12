@@ -100,10 +100,28 @@ UCHAR *ip_sin_to_bytes( IP *sin, UCHAR *p ) {
 	return p;
 }
 
-void ip_merge_port_to_sin( IP *sin, int port ) {
+void ip_merge_port_to_sin( IP *sin, USHORT port ) {
 #ifdef IPV6
 	sin->sin6_port = htons( port );
 #elif IPV4
 	sin->sin_port = htons( port );
+#endif
+}
+
+USHORT ip_sin_to_port( IP *sin ) {
+#ifdef IPV6
+	return ntohs( sin->sin6_port );
+#elif IPV4
+	return ntohs( sin->sin_port );
+#endif
+}
+
+void ip_sin_to_string( IP *sin, char *buf ) {
+#ifdef IPV6
+	memset( buf, '\0', INET6_ADDRSTRLEN+1 );
+	inet_ntop( AF_INET6, &sin->sin6_addr, buf, INET6_ADDRSTRLEN );
+#elif IPV4
+	memset( buf, '\0', INET_ADDRSTRLEN+1 );
+	inet_ntop( AF_INET, &sin->sin_addr, buf, INET_ADDRSTRLEN );
 #endif
 }

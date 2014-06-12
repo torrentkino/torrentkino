@@ -136,6 +136,7 @@ void cache_expire( time_t now ) {
 void cache_renew( time_t now ) {
 	ITEM *i = NULL;
 	TARGET_C *t = NULL;
+	int changes = FALSE;
 
 	i = list_start( _main->cache->list );
 	while( i != NULL ) {
@@ -145,10 +146,14 @@ void cache_renew( time_t now ) {
 		if( now > t->refresh ) {
 			p2p_cron_lookup( t->target, P2P_GET_PEERS );
 			time_add_5_min_approx( &t->refresh );
-			cache_print();
+			changes = TRUE;
 		}
 
 		i = list_next( i );
+	}
+
+	if( changes ) {
+		cache_print();
 	}
 }
 
@@ -161,7 +166,7 @@ void cache_print( void ) {
 		return;
 	}
 
-	info( NULL, "Cache:" );
+	info( NULL, "Cache renewal triggered:" );
 	i = list_start( _main->cache->list );
 	while( i != NULL ) {
 		t = list_value( i );

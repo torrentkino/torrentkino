@@ -126,7 +126,7 @@ void nbhd_expire( time_t now ) {
 			  if( node_bad( n ) ) {
 				   nbhd_del( n );
 			  }
-			  
+
 			  item_n = item_n_next;
 		 }
 

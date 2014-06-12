@@ -1,3 +1,10 @@
+torrentkino (0.32) wheezy; urgency=low
+
+  * Syntax changes and minor changes everywhere
+  * Verbose Mode: Add the port to the output, when printing the value database
+  * Check cronjobs more offen
+
+ -- Aiko Barz <aiko@torrentkino.de>  Thu, 12 Jun 2014 22:06:00 +0100
 torrentkino (0.31) wheezy; urgency=low
 
   * Announce multiple hostnames at the same time

@@ -21,6 +21,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define LOG_H
 
 #include "conf.h"
+#include "ip.h"
 
 void info( IP *c_addr, const char *format, ... );
 

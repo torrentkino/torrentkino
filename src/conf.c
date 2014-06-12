@@ -41,7 +41,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	conf->dns_port = PORT_DNS_DEFAULT;
 	conf->verbosity = CONF_VERBOSE;
 	conf->bootstrap_port = PORT_DHT_DEFAULT;
-	conf->announce_port = PORT_DHT_DEFAULT;
+	conf->announce_port = PORT_WWW_USER;
 	conf->cores = unix_cpus();
 	conf->bool_realm = FALSE;
 #ifdef POLARSSL
@@ -54,15 +54,12 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	rand_urandom( conf->node_id, SHA1_SIZE );
 
 	/* Arguments */
-	while( ( opt = getopt( argc, argv, "a:d:fhk:ln:p:qr:x:y:" ) ) != -1 ) {
+	while( ( opt = getopt( argc, argv, "a:dhk:ln:p:P:qr:x:y:" ) ) != -1 ) {
 		switch( opt ) {
 			case 'a':
 				conf->announce_port = str_safe_port( optarg );
 				break;
 			case 'd':
-				conf->dns_port = str_safe_port( optarg );
-				break;
-			case 'f':
 				conf->mode = CONF_DAEMON;
 				break;
 			case 'h':
@@ -84,6 +81,9 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 			case 'p':
 				conf->p2p_port = str_safe_port( optarg );
 				break;
+			case 'P':
+				conf->dns_port = str_safe_port( optarg );
+				break;
 			case 'q':
 				conf->verbosity = CONF_BEQUIET;
 				break;
@@ -102,8 +102,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 		}
 	}
 
-	/* Get non-option values. Make it possible to announce multiple
-	   hostnames later. */
+	/* Get non-option values. */
 	for( i=optind; i<argc; i++ ) {
 		hostname_put( argv[i], conf->node_id, conf->realm, conf->bool_realm );
 	}
@@ -117,11 +116,11 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	}
 
 	if( conf->dns_port == 0 ) {
-		fail( "Invalid DNS port number (-d)" );
+		fail( "Invalid DNS port number (-P)" );
 	}
 
 	if( conf->dns_port == conf->p2p_port ) {
-		fail( "P2P port (-p) and DNS port (-d) must not be the same." );
+		fail( "P2P port (-p) and DNS port (-P) must not be the same." );
 	}
 
 	if( conf->bootstrap_port == 0 ) {
@@ -146,8 +145,8 @@ void conf_free( void ) {
 
 void conf_usage( char *command ) {
 	fail(
-		"Usage: %s [-p port] [-r realm] [-d port] [-a port] "
-		"[-x server] [-y port] [-n string] [-q] [-l] hostname1 hostname2", 
+		"Usage: %s [-p port] [-r realm] [-P port] [-a port] "
+		"[-x server] [-y port] [-n string] [-q] [-l] [-d] hostname1 hostname2", 
 		command );
 }
 
@@ -174,15 +173,15 @@ void conf_print( void ) {
 #endif
 
 	info( NULL, "P2P daemon is listening to UDP/%i (-p)", _main->conf->p2p_port );
-	info( NULL, "DNS daemon is listening to UDP/%i (-d)", _main->conf->dns_port );
+	info( NULL, "DNS daemon is listening to UDP/%i (-P)", _main->conf->dns_port );
 	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
 	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	info( NULL, "Announced port: %i (-y)", _main->conf->announce_port );
 
 	if( _main->conf->mode == CONF_CONSOLE ) {
-		info( NULL, "Mode: Console (-f)" );
+		info( NULL, "Mode: Console (-d)" );
 	} else {
-		info( NULL, "Mode: Daemon (-f)" );
+		info( NULL, "Mode: Daemon (-d)" );
 	}
 
 	if( _main->conf->verbosity == CONF_BEQUIET ) {

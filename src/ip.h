@@ -28,6 +28,8 @@ int ip_is_linklocal( IP *from );
 UCHAR *ip_bytes_to_sin( IP *sin, UCHAR *p );
 UCHAR *ip_sin_to_bytes( IP *sin, UCHAR *p );
 
-void ip_merge_port_to_sin( IP *sin, int port );
+void ip_merge_port_to_sin( IP *sin, USHORT port );
+void ip_sin_to_string( IP *sin, char *buf );
+USHORT ip_sin_to_port( IP *sin );
 
 #endif /* NODE_IP_H */

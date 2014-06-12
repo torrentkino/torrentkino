@@ -55,13 +55,12 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef TUMBLEWEED
 #define CONF_EPOLL_WAIT 1000
-#define CONF_SRVNAME "tumbleweed"
+#define LOG_NAME "tumbleweed"
 #define CONF_INDEX_NAME "index.html"
 #endif
 
 #if TORRENTKINO
 #define CONF_EPOLL_WAIT 2000
-#define CONF_SRVNAME "torrentkino"
 #define CONF_REALM "open.p2p"
 #define TLD_DEFAULT "p2p"
 #define TID_SIZE 4
@@ -70,9 +69,11 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define PORT_DNS_DEFAULT 5353
 
 #ifdef IPV6
+#define LOG_NAME "tk6"
 #define MULTICAST_DEFAULT "ff0e::1"
 #define BOOTSTRAP_DEFAULT "dht.wifi.pps.jussieu.fr"
 #elif IPV4
+#define LOG_NAME "tk4"
 #define MULTICAST_DEFAULT "224.0.0.252"
 #define BOOTSTRAP_DEFAULT "router.utorrent.com"
 #endif

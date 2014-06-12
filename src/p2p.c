@@ -124,6 +124,12 @@ void p2p_cron( void ) {
 
 	} else {
 
+		/* Create a new token every ~5 minutes */
+		if( _main->p2p->time_now.tv_sec > _main->p2p->time_token ) {
+			tkn_put();
+			time_add_5_min_approx( &_main->p2p->time_token );
+		}
+
 		/* Expire objects. Run once a minute. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_expire ) {
 			tdb_expire( _main->p2p->time_now.tv_sec );
@@ -141,42 +147,35 @@ void p2p_cron( void ) {
 			time_add_5_sec_approx( &_main->p2p->time_split );
 		}
 
-		/* Find nodes every ~5 minutes. Run once a minute. */
+		/* Find nodes every ~5 minutes. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_find ) {
 			p2p_cron_find_myself();
-			time_add_1_min_approx( &_main->p2p->time_find );
+			time_add_5_sec_approx( &_main->p2p->time_find );
 		}
 
-		/* Find random node every ~5 minutes for maintainance reasons. Run once
-		 * a minute */
+		/* Find random node every ~5 minutes for maintainance reasons. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_maintainance ) {
 			p2p_cron_find_random();
-			time_add_1_min_approx( &_main->p2p->time_maintainance );
+			time_add_5_sec_approx( &_main->p2p->time_maintainance );
 		}
 
 		/* Announce my hostname every ~5 minutes. This includes a full search
 		 * to get the needed tokens first. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_announce_host ) {
 			p2p_cron_lookup_all();
-			time_add_1_min_approx( &_main->p2p->time_announce_host );
+			time_add_5_sec_approx( &_main->p2p->time_announce_host );
 		}
 
-		/* Ping all nodes every ~5 minutes. Run once a minute. */
+		/* Ping all nodes every ~5 minutes. */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_ping ) {
 			p2p_cron_ping();
-			time_add_1_min_approx( &_main->p2p->time_ping );
+			time_add_5_sec_approx( &_main->p2p->time_ping );
 		}
 
 		/* Renew cached requests */
 		if( _main->p2p->time_now.tv_sec > _main->p2p->time_cache ) {
 			cache_renew( _main->p2p->time_now.tv_sec );
-			time_add_1_min_approx( &_main->p2p->time_cache );
-		}
-
-		/* Create a new token every ~5 minutes */
-		if( _main->p2p->time_now.tv_sec > _main->p2p->time_token ) {
-			tkn_put();
-			time_add_5_min_approx( &_main->p2p->time_token );
+			time_add_5_sec_approx( &_main->p2p->time_cache );
 		}
 	}
 

@@ -29,15 +29,8 @@ along with torrentkino. If not, see <http://www.gnu.org/licenses/>.
 void info( IP *from, const char *format, ... ) {
 	char log_buf[BUF_SIZE];
 	char va_buf[BUF_SIZE];
+	char ip_buf[IP_ADDRLEN+1];
 	va_list vlist;
-
-#ifdef IPV6
-	char ip_buf[INET6_ADDRSTRLEN+1];
-	memset( ip_buf, '\0', INET6_ADDRSTRLEN+1 );
-#elif IPV4
-	char ip_buf[INET_ADDRSTRLEN+1];
-	memset( ip_buf, '\0', INET_ADDRSTRLEN+1 );
-#endif
 
 	if( conf_verbosity() != CONF_VERBOSE ) {
 		return;
@@ -50,23 +43,11 @@ void info( IP *from, const char *format, ... ) {
 	if( from != NULL ) {
 
 #ifdef TUMBLEWEED
-		snprintf( log_buf, BUF_SIZE, "%s %s",
-#ifdef IPV6
-			inet_ntop( AF_INET6, &from->sin6_addr, ip_buf, INET6_ADDRSTRLEN ),
-#elif IPV4
-			inet_ntop( AF_INET, &from->sin_addr, ip_buf, INET_ADDRSTRLEN ),
-#endif
-			va_buf);
-#endif
-
-#ifdef TORRENTKINO
-		snprintf( log_buf, BUF_SIZE, "%s %s", va_buf,
-#ifdef IPV6
-			inet_ntop( AF_INET6, &from->sin6_addr, ip_buf, INET6_ADDRSTRLEN )
-#elif IPV4
-			inet_ntop( AF_INET, &from->sin_addr, ip_buf, INET_ADDRSTRLEN )
-#endif
-			);
+		ip_sin_to_string( from, ip_buf );
+		snprintf( log_buf, BUF_SIZE, "%s %s", ip_buf, va_buf);
+#elif TORRENTKINO
+		ip_sin_to_string( from, ip_buf );
+		snprintf( log_buf, BUF_SIZE, "%s %s", va_buf, ip_buf );
 #endif
 
 	} else {
@@ -77,7 +58,7 @@ void info( IP *from, const char *format, ... ) {
 	if( conf_mode() == CONF_CONSOLE ) {
 		printf( "%s\n", log_buf );
 	} else {
-		openlog( CONF_SRVNAME, LOG_PID|LOG_CONS,LOG_USER );
+		openlog( LOG_NAME, LOG_PID|LOG_CONS,LOG_USER );
 		syslog( LOG_INFO, "%s", log_buf );
 		closelog();
 	}

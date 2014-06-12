@@ -93,7 +93,7 @@ int node_bad( UDP_NODE *n ) {
 void node_pinged( UDP_NODE *n ) {
 	/* Remember no of pings */
 	n->pinged++;
-	
+
 	/* Try again in ~5 minutes */
 	time_add_5_min_approx( &n->time_ping );
 }

@@ -29,11 +29,11 @@ Torrentkino runs as user *nobody* when started with root priviledges.
   * `-p` *port*:
 	Listen to this port and use it for the DHT operations. (Default: UDP/6881)
 
-  * `-d` *port*:
+  * `-P` *port*:
 	Listen to this port and use it for the DNS operations. (Default: UDP/5353)
 
   * `-a` *port*:
-	Announce this port (Default: UDP/6881)
+	Announce this port (Default: UDP/8080)
 
   * `-n` *node id string*:
 	By default a random node id gets computed on every startup. For testing
@@ -59,7 +59,7 @@ Torrentkino runs as user *nobody* when started with root priviledges.
 	Lazy mode: This option sets a predefined bootstrap server like
 	*router.utorrent.com* for example.
 
-  * `-f`:
+  * `-d`:
 	Fork and become a daemon.
 
   * `-q`:
@@ -67,21 +67,22 @@ Torrentkino runs as user *nobody* when started with root priviledges.
 
 ## EXAMPLES
 
-Announce the hostname *owncloud.p2p* globally.
+Announce the hostnames *owncloud.p2p* and *\_http.\_tcp.foo.bar* globally.
 
-	$ sudo tk6 -d 53 -l owncloud.p2p
-	$ host owncloud ::1
+	$ sudo tk6 -P 53 -l owncloud.p2p _http._tcp.foo.bar
+	$ dig AAAA owncloud.p2p @localhost
+	$ dig SRV _http._tcp.foo.bar @localhost
 
 Announce the hostname *mycloud.p2p* within the LAN.
 
-	$ sudo tk4 -d 53 mycloud.p2p
-	$ host mycloud.p2p 127.0.0.1
+	$ sudo tk4 -P 53 mycloud.p2p
+	$ dig mycloud.p2p @localhost
 
 Isolate your nodes within a realm *darkness*, fork the process into background
-and log everything to syslog.
+and be quiet.
 
-	$ sudo tk6 -r darkness -l -d 53 -f -v torrentkino.cloud
-	$ host torrentkino.cloud ::1
+	$ sudo tk6 -r darkness -l -P 53 -d -q torrentkino.cloud
+	$ dig torrentkino.cloud @localhost
 
 ## INSTALLATION
 

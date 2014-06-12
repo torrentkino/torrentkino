@@ -267,13 +267,22 @@ void tgt_v_print( TARGET_V *target ) {
 	ITEM *i = NULL;
 	NODE_V *node = NULL;
 	IP sin;
+	char ip_buf[IP_ADDRLEN+1];
+	USHORT port = 0;
 
 	i = list_start( target->list );
 	while( i != NULL ) {
 		node = list_value( i );
 
 		ip_bytes_to_sin( &sin, node->pair );
-		info( &sin, "  " );
+		ip_sin_to_string( &sin, ip_buf );
+		port = ip_sin_to_port( &sin );
+
+#ifdef IPV6
+		info( NULL, "  [%s]:%i", ip_buf, port );
+#else
+		info( NULL, "  %s:%i", ip_buf, port );
+#endif
 
 		i = list_next( i );
 	}
