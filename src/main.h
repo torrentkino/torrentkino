@@ -66,16 +66,16 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define TID_SIZE 4
 #define TID_SIZE_MAX 20
 #define PORT_DHT_DEFAULT 6881
-#define PORT_DNS_DEFAULT 5353
+#define PORT_DNS_DEFAULT 6853
 
 #ifdef IPV6
 #define LOG_NAME "tk6"
 #define MULTICAST_DEFAULT "ff0e::1"
-#define BOOTSTRAP_DEFAULT "dht.wifi.pps.jussieu.fr"
+#define BOOTSTRAP_DEFAULT "dht.transmissionbt.com"
 #elif IPV4
 #define LOG_NAME "tk4"
 #define MULTICAST_DEFAULT "224.0.0.252"
-#define BOOTSTRAP_DEFAULT "router.utorrent.com"
+#define BOOTSTRAP_DEFAULT "dht.transmissionbt.com"
 #endif
 
 #endif
