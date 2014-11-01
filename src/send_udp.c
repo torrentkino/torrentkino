@@ -232,7 +232,7 @@ void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	ben_free( dict );
 
 	hex_hash_encode( hexbuf, node_id );
-	info( sa, "FIND %s at", hexbuf );
+	info( sa, "FIND_NODE %s at", hexbuf );
 }
 
 /*
@@ -305,7 +305,7 @@ void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list,
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "NODES via FIND_NODE to");
+	info( sa, "NODES_FN to");
 }
 
 /*
@@ -466,7 +466,7 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list,
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "NODES via GET_PEERS to");
+	info( sa, "NODES_GP to");
 }
 
 /*
@@ -555,7 +555,7 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list,
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "VALUES via GET_PEERS to" );
+	info( sa, "VALUES_GP to" );
 }
 
 /*
@@ -707,7 +707,7 @@ void send_announce_reply( IP *sa, UCHAR *tid, int tid_size ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "ANNOUNCE_PEER SUCCESS to" );
+	info( sa, "ANNOUNCE SUCCESS to" );
 }
 
 #ifdef POLARSSL
