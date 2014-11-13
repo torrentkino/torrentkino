@@ -33,7 +33,7 @@ void *myalloc( long int size ) {
 	}
 
 	memory = (void *) malloc( size );
-	
+
 	if( memory == NULL ) {
 		fprintf( stderr, "malloc() failed." );
 	}

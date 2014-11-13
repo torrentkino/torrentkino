@@ -17,17 +17,36 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef CONF_H
+#define CONF_H
 
-/* FIXME */
-#ifdef TORRENTKINO
-#include "../p2p/conf.h"
-#elif TUMBLEWEED
-#include "../web/conf.h"
-#endif
-#include "ip.h"
+#include "../shr/config.h"
+#include "../shr/malloc.h"
+#include "../shr/fail.h"
+#include "../shr/file.h"
 
-void info( IP *c_addr, const char *format, ... );
+#include "../shr/unix.h"
+#include "../shr/str.h"
+
+struct obj_conf {
+	char home[BUF_SIZE];
+	char file[BUF_SIZE];
+	int cores;
+	int verbosity;
+	int mode;
+	unsigned int port;
+};
+
+struct obj_conf *conf_init( int argc, char **argv );
+void conf_free( void );
+
+void conf_print( void );
+void conf_write( void );
+
+void conf_home_from_env( struct obj_conf *conf );
+void conf_home_from_arg( struct obj_conf *conf, char *optarg );
+int conf_verbosity( void );
+int conf_mode( void );
+void conf_usage( char *command );
 
 #endif

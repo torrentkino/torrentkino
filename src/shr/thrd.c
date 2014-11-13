@@ -22,7 +22,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 pthread_mutex_t *mutex_init( void ) {
 	pthread_mutex_t *mutex = (pthread_mutex_t *) myalloc( sizeof(pthread_mutex_t) );
-	
+
 	if( pthread_mutex_init( mutex, NULL) != 0 )
 		fail( "pthread_mutex_init() failed." );
 

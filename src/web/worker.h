@@ -1,5 +1,5 @@
 /*
-Copyright 2006 Aiko Barz
+Copyright 2011 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,17 +17,31 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef WORK_H
+#define WORK_H
 
-/* FIXME */
-#ifdef TORRENTKINO
-#include "../p2p/conf.h"
-#elif TUMBLEWEED
-#include "../web/conf.h"
-#endif
-#include "ip.h"
+#include "../shr/malloc.h"
+#include "../shr/thrd.h"
+#include "../shr/log.h"
 
-void info( IP *c_addr, const char *format, ... );
+struct obj_work {
+	int number_of_threads;
+	int active;
+	int id;
+
+	/* Global lock */
+	pthread_t **threads;
+	pthread_attr_t attr;
+	pthread_mutex_t *mutex;
+
+	/* TCP nodes */
+	pthread_mutex_t *tcp_node;
+};
+
+struct obj_work *work_init( void );
+void work_free( void );
+
+void work_start( void );
+void work_stop( void );
 
 #endif

@@ -1,5 +1,5 @@
 /*
-Copyright 2006 Aiko Barz
+Copyright 2010 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,17 +17,41 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef RESPONSE_H
+#define RESPONSE_H
 
-/* FIXME */
-#ifdef TORRENTKINO
-#include "../p2p/conf.h"
-#elif TUMBLEWEED
-#include "../web/conf.h"
-#endif
-#include "ip.h"
+#include "../shr/list.h"
 
-void info( IP *c_addr, const char *format, ... );
+#define RESPONSE_FROM_MEMORY 0
+#define RESPONSE_FROM_FILE 1
 
-#endif
+typedef struct {
+	char send_buf[BUF_SIZE];
+	int send_size;
+	int send_offset;
+} R_MEMORY;
+
+typedef struct {
+	char filename[BUF_SIZE];
+	off_t f_offset;
+	off_t f_stop;
+} R_FILE;
+
+typedef struct {
+	int type;
+
+	union  {
+		R_MEMORY memory;
+		R_FILE file;
+	} data;
+} RESPONSE;
+
+LIST *resp_init( void );
+void resp_free( LIST *list );
+
+RESPONSE *resp_put( LIST *list, int TYPE );
+void resp_del( LIST *list, ITEM *item );
+
+int resp_set_memory( RESPONSE *r, const char *format, ... );
+
+#endif /* RESPONSE_H */

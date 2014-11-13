@@ -1,5 +1,5 @@
 /*
-Copyright 2006 Aiko Barz
+Copyright 2010 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,17 +17,39 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef MAIN_H
+#define MAIN_H
 
-/* FIXME */
+#include "../shr/config.h"
+
+struct obj_main {
+	char **argv;
+	int argc;
+
+	struct obj_conf	*conf;
+	struct obj_work	*work;
+
 #ifdef TORRENTKINO
-#include "../p2p/conf.h"
-#elif TUMBLEWEED
-#include "../web/conf.h"
+	struct obj_transaction *transaction;
+	struct obj_cache *cache;
+	struct obj_token *token;
+	struct obj_nbhd *nbhd;
+	struct obj_udp *udp;
+	struct obj_p2p *p2p;
+	struct obj_val *value;
 #endif
-#include "ip.h"
 
-void info( IP *c_addr, const char *format, ... );
+#ifdef TUMBLEWEED
+	struct obj_list *node;
+	struct obj_mdb *mime;
+	struct obj_tcp *tcp;
+#endif
+
+};
+
+extern struct obj_main *_main;
+
+struct obj_main *main_init( int argc, char **argv );
+void main_free( void );
 
 #endif

@@ -1,5 +1,5 @@
 /*
-Copyright 2006 Aiko Barz
+Copyright 2010 Aiko Barz
 
 This file is part of torrentkino.
 
@@ -17,17 +17,9 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOG_H
-#define LOG_H
-
-/* FIXME */
-#ifdef TORRENTKINO
-#include "../p2p/conf.h"
-#elif TUMBLEWEED
-#include "../web/conf.h"
-#endif
-#include "ip.h"
-
-void info( IP *c_addr, const char *format, ... );
-
-#endif
+void send_tcp( TCP_NODE *n );
+void send_cork_start( TCP_NODE *n );
+void send_data( TCP_NODE *n );
+void send_mem( TCP_NODE *n, ITEM *item_r );
+void send_file( TCP_NODE *n, ITEM *item_r );
+void send_cork_stop( TCP_NODE *n );
