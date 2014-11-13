@@ -26,11 +26,17 @@ export CFLAGS_EXT = $(CFLAGS_MIN) -pedantic
 
 all: $(CODENAME)
 
-sha1-linus.o : ../src/sha1-linus.c ../src/sha1-linus.h
-	$(CC) $(CFLAGS_MIN) -c ../src/sha1-linus.c
-
-%.o : ../src/%.c ../src/%.h
+%.o : ../src/p2p/%.c ../src/p2p/%.h
 	$(CC) $(CFLAGS_EXT) -c $<
+
+%.o : ../src/dns/%.c ../src/dns/%.h
+	$(CC) $(CFLAGS_EXT) -c $<
+
+%.o : ../src/shr/%.c ../src/shr/%.h
+	$(CC) $(CFLAGS_EXT) -c $<
+
+sha1-linus.o : ../src/ext/sha1-linus.c ../src/ext/sha1-linus.h
+	$(CC) $(CFLAGS_MIN) -c ../src/ext/sha1-linus.c
 
 $(CODENAME): $(OBJS) sha1-linus.o
 	$(CC) $(OBJS) sha1-linus.o -o $(CODENAME) $(LDFLAGS)

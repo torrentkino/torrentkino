@@ -1,5 +1,4 @@
 SUBDIRS = tk6 tk4
-#SUBDIRS = tumbleweed
 
 .PHONY : all clean install docs sync debian ubuntu $(SUBDIRS)
 
