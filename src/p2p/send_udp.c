@@ -96,7 +96,7 @@ void send_ping( IP *sa, UCHAR *tid ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "PING" );
+	info( _log, sa, "PING" );
 }
 
 /*
@@ -155,7 +155,7 @@ void send_pong( IP *sa, UCHAR *tid, int tid_size ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "PONG" );
+	info( _log, sa, "PONG" );
 }
 
 /*
@@ -232,7 +232,7 @@ void send_find_node_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	ben_free( dict );
 
 	hex_hash_encode( hexbuf, node_id );
-	info( sa, "FIND_NODE %s at", hexbuf );
+	info( _log, sa, "FIND_NODE %s at", hexbuf );
 }
 
 /*
@@ -305,7 +305,7 @@ void send_find_node_reply( IP *sa, UCHAR *nodes_compact_list,
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "NODES_FN to");
+	info( _log, sa, "NODES_FN to");
 }
 
 /*
@@ -382,7 +382,7 @@ void send_get_peers_request( IP *sa, UCHAR *node_id, UCHAR *tid ) {
 	ben_free( dict );
 
 	hex_hash_encode( hexbuf, node_id );
-	info( sa, "GET_PEERS %s at", hexbuf );
+	info( _log, sa, "GET_PEERS %s at", hexbuf );
 }
 
 /*
@@ -466,7 +466,7 @@ void send_get_peers_nodes( IP *sa, UCHAR *nodes_compact_list,
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "NODES_GP to");
+	info( _log, sa, "NODES_GP to");
 }
 
 /*
@@ -555,7 +555,7 @@ void send_get_peers_values( IP *sa, UCHAR *nodes_compact_list,
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "VALUES_GP to" );
+	info( _log, sa, "VALUES_GP to" );
 }
 
 /*
@@ -648,7 +648,7 @@ void send_announce_request( IP *sa, UCHAR *tid, UCHAR *target,
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "ANNOUNCE_PEER to" );
+	info( _log, sa, "ANNOUNCE_PEER to" );
 }
 
 /*
@@ -707,7 +707,7 @@ void send_announce_reply( IP *sa, UCHAR *tid, int tid_size ) {
 	raw_free( raw );
 	ben_free( dict );
 
-	info( sa, "ANNOUNCE SUCCESS to" );
+	info( _log, sa, "ANNOUNCE SUCCESS to" );
 }
 
 #ifdef POLARSSL
@@ -731,7 +731,7 @@ void send_aes( IP *sa, RAW *raw ) {
 	aes = aes_encrypt( raw->code, raw->size, salt,
 			_main->conf->key, strlen( _main->conf->key) );
 	if( aes == NULL ) {
-		info( NULL, "Encoding AES message failed" );
+		info( _log, NULL, "Encoding AES message failed" );
 		ben_free( dict );
 		return;
 	}

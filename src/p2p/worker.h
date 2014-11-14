@@ -23,6 +23,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../shr/malloc.h"
 #include "../shr/thrd.h"
 #include "../shr/log.h"
+#include "conf.h"
 
 struct obj_work {
 	int number_of_threads;

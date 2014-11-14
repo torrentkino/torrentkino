@@ -36,10 +36,8 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	int i = 0;
 
 	/* Defaults */
-	conf->mode = CONF_CONSOLE;
 	conf->p2p_port = PORT_DHT_DEFAULT;
 	conf->dns_port = PORT_DNS_DEFAULT;
-	conf->verbosity = CONF_VERBOSE;
 	conf->bootstrap_port = PORT_DHT_DEFAULT;
 	conf->announce_port = PORT_WWW_USER;
 	conf->cores = unix_cpus();
@@ -60,7 +58,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 				conf->announce_port = str_safe_port( optarg );
 				break;
 			case 'd':
-				conf->mode = CONF_DAEMON;
+				log_set_mode( _log, CONF_DAEMON );
 				break;
 			case 'h':
 				conf_usage( argv[0] );
@@ -85,7 +83,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 				conf->dns_port = str_safe_port( optarg );
 				break;
 			case 'q':
-				conf->verbosity = CONF_BEQUIET;
+				log_set_verbosity( _log, CONF_BEQUIET );
 				break;
 			case 'r':
 				snprintf( conf->realm, BUF_SIZE, "%s", optarg );
@@ -154,49 +152,41 @@ void conf_print( void ) {
 	char hex[HEX_LEN];
 
 	hex_hash_encode( hex, _main->conf->node_id );
-	info( NULL, "Node ID: %s", hex );
+	info( _log, NULL, "Node ID: %s", hex );
 
 	hostname_print();
 
 	if( _main->conf->bool_realm == 1 ) {
-		info( NULL, "Realm: %s (-r)", _main->conf->realm );
+		info( _log, NULL, "Realm: %s (-r)", _main->conf->realm );
 	} else {
-		info( NULL, "Realm: None (-r)" );
+		info( _log, NULL, "Realm: None (-r)" );
 	}
 
 #ifdef POLARSSL
 	if( _main->conf->bool_encryption == 1 ) {
-		info( NULL, "Encryption key: %s (-k)", _main->conf->key );
+		info( _log, NULL, "Encryption key: %s (-k)", _main->conf->key );
 	} else {
-		info( NULL, "Encryption key: None (-k)" );
+		info( _log, NULL, "Encryption key: None (-k)" );
 	}
 #endif
 
-	info( NULL, "P2P daemon is listening to UDP/%i (-p)", _main->conf->p2p_port );
-	info( NULL, "DNS daemon is listening to UDP/%i (-P)", _main->conf->dns_port );
-	info( NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
-	info( NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
-	info( NULL, "Announced port: %i (-y)", _main->conf->announce_port );
+	info( _log, NULL, "P2P daemon is listening to UDP/%i (-p)", _main->conf->p2p_port );
+	info( _log, NULL, "DNS daemon is listening to UDP/%i (-P)", _main->conf->dns_port );
+	info( _log, NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
+	info( _log, NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
+	info( _log, NULL, "Announced port: %i (-y)", _main->conf->announce_port );
 
-	if( _main->conf->mode == CONF_CONSOLE ) {
-		info( NULL, "Mode: Console (-d)" );
+	if( log_console( _log ) ) {
+		info( _log, NULL, "Mode: Console (-d)" );
 	} else {
-		info( NULL, "Mode: Daemon (-d)" );
+		info( _log, NULL, "Mode: Daemon (-d)" );
 	}
 
-	if( _main->conf->verbosity == CONF_BEQUIET ) {
-		info( NULL, "Verbosity: Quiet (-q)" );
+	if( log_verbosely( _log ) ) {
+		info( _log, NULL, "Verbosity: Verbose (-q)" );
 	} else {
-		info( NULL, "Verbosity: Verbose (-q)" );
+		info( _log, NULL, "Verbosity: Quiet (-q)" );
 	}
 
-	info( NULL, "Cores: %i", _main->conf->cores );
-}
-
-int conf_verbosity( void ) {
-	return _main->conf->verbosity;
-}
-
-int conf_mode( void ) {
-	return _main->conf->mode;
+	info( _log, NULL, "Cores: %i", _main->conf->cores );
 }

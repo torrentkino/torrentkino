@@ -188,7 +188,7 @@ void mime_magic( char *filename, char *key ) {
 	/* Clear handle */
 	magic_close( magic );
 
-	info( NULL, "New MIME: \"%s\" -> \"%s\"", tuple->key, tuple->val );
+	info( _log, NULL, "New MIME: \"%s\" -> \"%s\"", tuple->key, tuple->val );
 }
 #endif
 

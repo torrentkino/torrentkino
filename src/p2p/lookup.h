@@ -22,6 +22,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../shr/malloc.h"
 #include "../shr/list.h"
+#include "../shr/str.h"
 #include "../dns/dns.h"
 #include "token.h"
 

@@ -162,17 +162,17 @@ void cache_print( void ) {
 	TARGET_C *t = NULL;
 	char hex[HEX_LEN];
 
-	if( conf_verbosity() != CONF_VERBOSE ) {
+	if( log_verbosely( _log ) ) {
 		return;
 	}
 
-	info( NULL, "Cache renewal triggered:" );
+	info( _log, NULL, "Cache renewal triggered:" );
 	i = list_start( _main->cache->list );
 	while( i != NULL ) {
 		t = list_value( i );
 
 		hex_hash_encode( hex, t->target );
-		info( NULL, " Target: %s", hex );
+		info( _log, NULL, " Target: %s", hex );
 
 		tgt_c_print( t );
 
@@ -293,7 +293,7 @@ void tgt_c_print( TARGET_C *target ) {
 		node = list_value( i );
 
 		ip_bytes_to_sin( &sin, node->pair );
-		info( &sin, "  IP:");
+		info( _log, &sin, "  IP:");
 
 		i = list_next( i );
 	}

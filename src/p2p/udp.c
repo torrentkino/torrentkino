@@ -144,7 +144,7 @@ void *udp_thread( void *arg ) {
 	id = _main->work->id++;
 	mutex_unblock( _main->work->mutex );
 
-	info( NULL, "UDP Thread[%i] - Max events: %i", id,
+	info( _log, NULL, "UDP Thread[%i] - Max events: %i", id,
 		CONF_EPOLL_MAX_EVENTS );
 
 	while( status == RUMBLE ) {
@@ -192,7 +192,7 @@ void udp_worker( UDP *udp, struct epoll_event *events, int nfds ) {
 			udp_input( udp, events[i].data.fd );
 			udp_rearm( udp, events[i].data.fd );
 		} else {
-			info( NULL, "udp_worker: Unknown event" );
+			info( _log, NULL, "udp_worker: Unknown event" );
 		}
 	}
 }
@@ -237,13 +237,13 @@ void udp_input( UDP *udp, int sockfd ) {
 
 		if( bytes < 0 ) {
 			if( errno != EAGAIN && errno != EWOULDBLOCK ) {
-				info( &c_addr, "UDP error while recvfrom" );
+				info( _log, &c_addr, "UDP error while recvfrom" );
 			}
 			return;
 		}
 
 		if( bytes == 0 ) {
-			info( &c_addr, "UDP error 0 bytes" );
+			info( _log, &c_addr, "UDP error 0 bytes" );
 			return;
 		}
 
@@ -294,7 +294,7 @@ void udp_multicast( UDP *udp, int mode, int runmode ) {
 
 	if( setsockopt( udp->sockfd, IPPROTO_IPV6, action,
 		&mreq, sizeof( mreq ) ) != 0 ) {
-		info( NULL, "Joining multicast group failed: %s",
+		info( _log, NULL, "Joining multicast group failed: %s",
 			strerror( errno ) );
 		return;
 	}
@@ -327,7 +327,7 @@ void udp_multicast( UDP *udp, int mode, int runmode ) {
 
 	if( setsockopt( udp->sockfd, IPPROTO_IP, action,
 		&mreq, sizeof( mreq ) ) != 0 ) {
-		info( NULL, "Joining multicast group failed: %s",
+		info( _log, NULL, "Joining multicast group failed: %s",
 			strerror( errno ) );
 		return;
 	}

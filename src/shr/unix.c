@@ -99,7 +99,7 @@ void unix_limits( int cores, int max_events ) {
 		fail( strerror( errno ) );
 	}
 
-	info( NULL, "Max open files: %i", limit );
+	info( _log, NULL, "Max open files: %i", limit );
 }
 
 void unix_dropuid0( void ) {
@@ -131,7 +131,7 @@ void unix_dropuid0( void ) {
 		fail( "ERROR: Managed to regain root privileges?" );
 	}
 
-	info( NULL, "uid: %i, gid: %i", pw->pw_uid, pw->pw_gid );
+	info( _log, NULL, "uid: %i, gid: %i", pw->pw_uid, pw->pw_gid );
 }
 
 #if 0

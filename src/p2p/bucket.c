@@ -272,7 +272,7 @@ void bckt_split_print( LIST *l ) {
 	memset( ip_buf, '\0', INET_ADDRSTRLEN+1 );
 #endif
 
-	info( NULL, "Bucket split:" );
+	info( _log, NULL, "Bucket split:" );
 
 	/* Cycle through all the buckets */
 	item_b = list_start( l );
@@ -280,7 +280,7 @@ void bckt_split_print( LIST *l ) {
 		b = list_value( item_b );
 
 		hex_hash_encode( hex, b->id );
-		info( NULL, " Bucket: %s", hex );
+		info( _log, NULL, " Bucket: %s", hex );
 
 		/* Cycle through all the nodes */
 		item_n = list_start( b->nodes );
@@ -288,7 +288,7 @@ void bckt_split_print( LIST *l ) {
 			n = list_value( item_n );
 
 			hex_hash_encode( hex, n->id );
-			info( NULL, "  Node: %s %s", hex,
+			info( _log, NULL, "  Node: %s %s", hex,
 #ifdef IPV6
 				inet_ntop( AF_INET6, &n->c_addr.sin6_addr, ip_buf, INET6_ADDRSTRLEN )
 #elif IPV4

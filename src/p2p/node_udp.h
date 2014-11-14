@@ -20,6 +20,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NODE_UDP_H
 #define NODE_UDP_H
 
+#include "conf.h"
 #include "token.h"
 
 typedef struct {

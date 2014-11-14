@@ -164,20 +164,20 @@ int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size ) {
 	size -= n;
 
 	if( msg->anCount != 0 ) {
-		info( NULL, "DNS: Only questions expected." );
+		info( _log, NULL, "DNS: Only questions expected." );
 		return -1;
 	}
 	if( msg->nsCount != 0 ) {
-		info( NULL, "DNS: Only questions expected." );
+		info( _log, NULL, "DNS: Only questions expected." );
 		return -1;
 	}
 	if( msg->qdCount != 1 ) {
-		info( NULL, "DNS: Only only 1 question expected." );
+		info( _log, NULL, "DNS: Only only 1 question expected." );
 		return -1;
 	}
 #if 0
 	if( msg->arCount != 0 ) {
-		info( NULL, "DNS: Only questions expected." );
+		info( _log, NULL, "DNS: Only questions expected." );
 		return -1;
 	}
 #endif

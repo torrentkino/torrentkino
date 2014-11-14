@@ -83,7 +83,7 @@ void hostname_print( void ) {
 		hostname = list_value( i );
 
 		hex_hash_encode( hex, hostname->host_id );
-		info( NULL, "Hostname: %s / %s", hex, hostname->hostname );
+		info( _log, NULL, "Hostname: %s / %s", hex, hostname->hostname );
 
 		i = list_next( i );
 	}

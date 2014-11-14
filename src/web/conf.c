@@ -42,8 +42,6 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	int i = 0;
 
 	/* Defaults */
-	conf->mode = CONF_CONSOLE;
-	conf->verbosity = CONF_VERBOSE;
 	conf->port = ( getuid() == 0 ) ? PORT_WWW_PRIV : PORT_WWW_USER;
 	conf->cores = unix_cpus();
 	strncpy( conf->file, CONF_INDEX_NAME, BUF_OFF1 );
@@ -53,7 +51,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 	while( ( opt = getopt( argc, argv, "dhi:p:q" ) ) != -1 ) {
 		switch( opt ) {
 			case 'd':
-				conf->mode = CONF_DAEMON;
+				log_set_mode( _log, CONF_DAEMON );
 				break;
 			case 'h':
 				conf_usage( argv[0] );
@@ -65,7 +63,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 				conf->port = str_safe_port( optarg );
 				break;
 			case 'q':
-				conf->verbosity = CONF_BEQUIET;
+				log_set_verbosity( _log, CONF_BEQUIET );
 				break;
 			default: /* '?' */
 				conf_usage( argv[0] );
@@ -123,36 +121,28 @@ void conf_home_from_arg( struct obj_conf *conf, char *optarg ) {
 
 void conf_print( void ) {
 	if ( getenv( "PWD" ) == NULL || getenv( "HOME" ) == NULL ) {
-		info( NULL, "# Hint: Reading environment variables failed. sudo?");
-		info( NULL, "# This is not a problem. But in some cases it might be useful" );
-		info( NULL, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
+		info( _log, NULL, "# Hint: Reading environment variables failed. sudo?");
+		info( _log, NULL, "# This is not a problem. But in some cases it might be useful" );
+		info( _log, NULL, "# to use 'sudo -E' to export some variables like $HOME or $PWD." );
 	}
 
-	info( NULL, "Workdir: %s", _main->conf->home );
-	info( NULL, "Index file: %s (-i)", _main->conf->file );
-	info( NULL, "Listen to TCP/%i (-p)", _main->conf->port );
+	info( _log, NULL, "Workdir: %s", _main->conf->home );
+	info( _log, NULL, "Index file: %s (-i)", _main->conf->file );
+	info( _log, NULL, "Listen to TCP/%i (-p)", _main->conf->port );
 
-	if( _main->conf->mode == CONF_CONSOLE ) {
-		info( NULL, "Mode: Console (-d)" );
+	if( log_console( _log ) ) {
+		info( _log, NULL, "Mode: Console (-d)" );
 	} else {
-		info( NULL, "Mode: Daemon (-d)" );
+		info( _log, NULL, "Mode: Daemon (-d)" );
 	}
 
-	if( _main->conf->verbosity == CONF_BEQUIET ) {
-		info( NULL, "Verbosity: Quiet (-q)" );
+	if( log_verbosely( _log ) ) {
+		info( _log, NULL, "Verbosity: Verbose (-q)" );
 	} else {
-		info( NULL, "Verbosity: Verbose (-q)" );
+		info( _log, NULL, "Verbosity: Quiet (-q)" );
 	}
 
-	info( NULL, "Cores: %i", _main->conf->cores );
-}
-
-int conf_verbosity( void ) {
-	return _main->conf->verbosity;
-}
-
-int conf_mode( void ) {
-	return _main->conf->mode;
+	info( _log, NULL, "Cores: %i", _main->conf->cores );
 }
 
 void conf_usage( char *command ) {

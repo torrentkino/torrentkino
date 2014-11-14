@@ -32,25 +32,17 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/epoll.h>
 #include <sys/un.h>
 
-#ifdef TORRENTKINO
-#include "torrentkino.h"
-#include "info_hash.h"
-#include "udp.h"
-#include "cache.h"
-#endif
-
-#ifdef TUMBLEWEED
 #include "tumbleweed.h"
 #include "conf.h"
 #include "node_tcp.h"
 #include "send_tcp.h"
 #include "tcp.h"
 #include "mime.h"
-#endif
 
 #include "worker.h"
 
 struct obj_main *_main = NULL;
+struct obj_log *_log = NULL;
 int status = RUMBLE;
 
 struct obj_main *main_init( int argc, char **argv ) {
@@ -62,21 +54,11 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->conf = NULL;
 	_main->work = NULL;
 
-#ifdef TORRENTKINO
-	_main->transaction = NULL;
-	_main->cache = NULL;
-	_main->token = NULL;
-	_main->nbhd = NULL;
-	_main->value = NULL;
-	_main->p2p = NULL;
-	_main->udp = NULL;
-#endif
-
-#ifdef TUMBLEWEED
 	_main->node = NULL;
 	_main->mime = NULL;
 	_main->tcp  = NULL;
-#endif
+
+	_log = NULL;
 
 	return _main;
 }
@@ -90,24 +72,13 @@ int main( int argc, char **argv ) {
 	struct sigaction sig_time;
 
 	_main = main_init( argc, argv );
+	_log = log_init();
 	_main->conf = conf_init( argc, argv );
 	_main->work = work_init();
 
-#ifdef TORRENTKINO
-	_main->nbhd = nbhd_init();
-	_main->value = idb_init();
-	_main->transaction = tdb_init();
-	_main->token = tkn_init();
-	_main->p2p = p2p_init();
-	_main->udp = udp_init();
-	_main->cache = cache_init();
-#endif
-
-#ifdef TUMBLEWEED
 	_main->tcp = tcp_init();
 	_main->node = node_init();
 	_main->mime = mime_init();
-#endif
 
 	/* Check configuration */
 	conf_print();
@@ -116,37 +87,17 @@ int main( int argc, char **argv ) {
 	unix_signal( &sig_stop, &sig_time );
 
 	/* Fork daemon */
-	unix_fork( _main->conf->mode );
-
-#ifdef TORRENTKINO
-	/* Write configuration */
-	conf_write();
-#endif
-
-
-#ifdef TORRENTKINO
-	/* Create kademlia token */
-	tkn_put();
-#endif
+	unix_fork( log_console( _log ) );
 
 	/* Increase limits */
 	unix_limits( _main->conf->cores, CONF_EPOLL_MAX_EVENTS );
 
-#ifdef TUMBLEWEED
 	/* Load mime types */
 	mime_load();
 	mime_hash();
-#endif
 
-#ifdef TUMBLEWEED
 	/* Prepare TCP daemon */
 	tcp_start();
-#endif
-
-#ifdef TORRENTKINO
-	/* Prepare UDP daemon */
-	udp_start();
-#endif
 
 	/* Drop privileges */
 	unix_dropuid0();
@@ -158,33 +109,15 @@ int main( int argc, char **argv ) {
 	work_stop();
 
 	/* Stop TCP daemon */
-#ifdef TUMBLEWEED
 	tcp_stop();
-#endif
 
-#ifdef TORRENTKINO
-	/* Stop UDP daemon */
-	udp_stop();
-#endif
-
-#ifdef TUMBLEWEED
 	mime_free();
 	node_free();
 	tcp_free();
-#endif
-
-#ifdef TORRENTKINO
-	cache_free();
-	idb_free();
-	nbhd_free();
-	tdb_free();
-	tkn_free();
-	p2p_free();
-	udp_free();
-#endif
 
 	work_free();
 	conf_free();
+	log_free( _log );
 	main_free();
 
 	return 0;

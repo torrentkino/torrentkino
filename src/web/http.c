@@ -49,16 +49,16 @@ LONG http_urlDecode( char *src, LONG srclen, char *dst, LONG dstlen ) {
 	unsigned int hex = 0;
 
 	if( src == NULL ) {
-		info( NULL, "http_urlDecode(): URL is NULL" );
+		info( _log, NULL, "http_urlDecode(): URL is NULL" );
 		return 0;
 	} else if( dst == NULL ) {
-		info( NULL, "http_urlDecode(): Destination is broken" );
+		info( _log, NULL, "http_urlDecode(): Destination is broken" );
 		return 0;
 	} else if( dstlen <= 0 ) {
-		info( NULL, "http_urlDecode(): Destination length is <= 0" );
+		info( _log, NULL, "http_urlDecode(): Destination length is <= 0" );
 		return 0;
 	} else if( srclen <= 0 ) {
-		info( NULL, "http_urlDecode(): URL length is <= 0" );
+		info( _log, NULL, "http_urlDecode(): URL length is <= 0" );
 		return 0;
 	}
 
@@ -75,13 +75,13 @@ LONG http_urlDecode( char *src, LONG srclen, char *dst, LONG dstlen ) {
 			/* Safety check */
 			if( (LONG)(src+srclen-p1) <= 2 ) {
 				/* Path is broken: There should have been two more characters */
-				info( NULL, "http_urlDecode(): Broken url" );
+				info( _log, NULL, "http_urlDecode(): Broken url" );
 				return 0;
 			}
 
 			if( !sscanf( ++p1,"%2x",&hex) ) {
 				/* Path is broken: Broken characters */
-				info( NULL, "http_urlDecode(): Broken characters" );
+				info( _log, NULL, "http_urlDecode(): Broken characters" );
 				return 0;
 			}
 
@@ -111,7 +111,7 @@ HASH *http_hashHeader( char *head ) {
 	/* Compute hash size */
 	head_counter = str_count( head, "\r\n" );
 	if( head_counter >= 100 ) {
-		info( NULL, "More than 100 headers?!" );
+		info( _log, NULL, "More than 100 headers?!" );
 		return NULL;
 	} else if( head_counter <= 0 ) {
 		/* HTTP/1.0 */
@@ -141,7 +141,7 @@ HASH *http_hashHeader( char *head ) {
 			hash_put( hash, (UCHAR *)var, strlen( var), val );
 
 		} else {
-			info( NULL, "Missing ':' in header?!" );
+			info( _log, NULL, "Missing ':' in header?!" );
 			hash_free( hash );
 			return NULL;
 		}
@@ -201,7 +201,7 @@ void http_buf( TCP_NODE *n ) {
 
 	/* Find url */
 	if( (p_url = strchr( p_cmd, ' ')) == NULL ) {
-		info( &n->c_addr, "Requested URL was not found" );
+		info( _log, &n->c_addr, "Requested URL was not found" );
 		node_status( n, NODE_SHUTDOWN );
 		return;
 	}
@@ -209,7 +209,7 @@ void http_buf( TCP_NODE *n ) {
 
 	/* Find protocol type */
 	if( (p_proto = strchr( p_url, ' ')) == NULL ) {
-		info( &n->c_addr, "No protocol found in request" );
+		info( _log, &n->c_addr, "No protocol found in request" );
 		node_status( n, NODE_SHUTDOWN );
 		return;
 	}
@@ -222,7 +222,7 @@ void http_buf( TCP_NODE *n ) {
 
 	/* Find header lines */
 	if( (p_head = strstr( p_proto, "\r\n")) == NULL ) {
-		info( &n->c_addr, "There must be a \\r\\n. I put it there..." );
+		info( _log, &n->c_addr, "There must be a \\r\\n. I put it there..." );
 		node_status( n, NODE_SHUTDOWN );
 		return;
 	}
@@ -277,7 +277,7 @@ void http_read( TCP_NODE *n, char *p_cmd, char *p_url, char *p_proto,
 	/* Compute filename */
 	if( ! http_filename( resource, filename ) ) {
 		http_404( n, keepalive );
-		info( &n->c_addr, "404 %s", resource );
+		info( _log, &n->c_addr, "404 %s", resource );
 		goto END;
 	}
 
@@ -290,7 +290,7 @@ void http_read( TCP_NODE *n, char *p_cmd, char *p_url, char *p_proto,
 	/* Last-Modified. */
 	if( ! http_resource_modified( filename, p_head, lastmodified ) ) {
 		http_304( n, keepalive );
-		info( &n->c_addr, "304 %s", resource );
+		info( _log, &n->c_addr, "304 %s", resource );
 		goto END;
 	}
 
@@ -303,7 +303,7 @@ void http_read( TCP_NODE *n, char *p_cmd, char *p_url, char *p_proto,
 
 	/* Normal 200-er request */
 	if( code == 200 ) {
-		info( &n->c_addr, "200 %s", resource );
+		info( _log, &n->c_addr, "200 %s", resource );
 		http_200( n, lastmodified, filename, filesize, keepalive, mimetype );
 		http_body( n, filename, filesize );
 		goto END;
@@ -311,7 +311,7 @@ void http_read( TCP_NODE *n, char *p_cmd, char *p_url, char *p_proto,
 
 	/* Check for 'bytes=' in range. Fallback to 200 if necessary. */
 	if( !http_range_prepare( &p_range ) ) {
-		info( &n->c_addr, "200 %s", resource );
+		info( _log, &n->c_addr, "200 %s", resource );
 		http_200( n, lastmodified, filename, filesize, keepalive, mimetype );
 		http_body( n, filename, filesize );
 		goto END;
@@ -344,7 +344,7 @@ void http_read( TCP_NODE *n, char *p_cmd, char *p_url, char *p_proto,
 		http_206_simple( n, r_head, r_file, lastmodified, filename,
 				filesize, content_length, keepalive, mimetype );
 
-		info( &n->c_addr, "206 %s [%s]", resource, range );
+		info( _log, &n->c_addr, "206 %s [%s]", resource, range );
 		goto END;
 	} else {
 		RESPONSE *r_head = NULL, *r_bottom = NULL, *r_zsyncbug = NULL;
@@ -386,12 +386,12 @@ void http_read( TCP_NODE *n, char *p_cmd, char *p_url, char *p_proto,
 		/* zsync bug? One more \r\n between header and body. */
 		http_newline( r_zsyncbug, &content_length );
 
-		info( &n->c_addr, "206 %s [%s]", resource, range );
+		info( _log, &n->c_addr, "206 %s [%s]", resource, range );
 
 		goto END;
 	}
 
-	info( &n->c_addr, "FIXME: HTTP parser end reached without result" );
+	info( _log, &n->c_addr, "FIXME: HTTP parser end reached without result" );
 	node_status( n, NODE_SHUTDOWN );
 
 	END:
@@ -426,7 +426,7 @@ int http_action( TCP_NODE *n, char *p_cmd ) {
 		return TRUE;
 	}
 
-	info( &n->c_addr, "Unsupported request action: %s", p_cmd );
+	info( _log, &n->c_addr, "Unsupported request action: %s", p_cmd );
 	return FALSE;
 }
 
@@ -441,7 +441,7 @@ int http_proto( TCP_NODE *n, char *p_proto ) {
 		return TRUE;
 	}
 
-	info( &n->c_addr, "Unsupported protocol type: %s", p_proto );
+	info( _log, &n->c_addr, "Unsupported protocol type: %s", p_proto );
 
 	return FALSE;
 }
@@ -450,25 +450,25 @@ int http_resource( TCP_NODE *n, char *p_url, char *resource ) {
 
 	/* URL */
 	if( !http_urlDecode( p_url, strlen( p_url ), resource, BUF_SIZE) ) {
-		info( &n->c_addr, "Decoding resource failed" );
+		info( _log, &n->c_addr, "Decoding resource failed" );
 		return FALSE;
 	}
 
 	/* Minimum path requirement */
 	if( resource[0] != '/' ) {
-		info( &n->c_addr, "Resource must start with '/'" );
+		info( _log, &n->c_addr, "Resource must start with '/'" );
 		return FALSE;
 	}
 
 	/* ".." in path. Do not like. */
 	if( strstr( resource, "../") != NULL ) {
-		info( &n->c_addr, "Double dots in resource" );
+		info( _log, &n->c_addr, "Double dots in resource" );
 		return FALSE;
 	}
 
 	/* URL */
 	if( ! str_isValidUTF8( resource) ) {
-		info( &n->c_addr, "Invalid UTF8 in resource" );
+		info( _log, &n->c_addr, "Invalid UTF8 in resource" );
 		return FALSE;
 	}
 

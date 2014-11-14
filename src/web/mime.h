@@ -25,6 +25,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../shr/list.h"
 #include "../shr/log.h"
 #include "../shr/thrd.h"
+#include "../shr/file.h"
+#include "../shr/str.h"
 
 #define MIME_KEYLEN 8
 #define MIME_VALLEN 50

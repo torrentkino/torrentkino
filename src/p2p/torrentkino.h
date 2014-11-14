@@ -44,6 +44,7 @@ struct obj_main {
 };
 
 extern struct obj_main *_main;
+extern struct obj_log *_log;
 
 struct obj_main *main_init( int argc, char **argv );
 void main_free( void );

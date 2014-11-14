@@ -41,8 +41,6 @@ struct obj_conf {
 	UCHAR node_id[SHA1_SIZE];
 	UCHAR null_id[SHA1_SIZE];
 	int cores;
-	int verbosity;
-	int mode;
 	int bool_realm;
 	unsigned int p2p_port;
 	unsigned int dns_port;
@@ -60,8 +58,5 @@ void conf_free( void );
 
 void conf_usage( char *command );
 void conf_print( void );
-
-int conf_verbosity( void );
-int conf_mode( void );
 
 #endif

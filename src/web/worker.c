@@ -59,7 +59,7 @@ void work_start( void ) {
 	int i = 0;
 	int number_of_worker = _main->work->number_of_threads;
 
-	info( NULL, "Worker: %i", number_of_worker );
+	info( _log, NULL, "Worker: %i", number_of_worker );
 
 	/* Initialize and set thread detached attribute */
 	pthread_attr_init( &_main->work->attr );

@@ -26,13 +26,40 @@ along with torrentkino. If not, see <http://www.gnu.org/licenses/>.
 
 #include "log.h"
 
-void info( IP *from, const char *format, ... ) {
+LOG *log_init( void ) {
+	LOG *log = myalloc( sizeof( LOG ) );
+	log->verbosity = CONF_VERBOSE;
+	log->mode = CONF_CONSOLE;
+	return log;
+}
+
+void log_free( LOG *log ) {
+	myfree( log );
+}
+
+void log_set_verbosity( LOG *log, int verbosity ) {
+	log->verbosity = verbosity;
+}
+
+void log_set_mode( LOG *log, int mode ) {
+	log->mode = mode;
+}
+
+int log_verbosely( LOG *log ) {
+	return log->verbosity;
+}
+
+int log_console( LOG *log ) {
+	return log->mode;
+}
+
+void info( LOG *log, IP *from, const char *format, ... ) {
 	char log_buf[BUF_SIZE];
 	char va_buf[BUF_SIZE];
 	char ip_buf[IP_ADDRLEN+1];
 	va_list vlist;
 
-	if( conf_verbosity() != CONF_VERBOSE ) {
+	if( ! log_verbosely( log ) ) {
 		return;
 	}
 
@@ -55,7 +82,7 @@ void info( IP *from, const char *format, ... ) {
 	}
 
 	/* Console or Syslog */
-	if( conf_mode() == CONF_CONSOLE ) {
+	if( log_console( log ) ) {
 		printf( "%s\n", log_buf );
 	} else {
 		openlog( LOG_NAME, LOG_PID|LOG_CONS,LOG_USER );

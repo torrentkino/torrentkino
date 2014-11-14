@@ -141,7 +141,7 @@ void send_file( TCP_NODE *n, ITEM *item_r ) {
 	while( status == RUMBLE ) {
 		fh = open( r->data.file.filename, O_RDONLY );
 		if( fh < 0 ) {
-			info( NULL, "Failed to open %s", r->data.file.filename );
+			info( _log, NULL, "Failed to open %s", r->data.file.filename );
 			fail( strerror( errno) );
 		}
 
@@ -150,7 +150,7 @@ void send_file( TCP_NODE *n, ITEM *item_r ) {
 		bytes_sent = sendfile( n->connfd, fh, &r->data.file.f_offset, bytes_todo );
 
 		if( close( fh ) != 0 ) {
-			info( NULL, "Failed to close %s", r->data.file.filename );
+			info( _log, NULL, "Failed to close %s", r->data.file.filename );
 			fail( strerror( errno) );
 		}
 

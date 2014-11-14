@@ -20,14 +20,26 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef LOG_H
 #define LOG_H
 
-/* FIXME */
-#ifdef TORRENTKINO
-#include "../p2p/conf.h"
-#elif TUMBLEWEED
-#include "../web/conf.h"
-#endif
+extern struct obj_log *_log;
+
+#include "malloc.h"
 #include "ip.h"
 
-void info( IP *c_addr, const char *format, ... );
+struct obj_log {
+	int verbosity;
+	int mode;
+};
+typedef struct obj_log LOG;
+
+LOG *log_init( void );
+void log_free( LOG *log );
+
+void log_set_verbosity( LOG *log, int verbosity );
+void log_set_mode( LOG *log, int mode );
+
+int log_verbosely( LOG *log );
+int log_console( LOG *log );
+
+void info( LOG *log, IP *from, const char *format, ... );
 
 #endif

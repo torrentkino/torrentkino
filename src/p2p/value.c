@@ -146,17 +146,17 @@ void val_print( void ) {
 	TARGET_V *target = NULL;
 	char hex[HEX_LEN];
 
-	if( conf_verbosity() != CONF_VERBOSE ) {
+	if( log_verbosely( _log ) ) {
 		return;
 	}
 
-	info( NULL, "Values:" );
+	info( _log, NULL, "Values:" );
 	i = list_start( _main->value->list );
 	while( i != NULL ) {
 		target = list_value( i );
 
 		hex_hash_encode( hex, target->target );
-		info( NULL, " Target: %s", hex );
+		info( _log, NULL, " Target: %s", hex );
 
 		tgt_v_print( target );
 
@@ -279,9 +279,9 @@ void tgt_v_print( TARGET_V *target ) {
 		port = ip_sin_to_port( &sin );
 
 #ifdef IPV6
-		info( NULL, "  [%s]:%i", ip_buf, port );
+		info( _log, NULL, "  [%s]:%i", ip_buf, port );
 #else
-		info( NULL, "  %s:%i", ip_buf, port );
+		info( _log, NULL, "  %s:%i", ip_buf, port );
 #endif
 
 		i = list_next( i );

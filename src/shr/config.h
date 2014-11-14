@@ -36,8 +36,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_PORTMIN 1
 #define CONF_PORTMAX 65535
 
-#define CONF_BEQUIET 1
-#define CONF_VERBOSE 2
+#define CONF_BEQUIET 0
+#define CONF_VERBOSE 1
 
 #define CONF_DAEMON 0
 #define CONF_CONSOLE 1

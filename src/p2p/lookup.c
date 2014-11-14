@@ -73,7 +73,7 @@ LONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
 
 	/* Wow. Something is broken or this Kademlia cloud is huge. */
 	if( list_size( l->list ) >= 32767 ) {
-		info( from, "ldb_put(): Too many nodes without end in sight." );
+		info( _log, from, "ldb_put(): Too many nodes without end in sight." );
 		return 32767;
 	}
 

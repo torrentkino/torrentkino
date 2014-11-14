@@ -42,19 +42,19 @@ void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 
 	/* 12 bytes DNS header to start with */
 	if( bufsize < 12 ) {
-		info( from, "DNS: Too few bytes to even start from" );
+		info( _log, from, "DNS: Too few bytes to even start from" );
 		return;
 	}
 
 	/* 512 bytes is enough for everybody */
 	if( bufsize > 512 ) {
-		info( from, "DNS: Packet greater than 512 bytes from" );
+		info( _log, from, "DNS: Packet greater than 512 bytes from" );
 		return;
 	}
 
 	/* Ignore link-local address */
 	if( ip_is_linklocal( from ) ) {
-		info( from, "DNS: Drop LINK-LOCAL message from" );
+		info( _log, from, "DNS: Drop LINK-LOCAL message from" );
 		return;
 	}
 
@@ -66,18 +66,18 @@ void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 
 	/* FIXME? */
 	if ( hostname == NULL ) {
-		info( from, "DNS: Missing hostname" );
+		info( _log, from, "DNS: Missing hostname" );
 		return;
 	}
 
 	if( strlen( hostname ) > 255 ) {
-		info( from, "DNS: Hostname too long from" );
+		info( _log, from, "DNS: Hostname too long from" );
 		return;
 	}
 
 	/* Validate hostname */
 	if ( !str_valid_hostname( hostname, strlen( hostname ) ) ) {
-		info( from, "DNS: Invalid hostname for lookup: '%s'", hostname );
+		info( _log, from, "DNS: Invalid hostname for lookup: '%s'", hostname );
 		return;
 	}
 
@@ -110,20 +110,20 @@ void r_lookup( char *hostname, IP *from, DNS_MSG *msg ) {
 	/* Check local cache */
 	result = r_lookup_cache_db( target, from, msg );
 	if( result == TRUE ) {
-		info( from, "LOOKUP %s (cached)", hostname );
+		info( _log, from, "LOOKUP %s (cached)", hostname );
 		return;
 	}
 
 	/* Check local database */
 	result = r_lookup_local_db( target, from, msg );
 	if( result == TRUE ) {
-		info( from, "LOOKUP %s (local)", hostname );
+		info( _log, from, "LOOKUP %s (local)", hostname );
 		return;
 	}
 
 	/* Start remote search */
 	r_lookup_remote( target, P2P_GET_PEERS, from, msg );
-	info( from, "LOOKUP %s (remote)", hostname );
+	info( _log, from, "LOOKUP %s (remote)", hostname );
 }
 
 int r_lookup_cache_db( UCHAR *target, IP *from, DNS_MSG *msg ) {
@@ -208,7 +208,7 @@ void r_success( IP *from, DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_com
 	p = p_encode_response( msg, buffer );
 
 	buflen = p - buffer;
-	info( from, "DNS: Packet has %d bytes.", buflen	);
+	info( _log, from, "DNS: Packet has %d bytes.", buflen	);
 
 	sendto( _main->dns->sockfd, buffer, buflen, 0,
 		(struct sockaddr*) from, sizeof(IP) );
@@ -224,7 +224,7 @@ void r_failure( IP *from, DNS_MSG *msg ) {
 	p = p_encode_response( msg, buffer );
 
 	buflen = p - buffer;
-	info( from, "DNS: Packet has %d bytes.", buflen	);
+	info( _log, from, "DNS: Packet has %d bytes.", buflen	);
 
 	sendto( _main->dns->sockfd, buffer, buflen, 0,
 		(struct sockaddr*) from, sizeof(IP) );

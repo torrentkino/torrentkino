@@ -43,6 +43,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "worker.h"
 
 struct obj_main *_main = NULL;
+struct obj_log *_log = NULL;
 int status = RUMBLE;
 
 struct obj_main *main_init( int argc, char **argv ) {
@@ -64,6 +65,8 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->udp = NULL;
 	_main->dns = NULL;
 
+	_log = NULL;
+
 	return _main;
 }
 
@@ -76,6 +79,7 @@ int main( int argc, char **argv ) {
 	struct sigaction sig_time;
 
 	_main = main_init( argc, argv );
+	_log = log_init();
 	_main->hostname = hostname_init();
 	_main->conf = conf_init( argc, argv );
 	_main->work = work_init();
@@ -96,7 +100,7 @@ int main( int argc, char **argv ) {
 	unix_signal( &sig_stop, &sig_time );
 
 	/* Fork daemon */
-	unix_fork( _main->conf->mode );
+	unix_fork( log_console( _log ) );
 
 	/* Create kademlia token */
 	tkn_put();
@@ -132,6 +136,7 @@ int main( int argc, char **argv ) {
 	hostname_free( _main->hostname );
 	work_free();
 	conf_free();
+	log_free( _log );
 	main_free();
 
 	return 0;
