@@ -1,3 +1,9 @@
+torrentkino (0.33) wheezy; urgency=low
+
+  * Split src directory into categories
+  * Merge tumbleweed again.
+
+ -- Aiko Barz <aiko@torrentkino.de>  Thu, 12 Jun 2014 22:06:00 +0100
 torrentkino (0.32) wheezy; urgency=low
 
   * Syntax changes and minor changes everywhere

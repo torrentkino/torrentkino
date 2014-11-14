@@ -7,19 +7,23 @@ cat <<EOF
 EOF
 dpkg -s build-essential > /dev/null
 if [ $? != "0" ]; then
-	sudo apt-get install build-essential
+	apt-cache show build-essential
+	echo "# sudo apt-get install build-essential"
+	exit
 fi
 
 dpkg -s debhelper > /dev/null
 if [ $? != "0" ]; then
-	sudo apt-get install debhelper
+	apt-cache show debhelper
+	echo "# sudo apt-get install debhelper"
+	exit
 fi
 
-if [ "x$1" = "xtumbleweed" ]; then
-	dpkg -s libmagic-dev > /dev/null
-	if [ $? != "0" ]; then
-		sudo apt-get install libmagic-dev
-	fi
+dpkg -s libmagic-dev > /dev/null
+if [ $? != "0" ]; then
+	apt-cache show libmagic-dev
+	echo "# sudo apt-get install libmagic-dev"
+	exit
 fi
 
 cat <<EOF
@@ -34,11 +38,5 @@ cat <<EOF
 ### Install package
 ###
 EOF
-if [ "x$1" = "xtorrentkino" ]; then
-	DEB=$(ls -tr ../torrentkino_*.deb | tail -n 1)
-elif [ "x$1" = "xtumbleweed" ]; then
-	DEB=$(ls -tr ../tumbleweed_*.deb | tail -n 1)
-else
-	exit
-fi
-sudo dpkg -i $DEB
+DEB=$(ls -tr ../torrentkino_*.deb | tail -n 1)
+echo "# sudo dpkg -i $DEB"

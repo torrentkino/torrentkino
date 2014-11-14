@@ -1,58 +1,138 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "TUMBLEWEED" "1" "December 2013" "" ""
+.TH "TORRENTKINO" "1" "November 2014" "" ""
 .
 .SH "NAME"
-\fBtumbleweed\fR \- Instant webserver
+\fBtorrentkino\fR \- Kademlia DHT
 .
 .SH "SYNOPSIS"
-\fBtumbleweed\fR [\-d] [\-q] [\-6] [\-w workdir] [\-p port] [\-i index]
+\fBtk[46]\fR [\-p port] [\-r realm] [\-d port] [\-a port] [\-x server] [\-y port] [\-q] [\-l] [\-s] hostname
 .
 .SH "DESCRIPTION"
-\fBtumbleweed\fR is a simple webserver for static content with a low memory footprint for the Linux OS\. It uses the Linux EPOLL event system, does non\-blocking IO, supports Zero\-Copy and uses all the cores you have\. It is actually really fast\. It has only a limited HTTP feature set though\.
+\fBTorrentkino\fR is a Bittorrent DNS resolver\. All DNS queries to Torrentkino get translated into SHA1 hashes and are getting resolved by looking these up in a Kademlia distributed hash table\. It is fully compatible to the DHT as used in most Bittorrent clients\. The swarm becomes the DNS backend for Torrentkino\.
+.
+.P
+By default, Torrentkino sends the first packet to a multicast address\. So, for intranet use cases, you do not need a Bittorrent bootstrap server\. Just start Torrentkino on 2 nodes without any parameters\. It simply works\.
+.
+.P
+If you would like to connect nodes around the globe, you may use the Bittorrent network\. Simply select a Bittorrent bootstrap server as seen in the example below\. Your client becomes a full member of the swarm and resolves Bittorrent SHA1 hashes to IP/port tuples\. The swarm on the other end does the same for you\. But in your case, the SHA1 hash represents a hostname instead of a torrent file\.
+.
+.P
+Torrentkino runs as user \fInobody\fR when started with root priviledges\.
 .
 .SH "OPTIONS"
 .
 .TP
-\fB\-w\fR \fIworkdir\fR
-Share this directory\. (Default: ~/Public)
-.
-.TP
 \fB\-p\fR \fIport\fR
-Listen to this port\. (Default: TCP/8080)
+Listen to this port and use it for the DHT operations\. (Default: UDP/6881)
 .
 .TP
-\fB\-i\fR \fIindex\fR
-Serve this file if the requested entity is a directory\. (Default: index\.html)
+\fB\-P\fR \fIport\fR
+Listen to this port and use it for the DNS operations\. (Default: UDP/5353)
+.
+.TP
+\fB\-a\fR \fIport\fR
+Announce this port (Default: UDP/8080)
+.
+.TP
+\fB\-n\fR \fInode id string\fR
+By default a random node id gets computed on every startup\. For testing purposes it may be useful to keep the same node id all the time\. The above string is not used directly\. Instead its SHA1 hash is used\.
+.
+.TP
+\fB\-r\fR \fIrealm\fR
+Creating a realm affects the method to compute the "SHA1" hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own https://owncloud\.p2p for example\. Technically, the realm is a SHA1 hash too\. It gets merged to the hostname\'s SHA1 hash by using XOR\.
+.
+.TP
+\fB\-x\fR \fIserver\fR
+Use server as a bootstrap server\. Otherwise a multicast address is used\. For LAN only cases the multicast bootstrap is enough\.
+.
+.TP
+\fB\-y\fR \fIport\fR
+The bootstrap server will be addressed at this port\. (Default: UDP/6881)
+.
+.TP
+\fB\-l\fR
+Lazy mode: This option sets a predefined bootstrap server like \fIrouter\.utorrent\.com\fR for example\.
 .
 .TP
 \fB\-d\fR
-Start as a daemon and run in background\. The output will be send to syslog\.
+Fork and become a daemon\.
 .
 .TP
 \fB\-q\fR
-Be quiet and do not log anything\.
-.
-.TP
-\fB\-6\fR
-IPv6 only\.
+Be quiet\.
 .
 .SH "EXAMPLES"
-Serve \fI~/Public\fR at port \fI8080\fR:
+Announce the hostnames \fIowncloud\.p2p\fR and \fI_http\._tcp\.foo\.bar\fR globally\.
 .
 .IP "" 4
 .
 .nf
 
-$ tumbleweed
+$ sudo tk6 \-P 53 \-l owncloud\.p2p _http\._tcp\.foo\.bar
+$ dig AAAA owncloud\.p2p @localhost
+$ dig SRV _http\._tcp\.foo\.bar @localhost
 .
 .fi
 .
 .IP "" 0
 .
-.SH "BUGS"
-Not being fully blown with funky features\.
+.P
+Announce the hostname \fImycloud\.p2p\fR within the LAN\.
 .
-.SH "SEE ALSO"
-torrentkino(1)
+.IP "" 4
+.
+.nf
+
+$ sudo tk4 \-P 53 mycloud\.p2p
+$ dig mycloud\.p2p @localhost
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Isolate your nodes within a realm \fIdarkness\fR, fork the process into background and be quiet\.
+.
+.IP "" 4
+.
+.nf
+
+$ sudo tk6 \-r darkness \-l \-P 53 \-d \-q torrentkino\.cloud
+$ dig torrentkino\.cloud @localhost
+.
+.fi
+.
+.IP "" 0
+.
+.SH "INSTALLATION"
+There is a simple installation helper for Debian/Ubuntu\. Just run one of the following commands to create a installable package\.
+.
+.IP "" 4
+.
+.nf
+
+$ make debian
+$ make ubuntu
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Otherwise, you may use
+.
+.IP "" 4
+.
+.nf
+
+$ make
+$ sudo make install
+.
+.fi
+.
+.IP "" 0
+.
+.SH "CREDITS"
+Thanks to Moritz Warning for his help with the DNS API\.

@@ -13,16 +13,13 @@ install:
 	done
 
 docs:
-	./bin/docs.sh torrentkino
-
-sync:
-	./bin/sync.sh torrentkino
+	./bin/docs.sh
 
 debian:
-	./bin/debian.sh torrentkino
+	./bin/debian.sh
 
 ubuntu:
-	./bin/debian.sh torrentkino
+	./bin/debian.sh
 
 clean:
 	for dir in $(SUBDIRS); do \
