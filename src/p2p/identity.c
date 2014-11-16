@@ -26,26 +26,26 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <getopt.h>
 
-#include "hostname.h"
+#include "identity.h"
 
-LIST *hostname_init( void ) {
+LIST *id_init( void ) {
 	return list_init();
 }
 
-void hostname_free( LIST *l ) {
+void id_free( LIST *l ) {
 	list_clear( l );
 	list_free( l );
 }
 
-void hostname_put( char *hostname, UCHAR *node_id, char *realm, int bool_realm ) {
-	HOSTNAME *h = myalloc( sizeof( HOSTNAME ) );
+void id_put( char *hostname, UCHAR *node_id, char *realm, int bool_realm ) {
+	ID *h = myalloc( sizeof( ID ) );
 
 	if( !str_valid_hostname( hostname, strlen( hostname ) ) ) {
 		fail( "Bad hostname" );
 	}
 
 	snprintf( h->hostname, BUF_SIZE, "%s", hostname );
-	hostname_hostid( h->host_id, hostname,	realm, bool_realm );
+	id_hostid( h->host_id, hostname, realm, bool_realm );
 	h->time_announce_host = 0;
 
 	/* I don't want to be responsible for myself */
@@ -53,10 +53,10 @@ void hostname_put( char *hostname, UCHAR *node_id, char *realm, int bool_realm )
 		fail( "The host id and the node id must not be the same" );
 	}
 
-	list_put( _main->hostname, h );
+	list_put( _main->identity, h );
 }
 
-void hostname_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
+void id_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
 	UCHAR sha1_buf1[SHA1_SIZE];
 	UCHAR sha1_buf2[SHA1_SIZE];
 	int j = 0;
@@ -74,16 +74,16 @@ void hostname_hostid( UCHAR *host_id, char *hostname, char *realm, int bool ) {
 	}
 }
 
-void hostname_print( void ) {
-	ITEM *i = list_start( _main->hostname );
+void id_print( void ) {
+	ITEM *i = list_start( _main->identity );
 	char hex[HEX_LEN];
-	HOSTNAME *hostname = NULL;
+	ID *identity = NULL;
 
 	while( i != NULL ) {
-		hostname = list_value( i );
+		identity = list_value( i );
 
-		hex_hash_encode( hex, hostname->host_id );
-		info( _log, NULL, "Hostname: %s / %s", hex, hostname->hostname );
+		hex_hash_encode( hex, identity->host_id );
+		info( _log, NULL, "Hostname: %s / %s", hex, identity->hostname );
 
 		i = list_next( i );
 	}

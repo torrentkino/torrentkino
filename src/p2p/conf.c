@@ -102,10 +102,10 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 
 	/* Get non-option values. */
 	for( i=optind; i<argc; i++ ) {
-		hostname_put( argv[i], conf->node_id, conf->realm, conf->bool_realm );
+		id_put( argv[i], conf->node_id, conf->realm, conf->bool_realm );
 	}
 
-	if( list_size( _main->hostname ) <= 0 ) {
+	if( list_size( _main->identity ) <= 0 ) {
 		conf_usage( argv[0] );
 	}
 
@@ -154,7 +154,7 @@ void conf_print( void ) {
 	hex_hash_encode( hex, _main->conf->node_id );
 	info( _log, NULL, "Node ID: %s", hex );
 
-	hostname_print();
+	id_print();
 
 	if( _main->conf->bool_realm == 1 ) {
 		info( _log, NULL, "Realm: %s (-r)", _main->conf->realm );

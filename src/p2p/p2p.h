@@ -29,7 +29,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../dns/dns.h"
 #include "../dns/resolver.h"
 #include "udp.h"
-#include "hostname.h"
+#include "identity.h"
 #ifdef POLARSSL
 #include "aes.h"
 #endif

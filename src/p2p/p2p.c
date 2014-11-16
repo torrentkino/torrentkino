@@ -1055,15 +1055,15 @@ void p2p_announce_get_reply( BEN *arg, UCHAR *node_id,
 }
 
 void p2p_cron_lookup_all( void ) {
-	ITEM *i = list_start( _main->hostname );
-	HOSTNAME *hostname = NULL;
+	ITEM *i = list_start( _main->identity );
+	ID *identity = NULL;
 
 	while( i != NULL ) {
-		hostname = list_value( i );
+		identity = list_value( i );
 
-		if( _main->p2p->time_now.tv_sec > hostname->time_announce_host ) {
-			p2p_cron_lookup( hostname->host_id, P2P_ANNOUNCE_START );
-			time_add_5_min_approx( &hostname->time_announce_host );
+		if( _main->p2p->time_now.tv_sec > identity->time_announce_host ) {
+			p2p_cron_lookup( identity->host_id, P2P_ANNOUNCE_START );
+			time_add_5_min_approx( &identity->time_announce_host );
 		}
 
 		i = list_next( i );

@@ -40,7 +40,7 @@ struct obj_main {
 	struct obj_udp *dns;
 	struct obj_p2p *p2p;
 	struct obj_val *value;
-	LIST *hostname;
+	LIST *identity;
 #endif
 };
 

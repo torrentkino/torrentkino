@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef HOSTNAME_H
-#define HOSTNAME_H
+#ifndef IDENTITY_H
+#define IDENTITY_H
 
 #include "torrentkino.h"
 #include "../shr/config.h"
@@ -31,13 +31,13 @@ typedef struct {
 	char hostname[BUF_SIZE];
 	UCHAR host_id[SHA1_SIZE];
 	time_t time_announce_host;
-} HOSTNAME;
+} ID;
 
-LIST *hostname_init( void );
-void hostname_free( LIST *l );
+LIST *id_init( void );
+void id_free( LIST *l );
 
-void hostname_put( char *hostname, UCHAR *node_id, char *realm, int bool_realm );
-void hostname_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
-void hostname_print( void );
+void id_put( char *hostname, UCHAR *node_id, char *realm, int bool_realm );
+void id_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
+void id_print( void );
 
-#endif /* HOSTNAME_H */
+#endif /* IDENTITY_H */

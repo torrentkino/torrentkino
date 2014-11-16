@@ -104,7 +104,7 @@ void r_lookup( char *hostname, IP *from, DNS_MSG *msg ) {
 	int result = FALSE;
 
 	/* Compute lookup key */
-	hostname_hostid( target, hostname,
+	id_hostid( target, hostname,
 		_main->conf->realm, _main->conf->bool_realm );
 
 	/* Check local cache */

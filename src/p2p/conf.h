@@ -33,7 +33,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../shr/str.h"
 #include "ben.h"
 #include "time.h"
-#include "hostname.h"
+#include "identity.h"
 
 struct obj_conf {
 	char realm[BUF_SIZE];

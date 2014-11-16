@@ -56,7 +56,7 @@ struct obj_main *main_init( int argc, char **argv ) {
 	_main->work = NULL;
 
 	_main->transaction = NULL;
-	_main->hostname = NULL;
+	_main->identity = NULL;
 	_main->cache = NULL;
 	_main->token = NULL;
 	_main->nbhd = NULL;
@@ -80,7 +80,7 @@ int main( int argc, char **argv ) {
 
 	_main = main_init( argc, argv );
 	_log = log_init();
-	_main->hostname = hostname_init();
+	_main->identity = id_init();
 	_main->conf = conf_init( argc, argv );
 	_main->work = work_init();
 
@@ -133,7 +133,7 @@ int main( int argc, char **argv ) {
 	p2p_free();
 	udp_free( _main->dns );
 	udp_free( _main->udp );
-	hostname_free( _main->hostname );
+	id_free( _main->identity );
 	work_free();
 	conf_free();
 	log_free( _log );
