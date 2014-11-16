@@ -21,6 +21,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_H
 
 #include "../shr/config.h"
+#include "../shr/log.h"
 
 struct obj_main {
 	char **argv;
@@ -48,7 +49,6 @@ struct obj_main {
 };
 
 extern struct obj_main *_main;
-extern struct obj_log *_log;
 
 struct obj_main *main_init( int argc, char **argv );
 void main_free( void );
