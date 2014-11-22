@@ -284,7 +284,6 @@ void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_siz
 				p += IP_SIZE_META_PAIR;
 			}
 	}
-
 }
 
 char *p_get_domain_from_srv_record( char *name ) {

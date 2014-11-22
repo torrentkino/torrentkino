@@ -27,7 +27,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "send_udp.h"
 #include "value.h"
 #include "../dns/dns.h"
-#include "../dns/resolver.h"
+#include "resolver.h"
 #include "udp.h"
 #include "identity.h"
 #ifdef POLARSSL
