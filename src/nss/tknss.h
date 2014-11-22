@@ -59,4 +59,5 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
 		int address_size, unsigned int port, int mode );
 
+int _nss_tk_ares( void );
 #endif
