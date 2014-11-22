@@ -5,13 +5,16 @@ CFLAGS += -std=gnu99 -fPIC -DPIC
 CFLAGS += -Wall -Wwrite-strings -pedantic
 CFLAGS += -DTORRENTKINO -DNSS
 export LDFLAGS = -lpthread
-OBJS=tknss.o tksrc.o str.o malloc.o file.o ben.o list.o fail.o random.o
+OBJS=tknss.o str.o malloc.o list.o fail.o random.o
 
 .PHONY: all clean install
 
 all: $(CODENAME)
 
-%.o : ../src/%.c ../src/%.h
+%.o : ../src/nss/%.c ../src/nss/%.h
+	$(CC) $(CFLAGS) -c $<
+
+%.o : ../src/shr/%.c ../src/shr/%.h
 	$(CC) $(CFLAGS) -c $<
 
 $(CODENAME): $(OBJS)

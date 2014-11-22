@@ -20,10 +20,12 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "../shr/config.h"
+#include "../shr/malloc.h"
+#include "../shr/str.h"
+
 #define _public_ __attribute__( ( visibility( "default")))
 #define _hidden_ __attribute__( ( visibility( "hidden")))
-
-#include "tksrc.h"
 
 enum nss_status _nss_tk_gethostbyname_r( const char *hostname,
 		struct hostent *host,

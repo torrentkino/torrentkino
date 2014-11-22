@@ -26,6 +26,13 @@ if [ $? != "0" ]; then
 	exit
 fi
 
+dpkg -s libc-ares-dev > /dev/null
+if [ $? != "0" ]; then
+	apt-cache show libc-ares-dev
+	echo "# sudo apt-get install libc-ares-dev"
+	exit
+fi
+
 cat <<EOF
 ###
 ### Build package

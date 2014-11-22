@@ -20,10 +20,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "main.h"
-#include "ben.h"
-#include "random.h"
-#include "tksrc.h"
+#include "../shr/config.h"
+#include "../shr/random.h"
 
 int torrentkino_lookup( const char *handler, const char *hostname,
 		const char *path, unsigned int port, int mode,
