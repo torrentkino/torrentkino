@@ -8,6 +8,6 @@ Homepage: https://github.com/torrentkino/torrentkino
 
 Package: torrentkino
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends} libc-ares2
 Description: P2P lookup service
  P2P based hostname to IP translator.
