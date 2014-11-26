@@ -72,7 +72,7 @@ int ip_is_linklocal( IP *from ) {
 	return FALSE;
 }
 
-UCHAR *ip_bytes_to_sin( IP *sin, UCHAR *p ) {
+UCHAR *ip_tuple_to_sin( IP *sin, UCHAR *p ) {
 	memset( sin, '\0', sizeof(IP) );
 #ifdef IPV6
 	sin->sin6_family = AF_INET6;
@@ -87,7 +87,7 @@ UCHAR *ip_bytes_to_sin( IP *sin, UCHAR *p ) {
 	return p;
 }
 
-UCHAR *ip_sin_to_bytes( IP *sin, UCHAR *p ) {
+UCHAR *ip_sin_to_tuple( IP *sin, UCHAR *p ) {
 		/* IP + Port */
 #ifdef IPV6
 		memcpy( p, (UCHAR *)&sin->sin6_addr, IP_SIZE ); p += IP_SIZE;
@@ -95,6 +95,19 @@ UCHAR *ip_sin_to_bytes( IP *sin, UCHAR *p ) {
 #elif IPV4
 		memcpy( p, (UCHAR *)&sin->sin_addr, IP_SIZE ); p += IP_SIZE;
 		memcpy( p, (UCHAR *)&sin->sin_port, 2 ); p += 2;
+#endif
+
+	return p;
+}
+
+UCHAR *ip_bytes_to_sin( IP *sin, UCHAR *p ) {
+	memset( sin, '\0', sizeof(IP) );
+#ifdef IPV6
+	sin->sin6_family = AF_INET6;
+	memcpy( &sin->sin6_addr, p, IP_SIZE ); p += IP_SIZE;
+#elif IPV4
+	sin->sin_family = AF_INET;
+	memcpy( &sin->sin_addr, p, IP_SIZE ); p += IP_SIZE;
 #endif
 
 	return p;

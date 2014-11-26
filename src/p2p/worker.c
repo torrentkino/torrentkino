@@ -75,14 +75,14 @@ void work_start( void ) {
 		fail( "pthread_create()" );
 	}
 
-	/* UDP Server */
+	/* DNS Server */
 	_main->work->threads[1] = (pthread_t *) myalloc( sizeof(pthread_t) );
 	if( pthread_create( _main->work->threads[1], &_main->work->attr,
 			udp_thread, _main->dns ) != 0 ) {
 		fail( "pthread_create()" );
 	}
 
-	/* Send 1st request while the UDP worker is starting */
+	/* Send 1st request while the P2P worker is starting */
 	_main->work->threads[2] = (pthread_t *) myalloc( sizeof(pthread_t) );
 	if( pthread_create( _main->work->threads[2], &_main->work->attr,
 			udp_client, _main->udp ) != 0 ) {

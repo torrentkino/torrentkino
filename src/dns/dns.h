@@ -21,8 +21,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define PACKER_H
 
 #include "../shr/config.h"
-#include "../p2p/torrentkino.h"
-#include "../shr/log.h"
 
 static const unsigned int QR_MASK = 0x8000;
 static const unsigned int OPCODE_MASK = 0x7800;

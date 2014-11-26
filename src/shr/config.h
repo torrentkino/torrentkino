@@ -62,7 +62,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #if TORRENTKINO
 #define CONF_EPOLL_WAIT 2000
 #define CONF_REALM "open.p2p"
-#define TLD_DEFAULT "p2p"
+#define NSS_DOMAIN "p2p"
 #define TID_SIZE 4
 #define TID_SIZE_MAX 20
 #define PORT_DHT_DEFAULT 6881
@@ -72,10 +72,12 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define LOG_NAME "tk6"
 #define MULTICAST_DEFAULT "ff0e::1"
 #define BOOTSTRAP_DEFAULT "dht.transmissionbt.com"
+#define DNS_SERVER "::1"
 #elif IPV4
 #define LOG_NAME "tk4"
 #define MULTICAST_DEFAULT "224.0.0.252"
 #define BOOTSTRAP_DEFAULT "dht.transmissionbt.com"
+#define DNS_SERVER "127.0.0.1"
 #endif
 
 #endif
@@ -87,6 +89,7 @@ typedef unsigned char UCHAR;
 typedef long int LONG;
 
 #ifdef IPV6
+#define IP_INET AF_INET
 #define IP_SIZE 16
 #define IP_SIZE_LIST 128
 #define IP_SIZE_META_PAIR 18
@@ -97,6 +100,7 @@ typedef long int LONG;
 typedef struct sockaddr_in6 IP;
 typedef struct in6_addr IN_ADDR;
 #elif IPV4
+#define IP_INET AF_INET6
 #define IP_SIZE 4
 #define IP_SIZE_LIST 32
 #define IP_SIZE_META_PAIR 6

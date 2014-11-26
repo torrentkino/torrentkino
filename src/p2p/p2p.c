@@ -726,7 +726,7 @@ void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from ) {
 		id = p;	p += SHA1_SIZE;
 
 		/* IP + Port */
-		p = ip_bytes_to_sin( &sin, p );
+		p = ip_tuple_to_sin( &sin, p );
 
 		/* Ignore myself */
 		if( node_me( id ) ) {
@@ -874,7 +874,7 @@ void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti,
 		id = p;	p += SHA1_SIZE;
 
 		/* IP + Port */
-		p = ip_bytes_to_sin( &sin, p );
+		p = ip_tuple_to_sin( &sin, p );
 
 		/* Ignore myself */
 		if( node_me( id ) ) {
@@ -1096,7 +1096,7 @@ void p2p_cron_lookup( UCHAR *target, int type ) {
 		id = p;	p += SHA1_SIZE;
 
 		/* IP + Port */
-		p = ip_bytes_to_sin( &sin, p );
+		p = ip_tuple_to_sin( &sin, p );
 
 		/* Remember queried node */
 		ldb_put( l, id, &sin );

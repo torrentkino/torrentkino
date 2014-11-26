@@ -17,19 +17,20 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NODE_IP_H
-#define NODE_IP_H
+#ifndef IP_H
+#define IP_H
 
 #include "config.h"
 
 int ip_is_localhost( IP *from );
 int ip_is_linklocal( IP *from );
 
+UCHAR *ip_tuple_to_sin( IP *sin, UCHAR *p );
+UCHAR *ip_sin_to_tuple( IP *sin, UCHAR *p );
 UCHAR *ip_bytes_to_sin( IP *sin, UCHAR *p );
-UCHAR *ip_sin_to_bytes( IP *sin, UCHAR *p );
 
 void ip_merge_port_to_sin( IP *sin, USHORT port );
 void ip_sin_to_string( IP *sin, char *buf );
 USHORT ip_sin_to_port( IP *sin );
 
-#endif /* NODE_IP_H */
+#endif /* IP_H */

@@ -292,7 +292,7 @@ void tgt_c_print( TARGET_C *target ) {
 	while( i != NULL ) {
 		node = list_value( i );
 
-		ip_bytes_to_sin( &sin, node->pair );
+		ip_tuple_to_sin( &sin, node->pair );
 		info( _log, &sin, "  IP:");
 
 		i = list_next( i );
@@ -350,7 +350,7 @@ int cache_strict_error( UCHAR *p ) {
 		return FALSE;
 	}
 
-	ip_bytes_to_sin( &sin, p );
+	ip_tuple_to_sin( &sin, p );
 
 #ifdef IPV6
 	port = ntohs( sin.sin6_port );

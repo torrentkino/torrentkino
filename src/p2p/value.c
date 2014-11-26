@@ -274,7 +274,7 @@ void tgt_v_print( TARGET_V *target ) {
 	while( i != NULL ) {
 		node = list_value( i );
 
-		ip_bytes_to_sin( &sin, node->pair );
+		ip_tuple_to_sin( &sin, node->pair );
 		ip_sin_to_string( &sin, ip_buf );
 		port = ip_sin_to_port( &sin );
 
@@ -330,7 +330,7 @@ void node_v_update( NODE_V *node_v, UCHAR *node_id, IP *from, int port ) {
 
 	/* Convert IP + Port */
 	ip_merge_port_to_sin( from, port );
-	ip_sin_to_bytes( from, p );
+	ip_sin_to_tuple( from, p );
 
 	memcpy( node_v->id, node_id, SHA1_SIZE );
 	time_add_30_min( &node_v->eol );

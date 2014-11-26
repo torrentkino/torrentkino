@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* http://www.networksorcery.com/enp/protocol/dns.htm */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -159,38 +157,34 @@ int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size ) {
 	ssize_t n;
 
 	if( (n = p_decode_header( msg, &buffer )) < 0 ) {
-		return -1;
+		return 0;
 	}
 	size -= n;
 
 	if( msg->anCount != 0 ) {
-		info( _log, NULL, "DNS: Only questions expected." );
 		return -1;
 	}
 	if( msg->nsCount != 0 ) {
-		info( _log, NULL, "DNS: Only questions expected." );
-		return -1;
+		return -2;
 	}
 	if( msg->qdCount != 1 ) {
-		info( _log, NULL, "DNS: Only only 1 question expected." );
-		return -1;
+		return -3;
 	}
 #if 0
 	if( msg->arCount != 0 ) {
-		info( _log, NULL, "DNS: Only questions expected." );
 		return -1;
 	}
 #endif
 	/* parse questions */
 	n = p_decode_domain( msg->qName_buffer, &buffer, size );
 	if( n < 0 ) {
-		return -1;
+		return -4;
 	}
 
 	size -= n;
 
 	if( size < 4 ) {
-		return -1;
+		return -5;
 	}
 
 	int qType = p_get16bits( &buffer );

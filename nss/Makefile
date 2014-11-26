@@ -3,9 +3,9 @@ export CC = gcc
 export CFLAGS = -O2
 CFLAGS += -std=gnu99 -fPIC -DPIC
 CFLAGS += -Wall -Wwrite-strings -pedantic
-CFLAGS += -DTORRENTKINO -DNSS
+CFLAGS += -DTORRENTKINO -DNSS -DIPV6
 export LDFLAGS = -lpthread
-OBJS=tknss.o str.o malloc.o list.o fail.o random.o
+OBJS=tknss.o str.o malloc.o list.o fail.o client.o
 
 .PHONY: all clean install
 
@@ -15,6 +15,9 @@ all: $(CODENAME)
 	$(CC) $(CFLAGS) -c $<
 
 %.o : ../src/shr/%.c ../src/shr/%.h
+	$(CC) $(CFLAGS) -c $<
+
+%.o : ../src/dns/%.c ../src/dns/%.h
 	$(CC) $(CFLAGS) -c $<
 
 $(CODENAME): $(OBJS)

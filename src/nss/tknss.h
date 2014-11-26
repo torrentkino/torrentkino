@@ -17,12 +17,13 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef NSS_H
+#define NSS_H
 
 #include "../shr/config.h"
 #include "../shr/malloc.h"
 #include "../shr/str.h"
+#include "../dns/client.h"
 
 #define _public_ __attribute__( ( visibility( "default")))
 #define _hidden_ __attribute__( ( visibility( "hidden")))
@@ -59,5 +60,4 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
 		int address_size, unsigned int port, int mode );
 
-int _nss_tk_ares( void );
-#endif
+#endif /* NSS_H */

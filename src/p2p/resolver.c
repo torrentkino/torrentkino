@@ -39,6 +39,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 	DNS_MSG msg;
 	const char *hostname = NULL;
+	int result = 0;
 
 	/* 12 bytes DNS header to start with */
 	if( bufsize < 12 ) {
@@ -58,8 +59,32 @@ void r_parse( UCHAR *buffer, size_t bufsize, IP *from ) {
 		return;
 	}
 
-	if( p_decode_query( &msg, buffer, bufsize ) < 0 ) {
-		return;
+	result = p_decode_query( &msg, buffer, bufsize );
+	switch( result ) {
+		case 1:
+			/* Success */
+			break;
+		case 0:
+			info( _log, from, "DNS Decoder: Decoding header failed" );
+			return;
+		case -1:
+			info( _log, from, "DNS Decoder: Received answer" );
+			return;
+		case -2:
+			info( _log, from, "DNS Decoder: Received authority" );
+			return;
+		case -3:
+			info( _log, from, "DNS Decoder: Received multiple questions" );
+			return;
+		case -4:
+			info( _log, from, "DNS Decoder: Decoding domain failed" );
+			return;
+		case -5:
+			info( _log, from, "DNS Decoder: Broken size" );
+			return;
+		default:
+			info( _log, from, "DNS Decoder: Something wicked happened" );
+			return;
 	}
 
 	hostname = msg.question.qName;
@@ -185,7 +210,7 @@ void r_lookup_remote( UCHAR *target, int type, IP *from, DNS_MSG *msg ) {
 		id = p;	p += SHA1_SIZE;
 
 		/* IP + Port */
-		p = ip_bytes_to_sin( &sin, p );
+		p = ip_tuple_to_sin( &sin, p );
 
 		/* Remember queried node */
 		ldb_put( l, id, &sin );

@@ -402,7 +402,7 @@ int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target ) {
 		memcpy( p, n->id, SHA1_SIZE ); p += SHA1_SIZE;
 
 		/* Copy IP + Port */
-		p = ip_sin_to_bytes( &n->c_addr, p );
+		p = ip_sin_to_tuple( &n->c_addr, p );
 
 		size += IP_SIZE_META_TRIPLE;
 
