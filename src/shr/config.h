@@ -89,7 +89,7 @@ typedef unsigned char UCHAR;
 typedef long int LONG;
 
 #ifdef IPV6
-#define IP_INET AF_INET
+#define IP_INET AF_INET6
 #define IP_SIZE 16
 #define IP_SIZE_LIST 128
 #define IP_SIZE_META_PAIR 18
@@ -100,7 +100,7 @@ typedef long int LONG;
 typedef struct sockaddr_in6 IP;
 typedef struct in6_addr IN_ADDR;
 #elif IPV4
-#define IP_INET AF_INET6
+#define IP_INET AF_INET
 #define IP_SIZE 4
 #define IP_SIZE_LIST 32
 #define IP_SIZE_META_PAIR 6

@@ -40,21 +40,20 @@ void _nss_dns_cli( const char *hostname ) {
  * */
 void ngethostbyname( const char *host , int query_type ) {
 	UCHAR buf[65536],*qname,*reader;
-	int i , j , stop , s;
+	int i , stop , s;
 	struct timeval tv;
 
-	IP a;
+	IP a, dest;
+	char ip_buf[IP_ADDRLEN+1];
 
-	struct RES_RECORD answers[20],auth[20],addit[20];
-	IP dest;
+	struct RES_RECORD answers[20];
 
 	struct DNS_HEADER *dns = NULL;
 	struct QUESTION *qinfo = NULL;
 
 	printf("Resolving %s" , host);
 
-
-	s = socket(IP_INET , SOCK_DGRAM , IPPROTO_UDP);
+	s = socket( IP_INET, SOCK_DGRAM, IPPROTO_UDP );
 	if( s < 0 ) {
 		return;
 	}
@@ -68,7 +67,7 @@ void ngethostbyname( const char *host , int query_type ) {
 	dest.sin6_family = IP_INET;
 	dest.sin6_port = htons( PORT_DNS_DEFAULT );
 	inet_pton(IP_INET, DNS_SERVER, &(dest.sin6_addr));
-#elif IPV4
+#else
 	dest.sin_family = IP_INET;
 	dest.sin_port = htons( PORT_DNS_DEFAULT );
 	dest.sin_addr.s_addr = inet_addr( DNS_SERVER );
@@ -77,13 +76,13 @@ void ngethostbyname( const char *host , int query_type ) {
 	//Set the DNS structure to standard queries
 	dns = (struct DNS_HEADER *)&buf;
 
-	dns->id = (unsigned short) htons(getpid());
+	dns->id = (USHORT) htons(getpid());
 	dns->qr = 0; //This is a query
 	dns->opcode = 0; //This is a standard query
 	dns->aa = 0; //Not Authoritative
 	dns->tc = 0; //This message is not truncated
 	dns->rd = 1; //Recursion Desired
-	dns->ra = 0; //Recursion not available! hey we dont have it (lol)
+	dns->ra = 0; //Recursion not available!
 	dns->z = 0;
 	dns->ad = 0;
 	dns->cd = 0;
@@ -97,14 +96,15 @@ void ngethostbyname( const char *host , int query_type ) {
 	qname =(UCHAR*)&buf[sizeof(struct DNS_HEADER)];
 
 	ChangetoDnsNameFormat(qname , host);
-	qinfo =(struct QUESTION*)&buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; //fill it
+	qinfo =(struct QUESTION*)&buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)];
 
 	qinfo->qtype = htons( query_type ); //type of the query , A , MX , CNAME , NS etc
 	qinfo->qclass = htons(1); //its internet (lol)
 
 	printf("\nSending Packet...");
-	if( sendto(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&dest,sizeof(dest)) < 0)
-	{
+	if( sendto( s, (char*)buf, 
+			sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),
+			0, (struct sockaddr*)&dest, sizeof(dest) ) < 0 ) {
 		perror("sendto failed");
 	}
 	printf("Done");
@@ -134,71 +134,49 @@ void ngethostbyname( const char *host , int query_type ) {
 
 	for(i=0;i<ntohs(dns->ans_count);i++)
 	{
+		int ip_size = 0;
 		answers[i].name=ReadName(reader,buf,&stop);
 		reader = reader + stop;
 
 		answers[i].resource = (struct R_DATA*)(reader);
 		reader = reader + sizeof(struct R_DATA);
 
-		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType ||
-			ntohs( answers[i].resource->type ) == AAAA_Resource_RecordType )
+		ip_size = ntohs( answers[i].resource->data_len );
+		if( ip_size != IP_SIZE ) {
+			return;
+		}
+
+
+#ifdef IPV6
+		if( ntohs( answers[i].resource->type ) == AAAA_Resource_RecordType )
+#else
+		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType )
+#endif
 		{
-			answers[i].rdata = (UCHAR*)malloc(ntohs(answers[i].resource->data_len)+1);
+UCHAR *p = NULL;
 
-printf("Size: %i\n", ntohs(answers[i].resource->data_len));
-			for(j=0 ; j<ntohs(answers[i].resource->data_len) ; j++)
-			{
-				answers[i].rdata[j]=reader[j];
-			}
+printf("Size: %i\n", ip_size);
+			memcpy( answers[i].rdata, reader, IP_SIZE );
 
-			answers[i].rdata[ntohs(answers[i].resource->data_len)] = '\0';
+			p = answers[i].rdata;
+	printf("help\n");
+			ip_bytes_to_sin( &a, reader );
+	printf("help\n");
+			ip_sin_to_string( &a, ip_buf );
+	printf("help\n");
+			printf("has IP address : %s", ip_buf);
+	printf("help\n");
 
-			reader = reader + ntohs(answers[i].resource->data_len);
+			reader = reader + ip_size;
 		}
 		else
 		{
-printf("hm?\n");
 			answers[i].rdata = ReadName(reader,buf,&stop);
 			reader = reader + stop;
 		}
 	}
 
-	//read authorities
-//	for(i=0;i<ntohs(dns->auth_count);i++) {
-//		auth[i].name=ReadName(reader,buf,&stop);
-//		reader+=stop;
-//
-//		auth[i].resource=(struct R_DATA*)(reader);
-//		reader+=sizeof(struct R_DATA);
-//
-//		auth[i].rdata=ReadName(reader,buf,&stop);
-//		reader+=stop;
-//	}
-
-	//read additional
-//	for(i=0;i<ntohs(dns->add_count);i++) {
-//		addit[i].name=ReadName(reader,buf,&stop);
-//		reader+=stop;
-//
-//		addit[i].resource=(struct R_DATA*)(reader);
-//		reader+=sizeof(struct R_DATA);
-//
-//		if(ntohs(addit[i].resource->type)==1)
-//		{
-//			addit[i].rdata = (UCHAR*)malloc(ntohs(addit[i].resource->data_len));
-//			for(j=0;j<ntohs(addit[i].resource->data_len);j++)
-//			addit[i].rdata[j]=reader[j];
-//
-//			addit[i].rdata[ntohs(addit[i].resource->data_len)]='\0';
-//			reader+=ntohs(addit[i].resource->data_len);
-//		}
-//		else
-//		{
-//			addit[i].rdata=ReadName(reader,buf,&stop);
-//			reader+=stop;
-//		}
-//	}
-
+return;
 	//print answers
 	printf("\nAnswer Records : %d \n" , ntohs(dns->ans_count) );
 	for(i=0 ; i < ntohs(dns->ans_count) ; i++)
@@ -208,9 +186,8 @@ printf("hm?\n");
 		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType ||
 			ntohs( answers[i].resource->type ) == AAAA_Resource_RecordType )
 		{
-			char ip_buf[IP_ADDRLEN+1];
 			UCHAR *p = NULL;
-			p=answers[i].rdata;
+			p = answers[i].rdata;
 	printf("help\n");
 			ip_bytes_to_sin( &a, p );
 	printf("help\n");
@@ -220,48 +197,12 @@ printf("hm?\n");
 	printf("help\n");
 		}
 
-//		if(ntohs(answers[i].resource->type)==5)
-//		{
-//			//Canonical name for an alias
-//			printf("has alias name : %s",answers[i].rdata);
-//		}
-
 		printf("\n");
 	}
 
-	//print authorities
-//	printf("\nAuthoritive Records : %d \n" , ntohs(dns->auth_count) );
-//	for( i=0 ; i < ntohs(dns->auth_count) ; i++) {
-//		printf("Name : %s ",auth[i].name);
-//		if(ntohs(auth[i].resource->type)==2)
-//		{
-//			printf("has nameserver : %s",auth[i].rdata);
-//		}
-//		printf("\n");
-//	}
-
-	//print additional resource records
-//	printf("\nAdditional Records : %d \n" , ntohs(dns->add_count) );
-//	for(i=0; i < ntohs(dns->add_count) ; i++)
-//	{
-//		printf("Name : %s ",addit[i].name);
-//		if(ntohs(addit[i].resource->type)==1)
-//		{
-//			char ip_buf[IP_ADDRLEN+1];
-//			UCHAR *p;
-//			p=addit[i].rdata;
-//			ip_bytes_to_sin( &a, p );
-//			ip_sin_to_string( &a, ip_buf );
-//			printf("has IP address : %s", ip_buf);
-//		}
-//		printf("\n");
-//	}
 	return;
 }
 
-/*
- * 
- * */
 u_char* ReadName(UCHAR* reader,UCHAR* buffer,int* count)
 {
 	UCHAR *name;

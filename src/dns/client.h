@@ -73,7 +73,7 @@ struct RES_RECORD
 {
 	unsigned char *name;
 	struct R_DATA *resource;
-	unsigned char *rdata;
+	unsigned char rdata[IP_SIZE];
 };
 
 //Structure of a Query

@@ -25,6 +25,22 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../shr/str.h"
 #include "../dns/client.h"
 
+#ifdef IPV6
+#define _nss_tk_gethostbyname_r _nss_tk6_gethostbyname_r
+#define _nss_tk_gethostbyname2_r _nss_tk6_gethostbyname2_r
+#define _nss_tk_gethostbyname3_r _nss_tk6_gethostbyname3_r
+#define _nss_tk_gethostbyname4_r _nss_tk6_gethostbyname4_r
+#define _nss_tk_hostent _nss_tk6_hostent
+#define _nss_tk_gaih_tuple _nss_tk6_gaih_tuple
+#else
+#define _nss_tk_gethostbyname_r _nss_tk4_gethostbyname_r
+#define _nss_tk_gethostbyname2_r _nss_tk4_gethostbyname2_r
+#define _nss_tk_gethostbyname3_r _nss_tk4_gethostbyname3_r
+#define _nss_tk_gethostbyname4_r _nss_tk4_gethostbyname4_r
+#define _nss_tk_hostent _nss_tk4_hostent
+#define _nss_tk_gaih_tuple _nss_tk4_gaih_tuple
+#endif
+
 #define _public_ __attribute__( ( visibility( "default")))
 #define _hidden_ __attribute__( ( visibility( "hidden")))
 

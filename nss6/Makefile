@@ -1,4 +1,4 @@
-export CODENAME = libnss_tk.so.2
+export CODENAME = libnss_tk6.so.2
 export CC = gcc
 export CFLAGS = -O2
 CFLAGS += -std=gnu99 -fPIC -DPIC
