@@ -21,9 +21,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../shr/ip.h"
 #include "dns.h"
 
-void _nss_dns_cli( const char *hostname );
-
-void ngethostbyname( const char *host , int query_type );
+int _nss_dns_cli( const char *hostname, int hostsize, UCHAR *address,
+		int address_size );
+int ngethostbyname( const char *host, int hostsize, UCHAR *address,
+	int address_size, int query_type );
 void ChangetoDnsNameFormat( UCHAR *dns, const char* host );
 unsigned char* ReadName (unsigned char*,unsigned char*,int*);
 void get_dns_servers();

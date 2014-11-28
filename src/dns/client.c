@@ -27,19 +27,20 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "client.h"
 
-void _nss_dns_cli( const char *hostname ) {
+int _nss_dns_cli( const char *hostname, int hostsize, UCHAR *address,
+	int address_size ) {
 #ifdef IPV6
-	ngethostbyname( hostname , AAAA_Resource_RecordType );
+	return ngethostbyname( hostname, hostsize, address, address_size,
+		AAAA_Resource_RecordType );
 #else
-	ngethostbyname( hostname , A_Resource_RecordType );
+	return ngethostbyname( hostname, hostsize, address, address_size,
+		A_Resource_RecordType );
 #endif
 }
 
-/*
- * Perform a DNS query by sending a packet
- * */
-void ngethostbyname( const char *host , int query_type ) {
-	UCHAR buf[65536],*qname,*reader;
+int ngethostbyname( const char *host, int hostsize, UCHAR *address,
+	int address_size, int query_type ) {
+	UCHAR buf[65536], *qname, *reader;
 	int i , stop , s;
 	struct timeval tv;
 
@@ -55,7 +56,7 @@ void ngethostbyname( const char *host , int query_type ) {
 
 	s = socket( IP_INET, SOCK_DGRAM, IPPROTO_UDP );
 	if( s < 0 ) {
-		return;
+		return -1;
 	}
 
 	tv.tv_sec = TIMEOUT;
@@ -105,16 +106,15 @@ void ngethostbyname( const char *host , int query_type ) {
 	if( sendto( s, (char*)buf, 
 			sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),
 			0, (struct sockaddr*)&dest, sizeof(dest) ) < 0 ) {
-		perror("sendto failed");
+		return -1;
 	}
 	printf("Done");
 
 	//Receive the answer
 	i = sizeof dest;
 	printf("\nReceiving answer...");
-	if(recvfrom (s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0)
-	{
-		perror("recvfrom failed");
+	if(recvfrom (s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0) {
+		return -1;
 	}
 	printf("Done");
 
@@ -143,9 +143,8 @@ void ngethostbyname( const char *host , int query_type ) {
 
 		ip_size = ntohs( answers[i].resource->data_len );
 		if( ip_size != IP_SIZE ) {
-			return;
+			return -1;
 		}
-
 
 #ifdef IPV6
 		if( ntohs( answers[i].resource->type ) == AAAA_Resource_RecordType )
@@ -153,54 +152,34 @@ void ngethostbyname( const char *host , int query_type ) {
 		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType )
 #endif
 		{
-UCHAR *p = NULL;
-
-printf("Size: %i\n", ip_size);
 			memcpy( answers[i].rdata, reader, IP_SIZE );
-
-			p = answers[i].rdata;
-	printf("help\n");
-			ip_bytes_to_sin( &a, reader );
-	printf("help\n");
-			ip_sin_to_string( &a, ip_buf );
-	printf("help\n");
-			printf("has IP address : %s", ip_buf);
-	printf("help\n");
-
 			reader = reader + ip_size;
-		}
-		else
-		{
-			answers[i].rdata = ReadName(reader,buf,&stop);
-			reader = reader + stop;
 		}
 	}
 
-return;
 	//print answers
 	printf("\nAnswer Records : %d \n" , ntohs(dns->ans_count) );
 	for(i=0 ; i < ntohs(dns->ans_count) ; i++)
 	{
 		printf("Name : %s ",answers[i].name);
 
-		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType ||
-			ntohs( answers[i].resource->type ) == AAAA_Resource_RecordType )
+#ifdef IPV6
+		if( ntohs( answers[i].resource->type ) == AAAA_Resource_RecordType )
+#else
+		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType )
+#endif
 		{
 			UCHAR *p = NULL;
 			p = answers[i].rdata;
-	printf("help\n");
 			ip_bytes_to_sin( &a, p );
-	printf("help\n");
 			ip_sin_to_string( &a, ip_buf );
-	printf("help\n");
 			printf("has IP address : %s", ip_buf);
-	printf("help\n");
 		}
 
 		printf("\n");
 	}
 
-	return;
+	return 1;
 }
 
 u_char* ReadName(UCHAR* reader,UCHAR* buffer,int* count)

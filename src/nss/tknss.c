@@ -75,7 +75,6 @@ enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
 	char *p_addr_list = NULL;
 	char *p_idx = NULL;
 	size_t s_total = 0;
-	unsigned int port = 0;
 	int in_addr_size = 0;
 	int result = 0;
 	int j = 0;
@@ -94,23 +93,21 @@ enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
 	}
 
 	/* af = ( mode == 6 ) ? AF_INET6 : AF_INET; */
-	af = AF_INET6;
+	af = IP_INET;
 
-	in_addr_size = (af == AF_INET6) ?
-			sizeof( struct in6_addr ) : sizeof( struct in_addr );
+	in_addr_size = sizeof( IN_ADDR );
 
 	/* 8 addresses max */
 	address = myalloc( 8 * in_addr_size * sizeof( char ) );
 
 	/* Ask daemon */
-	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size,
-			port, af );
-//	if( result == 0 ) {
+	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size );
+	if( result == 0 ) {
 		myfree( address );
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
-//	}
+	}
 
 	s_total =
 			( hostsize + 1 ) * sizeof( char ) +
@@ -181,10 +178,8 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 	struct gaih_addrtuple *p_tuple = NULL;
 	struct gaih_addrtuple *p_start = NULL;
 	size_t s_total = 0;
-	int af = AF_INET6;
+	int af = IP_INET;
 	int in_addr_size = 0;
-	unsigned int port = 0;
-	int mode = 6;
 	int result = 0;
 	int j = 0;
 
@@ -201,23 +196,19 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	af = ( mode == 6 ) ? AF_INET6 : AF_INET;
-
-	in_addr_size = (mode == 6) ?
-			sizeof( struct in6_addr ) : sizeof( struct in_addr );
+	in_addr_size = sizeof( IN_ADDR );
 
 	/* 8 addresses max */
 	address = myalloc( 8 * in_addr_size * sizeof( char ) );
 
 	/* Ask daemon */
-	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size,
-			port, mode );
-//	if( result == 0 ) {
+	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size );
+	if( result == 0 ) {
 		myfree( address );
 		*errnop = ENOENT;
 		*h_errnop = HOST_NOT_FOUND;
 		return NSS_STATUS_NOTFOUND;
-//	}
+	}
 
 	s_total =
 		( hostsize + 1 ) * sizeof( char ) +
@@ -269,14 +260,7 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 }
 
 int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
-		int address_size, unsigned int port, int mode ) {
+		int address_size ) {
 
-    int sockfd = -1;
-    struct sockaddr_in6 sa;
-    socklen_t sa_size = sizeof( struct sockaddr_in6 );
-	int j = 0;
-
-	_nss_dns_cli( hostname );
-
-	return j;
+	return _nss_dns_cli( hostname, hostsize, address, address_size );
 }
