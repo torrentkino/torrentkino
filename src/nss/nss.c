@@ -98,7 +98,7 @@ enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
 	in_addr_size = sizeof( IN_ADDR );
 
 	/* 8 addresses max */
-	address = myalloc( 8 * in_addr_size * sizeof( char ) );
+	address = myalloc( DNS_ANSWERS_MAX * in_addr_size * sizeof( char ) );
 
 	/* Ask daemon */
 	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size );
@@ -199,7 +199,7 @@ enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
 	in_addr_size = sizeof( IN_ADDR );
 
 	/* 8 addresses max */
-	address = myalloc( 8 * in_addr_size * sizeof( char ) );
+	address = myalloc( DNS_ANSWERS_MAX * in_addr_size * sizeof( char ) );
 
 	/* Ask daemon */
 	result = _nss_tk_lookup( hostname, hostsize, address, in_addr_size );
