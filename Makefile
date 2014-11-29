@@ -1,4 +1,11 @@
-SUBDIRS = tk6 nss6 tk4 nss4 tumbleweed
+# Torrentkino (IPv6)
+SUBDIRS = tk6 nss6
+
+# Torrentkino (IPv4)
+SUBDIRS += tk4 nss4
+
+# Tumbleweed (Simple Webserver)
+SUBDIRS += tumbleweed
 
 .PHONY : all clean install docs sync debian ubuntu $(SUBDIRS)
 
