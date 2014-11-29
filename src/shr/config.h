@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAKRO_H
-#define MAKRO_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #define BUF_SIZE 1024
 #define BUF_OFF1 1023
@@ -42,10 +42,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define CONF_DAEMON 0
 #define CONF_CONSOLE 1
 
-#define CONF_HOSTFILE "/etc/hostname"
-
-#define CONF_FILE "torrentkino.conf"
-
 #define CONF_EPOLL_MAX_EVENTS 32
 
 #define CONF_USERNAME "nobody"
@@ -67,6 +63,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define TID_SIZE_MAX 20
 #define PORT_DHT_DEFAULT 6881
 #define PORT_DNS_DEFAULT 6853
+#define DNS_ANSWERS_MAX 8
 
 #ifdef IPV6
 #define LOG_NAME "tk6"
@@ -114,4 +111,4 @@ typedef struct in_addr IN_ADDR;
 
 extern int status;
 
-#endif
+#endif /* CONFIG_H */

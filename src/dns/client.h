@@ -19,6 +19,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../shr/config.h"
 #include "../shr/ip.h"
+#include "../shr/malloc.h"
 #include "dns.h"
 
 int _nss_dns_cli( const char *hostname, int hostsize, UCHAR *address,

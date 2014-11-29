@@ -43,16 +43,14 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 	UCHAR buf[65536], *qname, *reader;
 	int i , stop , s;
 	struct timeval tv;
+	UCHAR *p = address;
 
-	IP a, dest;
-	char ip_buf[IP_ADDRLEN+1];
+	IP dest;
 
-	struct RES_RECORD answers[20];
+	struct RES_RECORD answers[ DNS_ANSWERS_MAX ];
 
 	struct DNS_HEADER *dns = NULL;
 	struct QUESTION *qinfo = NULL;
-
-	printf("Resolving %s" , host);
 
 	s = socket( IP_INET, SOCK_DGRAM, IPPROTO_UDP );
 	if( s < 0 ) {
@@ -74,66 +72,71 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 	dest.sin_addr.s_addr = inet_addr( DNS_SERVER );
 #endif
 
-	//Set the DNS structure to standard queries
 	dns = (struct DNS_HEADER *)&buf;
-
 	dns->id = (USHORT) htons(getpid());
-	dns->qr = 0; //This is a query
-	dns->opcode = 0; //This is a standard query
-	dns->aa = 0; //Not Authoritative
-	dns->tc = 0; //This message is not truncated
-	dns->rd = 1; //Recursion Desired
-	dns->ra = 0; //Recursion not available!
+	dns->qr = 0; /* This is a query */
+	dns->opcode = 0; /* This is a standard query */
+	dns->aa = 0; /* Not Authoritative */
+	dns->tc = 0; /* This message is not truncated */
+	dns->rd = 1; /* Recursion Desired */
+	dns->ra = 0; /* Recursion not available! */
 	dns->z = 0;
 	dns->ad = 0;
 	dns->cd = 0;
 	dns->rcode = 0;
-	dns->q_count = htons(1); //we have only 1 question
+	dns->q_count = htons(1); /* we have only 1 question */
 	dns->ans_count = 0;
 	dns->auth_count = 0;
 	dns->add_count = 0;
 
-	//point to the query portion
 	qname =(UCHAR*)&buf[sizeof(struct DNS_HEADER)];
 
 	ChangetoDnsNameFormat(qname , host);
 	qinfo =(struct QUESTION*)&buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)];
 
-	qinfo->qtype = htons( query_type ); //type of the query , A , MX , CNAME , NS etc
-	qinfo->qclass = htons(1); //its internet (lol)
+	qinfo->qtype = htons( query_type ); /* type of the query , A , MX , CNAME , NS etc */
+	qinfo->qclass = htons(1); /* internet */
 
-	printf("\nSending Packet...");
 	if( sendto( s, (char*)buf, 
 			sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),
 			0, (struct sockaddr*)&dest, sizeof(dest) ) < 0 ) {
 		return -1;
 	}
-	printf("Done");
 
-	//Receive the answer
 	i = sizeof dest;
-	printf("\nReceiving answer...");
 	if(recvfrom (s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0) {
 		return -1;
 	}
-	printf("Done");
 
 	dns = (struct DNS_HEADER*) buf;
 
-	//move ahead of the dns header and the query field
+	/* Questions */
+	if( ntohs( dns->q_count ) != 1 ) {
+		return -1;
+	}
+
+	/* Answers */
+	if( ntohs( dns->ans_count ) < 1 || ntohs( dns->ans_count ) > 8 ) {
+		return -1;
+	}
+
+	/* Authoritative servers */
+	if( ntohs( dns->auth_count ) != 0 ) {
+		return -1;
+	}
+
+	/* Additional records */
+	if( ntohs( dns->add_count ) != 0 ) {
+		return -1;
+	}
+
+	/* move ahead of the dns header and the query field */
 	reader = &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION)];
 
-	printf("\nThe response contains : ");
-	printf("\n %d Questions.",ntohs(dns->q_count));
-	printf("\n %d Answers.",ntohs(dns->ans_count));
-	printf("\n %d Authoritative Servers.",ntohs(dns->auth_count));
-	printf("\n %d Additional records.\n\n",ntohs(dns->add_count));
-
-	//Start reading answers
+	/* Start reading answers */
 	stop=0;
 
-	for(i=0;i<ntohs(dns->ans_count);i++)
-	{
+	for( i=0; i<ntohs(dns->ans_count) && i<DNS_ANSWERS_MAX; i++ ) {
 		int ip_size = 0;
 		answers[i].name=ReadName(reader,buf,&stop);
 		reader = reader + stop;
@@ -152,12 +155,19 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType )
 #endif
 		{
+			memcpy( p, reader, IP_SIZE );
+			p += IP_SIZE;
+
+#if 0
 			memcpy( answers[i].rdata, reader, IP_SIZE );
+#endif
 			reader = reader + ip_size;
 		}
+
+		myfree( answers[i].name );
 	}
 
-	//print answers
+#if 0
 	printf("\nAnswer Records : %d \n" , ntohs(dns->ans_count) );
 	for(i=0 ; i < ntohs(dns->ans_count) ; i++)
 	{
@@ -169,15 +179,16 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType )
 #endif
 		{
-			UCHAR *p = NULL;
-			p = answers[i].rdata;
-			ip_bytes_to_sin( &a, p );
+			UCHAR *p1 = NULL;
+			p1 = answers[i].rdata;
+			ip_bytes_to_sin( &a, p1 );
 			ip_sin_to_string( &a, ip_buf );
 			printf("has IP address : %s", ip_buf);
 		}
 
 		printf("\n");
 	}
+#endif
 
 	return 1;
 }
@@ -189,18 +200,18 @@ u_char* ReadName(UCHAR* reader,UCHAR* buffer,int* count)
 	int i , j;
 
 	*count = 1;
-	name = (UCHAR*)malloc(256);
+	name = (UCHAR*) myalloc( 256 * sizeof( UCHAR ) );
 
 	name[0]='\0';
 
-	//read the names in 3www6google3com format
+	/* read the names in 3www6google3com format */
 	while(*reader!=0)
 	{
 		if(*reader>=192)
 		{
-			offset = (*reader)*256 + *(reader+1) - 49152; //49152 = 11000000 00000000 ;)
+			offset = (*reader)*256 + *(reader+1) - 49152; /* 49152 = 11000000 00000000 */
 			reader = buffer + offset - 1;
-			jumped = 1; //we have jumped to another location so counting wont go up!
+			jumped = 1; /* we have jumped to another location so counting wont go up! */
 		}
 		else
 		{
@@ -211,17 +222,16 @@ u_char* ReadName(UCHAR* reader,UCHAR* buffer,int* count)
 
 		if(jumped==0)
 		{
-			*count = *count + 1; //if we havent jumped to another location then we can count up
+			*count = *count + 1; /* if we havent jumped to another location then we can count up */
 		}
 	}
 
-	name[p]='\0'; //string complete
-	if(jumped==1)
-	{
-		*count = *count + 1; //number of steps we actually moved forward in the packet
+	name[p]='\0'; /* string complete */
+	if( jumped == 1 ) {
+		*count = *count + 1; /* number of steps we actually moved forward in the packet */
 	}
 
-	//now convert 3www6google3com0 to www.google.com
+	/* now convert 3www6google3com0 to www.google.com */
 	for(i=0;i<(int)strlen((const char*)name);i++) 
 	{
 		p=name[i];
@@ -232,13 +242,13 @@ u_char* ReadName(UCHAR* reader,UCHAR* buffer,int* count)
 		}
 		name[i]='.';
 	}
-	name[i-1]='\0'; //remove the last dot
+	name[i-1]='\0'; /* remove the last dot */
 	return name;
 }
 
 /*
  * This will convert www.google.com to 3www6google3com
- * got it :)
+ * got it
  * */
 void
 ChangetoDnsNameFormat( UCHAR *dns, const char* host )
@@ -255,7 +265,7 @@ ChangetoDnsNameFormat( UCHAR *dns, const char* host )
 			{
 				*dns++=host[lock];
 			}
-			lock++; //or lock=i+1;
+			lock++; /* or lock=i+1; */
 		}
 	}
 	*dns++='\0';
