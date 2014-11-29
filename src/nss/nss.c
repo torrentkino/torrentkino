@@ -26,7 +26,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "tknss.h"
+#include "nss.h"
 
 enum nss_status _nss_tk_gethostbyname_r( const char *hostname,
 		struct hostent *host, char *buffer, size_t buflen, int *errnop,
