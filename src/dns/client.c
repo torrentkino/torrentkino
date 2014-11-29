@@ -44,6 +44,7 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 	int i , stop , s;
 	struct timeval tv;
 	UCHAR *p = address;
+	int result = 0;
 
 	IP dest;
 
@@ -54,7 +55,7 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 
 	s = socket( IP_INET, SOCK_DGRAM, IPPROTO_UDP );
 	if( s < 0 ) {
-		return -1;
+		return 0;
 	}
 
 	tv.tv_sec = TIMEOUT;
@@ -97,37 +98,37 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 	qinfo->qtype = htons( query_type ); /* type of the query , A , MX , CNAME , NS etc */
 	qinfo->qclass = htons(1); /* internet */
 
-	if( sendto( s, (char*)buf, 
+	if( sendto( s, (char*)buf,
 			sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),
 			0, (struct sockaddr*)&dest, sizeof(dest) ) < 0 ) {
-		return -1;
+		return 0;
 	}
 
 	i = sizeof dest;
 	if(recvfrom (s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0) {
-		return -1;
+		return 0;
 	}
 
 	dns = (struct DNS_HEADER*) buf;
 
 	/* Questions */
 	if( ntohs( dns->q_count ) != 1 ) {
-		return -1;
+		return 0;
 	}
 
 	/* Answers */
 	if( ntohs( dns->ans_count ) < 1 || ntohs( dns->ans_count ) > 8 ) {
-		return -1;
+		return 0;
 	}
 
 	/* Authoritative servers */
 	if( ntohs( dns->auth_count ) != 0 ) {
-		return -1;
+		return 0;
 	}
 
 	/* Additional records */
 	if( ntohs( dns->add_count ) != 0 ) {
-		return -1;
+		return 0;
 	}
 
 	/* move ahead of the dns header and the query field */
@@ -146,25 +147,29 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 
 		ip_size = ntohs( answers[i].resource->data_len );
 		if( ip_size != IP_SIZE ) {
-			return -1;
+			return 0;
 		}
 
 #ifdef IPV6
-		if( ntohs( answers[i].resource->type ) == AAAA_Resource_RecordType )
+		if( ntohs( answers[i].resource->type ) != AAAA_Resource_RecordType ) {
+			return 0;
+		}
 #else
-		if( ntohs( answers[i].resource->type ) == A_Resource_RecordType )
+		if( ntohs( answers[i].resource->type ) != A_Resource_RecordType ) {
+			return 0;
+		}
 #endif
-		{
-			memcpy( p, reader, IP_SIZE );
-			p += IP_SIZE;
+		memcpy( p, reader, IP_SIZE );
+		p += IP_SIZE;
 
 #if 0
-			memcpy( answers[i].rdata, reader, IP_SIZE );
+		memcpy( answers[i].rdata, reader, IP_SIZE );
 #endif
-			reader = reader + ip_size;
-		}
+		reader = reader + IP_SIZE;
 
 		myfree( answers[i].name );
+
+		result++;
 	}
 
 #if 0
@@ -190,7 +195,7 @@ int ngethostbyname( const char *host, int hostsize, UCHAR *address,
 	}
 #endif
 
-	return 1;
+	return result;
 }
 
 u_char* ReadName(UCHAR* reader,UCHAR* buffer,int* count)
