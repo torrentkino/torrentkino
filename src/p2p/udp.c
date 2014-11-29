@@ -79,12 +79,12 @@ void udp_start( UDP *udp, int port, int multicast_mode ) {
 
 #ifdef IPV6
 	/* Disable IPv4 P2P when operating on IPv6 */
-	if( udp->type == udp_p2p_worker ) {
+	/* if( udp->type == udp_p2p_worker ) { */
 		if( setsockopt( udp->sockfd,
 			IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof( int ) ) == -1 ) {
 			fail( "Setting IPV6_V6ONLY failed" );
 		}
-	}
+	/* } */
 #endif
 
 	if( bind( udp->sockfd,
