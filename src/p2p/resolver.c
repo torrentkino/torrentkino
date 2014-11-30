@@ -233,13 +233,13 @@ void r_success( IP *from, DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_com
 	p = p_encode_response( msg, buffer );
 
 	buflen = p - buffer;
-	info( _log, from, "DNS: Packet has %d bytes.", buflen	);
+	info( _log, from, "Send %d bytes DNS packet to", buflen	);
 
 	sendto( _main->dns->sockfd, buffer, buflen, 0,
 		(struct sockaddr*) from, sizeof(IP) );
 }
 
-/* Send empty reply if the requested */
+/* Send empty reply */
 void r_failure( IP *from, DNS_MSG *msg ) {
 	UCHAR buffer[UDP_BUF];
 	UCHAR *p = buffer;
@@ -249,7 +249,7 @@ void r_failure( IP *from, DNS_MSG *msg ) {
 	p = p_encode_response( msg, buffer );
 
 	buflen = p - buffer;
-	info( _log, from, "DNS: Packet has %d bytes.", buflen	);
+	info( _log, from, "Send %d bytes DNS packet to", buflen	);
 
 	sendto( _main->dns->sockfd, buffer, buflen, 0,
 		(struct sockaddr*) from, sizeof(IP) );

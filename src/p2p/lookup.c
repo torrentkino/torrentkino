@@ -40,11 +40,12 @@ LOOKUP *ldb_init( UCHAR *target, IP *from, DNS_MSG *msg ) {
 	LOOKUP *l = (LOOKUP *) myalloc( sizeof(LOOKUP) );
 
 	memcpy( l->target, target, SHA1_SIZE );
-	l->send_reply = FALSE;
+	l->send_response_to_initiator = FALSE;
+	l->number_of_dns_responses = 0;
 	memset( &l->c_addr, '\0', sizeof( IP ) );
 
 	if( from != NULL ) {
-		l->send_reply = TRUE;
+		l->send_response_to_initiator = TRUE;
 		memcpy( &l->c_addr, from, sizeof( IP ) );
 		memcpy( &l->msg, msg, sizeof( DNS_MSG ) );
 	}
@@ -120,4 +121,15 @@ void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from ) {
 	memcpy( &n->c_addr, from, sizeof( IP ) );
 	memcpy( &n->token, ben_str_s( token ), ben_str_i( token ) );
 	n->token_size = ben_str_i( token );
+}
+
+int ldb_number_of_dns_responses( LOOKUP *l ) {
+	int current_number = l->number_of_dns_responses;
+
+	/* Increase the number of send DNS responses to a client by 1
+	 * for the next time this function gets called.
+	 */
+	l->number_of_dns_responses++;
+
+	return current_number;
 }

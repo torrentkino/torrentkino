@@ -956,29 +956,35 @@ void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti,
 		return;
 	}
 
-	/* Info */
 	hex_hash_encode( hex, l->target );
 	info( _log, from, "Found %s at", hex );
 
-	/* tknss and tkcli are not involved:
+	/*
 	 * Random lookups are not initiated by a client.
-	 * Periodic announces are not initiated by a client.
-	 * Stop.
+	 * Periodic announces are not initiated by a client either.
+	 * And I do not want to cache random lookups.
 	 */
-	if( ! l->send_reply ) {
+	if( ! l->send_response_to_initiator ) {
 		return;
 	}
 
-	/* Cache result: It must come from tknss or tkcli. */
+	/* Merge responses to the cache */
 	cache_put( l->target, nodes_compact_list, nodes_compact_size );
 
-	/* Get the merged compact_list from the cache. */
+	/* Do not send more than one DNS response to a client.
+	 * The client is happy after getting the first response anyway.
+	 */
+	if( ldb_number_of_dns_responses( l ) >= 1 ) {
+		return;
+	}
+
+	/* Get the merged compact list from the cache. */
 	nodes_compact_size = cache_compact_list( nodes_compact_list, l->target );
 	if( nodes_compact_size <= 0 ) {
 		return;
 	}
 
-	/* Send the result back to tknss / tkcli */
+	/* Send the result back via DNS */
 	r_success( &l->c_addr, &l->msg, nodes_compact_list, nodes_compact_size );
 }
 

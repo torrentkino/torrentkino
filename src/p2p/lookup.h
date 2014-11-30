@@ -36,7 +36,8 @@ typedef struct {
 	/* Caller */
 	IP c_addr;
 	DNS_MSG msg;
-	int send_reply;
+	int send_response_to_initiator;
+	int number_of_dns_responses;
 
 } LOOKUP;
 
@@ -54,5 +55,7 @@ LONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );
 
 NODE_L *ldb_find( LOOKUP *l, UCHAR *node_id );
 void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from );
+
+int ldb_number_of_dns_responses( LOOKUP *l );
 
 #endif
