@@ -302,7 +302,7 @@ void p_put_srv( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name ) {
 	rr->name = qu->qName;
 	rr->type = SRV_Resource_RecordType;
 	rr->class = 1;
-	rr->ttl = 0;
+	rr->ttl = DNS_TTL;
 	rr->rd_length = 6 + strlen( name ) + 2;
 
 	rr->rd_data.srv_record.priority = 0;
@@ -314,7 +314,7 @@ void p_put_srv( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name ) {
 void p_put_addr( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name ) {
 	rr->name = name;
 	rr->class = qu->qClass;
-	rr->ttl = 0;
+	rr->ttl = DNS_TTL;
 	rr->rd_length = IP_SIZE;
 
 #ifdef IPV6

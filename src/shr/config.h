@@ -64,6 +64,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define PORT_DHT_DEFAULT 6881
 #define PORT_DNS_DEFAULT 6853
 #define DNS_ANSWERS_MAX 8
+#define DNS_TTL 300
 
 #ifdef IPV6
 #define LOG_NAME "tk6"
