@@ -43,10 +43,7 @@ void p_put16bits( UCHAR** buffer, USHORT value ) {
 }
 
 void p_put32bits( UCHAR** buffer, unsigned long long value ) {
-	(*buffer)[0] = (value & 0xFF000000) >> 24;
-	(*buffer)[1] = (value & 0xFF0000) >> 16;
-	(*buffer)[2] = (value & 0xFF00) >> 16;
-	(*buffer)[3] = (value & 0xFF) >> 16;
+	*((typeof(value)*) *buffer) = htonl( value );
 	*buffer += 4;
 }
 
@@ -335,7 +332,7 @@ void p_reset_msg( DNS_MSG *msg ) {
 	rr = msg->answer;
 	rr->name = qu->qName;
 	rr->class = qu->qClass;
-	rr->ttl = 0;
+	rr->ttl = DNS_TTL;
 	rr->type = 0;
 	rr->rd_length = 0;
 }
