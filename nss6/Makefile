@@ -28,4 +28,5 @@ clean:
 
 install:
 	strip $(CODENAME)
-	cp $(CODENAME) $(DESTDIR)/lib/
+	mkdir -p $(DESTDIR)/lib/$(DEB_HOST_MULTIARCH)/
+	cp $(CODENAME) $(DESTDIR)/lib/$(DEB_HOST_MULTIARCH)/

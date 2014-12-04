@@ -1,3 +1,9 @@
+torrentkino (0.34) wheezy; urgency=low
+
+  * Install the NSS files.
+  * Use $(DEB_HOST_MULTIARCH) to determine the lib directory.
+
+ -- Aiko Barz <aiko@torrentkino.de>  Thu, 04 Dec 2014 21:38:00 +0100
 torrentkino (0.33) wheezy; urgency=low
 
   * Split src directory into categories
