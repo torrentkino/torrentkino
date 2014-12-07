@@ -56,7 +56,7 @@ Torrentkino runs as user *nobody* when started with root priviledges.
 	The bootstrap server will be addressed at this port. (Default: UDP/6881)
 
   * `-l`:
-	Lazy mode: This option sets a predefined bootstrap server like
+	Lazy mode: This option sets multiple predefined bootstrap server like
 	*router.utorrent.com* for example.
 
   * `-d`:

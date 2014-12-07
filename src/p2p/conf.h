@@ -35,9 +35,18 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "time.h"
 #include "identity.h"
 
+#define BOOTSTRAP_LOCAL 0
+#define BOOTSTRAP_LAZY 1
+#define BOOTSTRAP_HOST 2
+#define BOOTSTRAP_SIZE 3
+
 struct obj_conf {
 	char realm[BUF_SIZE];
+
 	char bootstrap_node[BUF_SIZE];
+	int bootstrap_mode;
+	char bootstrap_lazy[BOOTSTRAP_SIZE][BUF_SIZE];
+
 	UCHAR node_id[SHA1_SIZE];
 	UCHAR null_id[SHA1_SIZE];
 	int cores;

@@ -283,7 +283,7 @@ void udp_multicast( UDP *udp, int mode, int runmode ) {
 	memset( &sin, '\0', sizeof( IP ) );
 	sin.sin6_family = AF_INET6;
 	sin.sin6_port = htons( _main->conf->bootstrap_port );
-	if( !inet_pton( AF_INET6, MULTICAST_DEFAULT, &( sin.sin6_addr ) ) ) {
+	if( !inet_pton( AF_INET6, BOOTSTRAP_MCAST, &( sin.sin6_addr ) ) ) {
 		return;
 	}
 
@@ -316,7 +316,7 @@ void udp_multicast( UDP *udp, int mode, int runmode ) {
 	memset( &sin, '\0', sizeof( IP ) );
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons( _main->conf->bootstrap_port );
-	if( !inet_pton( AF_INET, MULTICAST_DEFAULT, &( sin.sin_addr ) ) ) {
+	if( !inet_pton( AF_INET, BOOTSTRAP_MCAST, &( sin.sin_addr ) ) ) {
 		return;
 	}
 

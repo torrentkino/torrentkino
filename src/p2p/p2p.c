@@ -61,6 +61,29 @@ void p2p_free( void ) {
 }
 
 void p2p_bootstrap( void ) {
+	/* Do nothing if neighbourhood is crowded */
+	if( ! nbhd_is_empty() ) {
+		return;
+	}
+
+	switch( _main->conf->bootstrap_mode ) {
+		case BOOTSTRAP_LOCAL:
+		case BOOTSTRAP_HOST:
+			p2p_bootstrap_this( _main->conf->bootstrap_node,
+				_main->conf->bootstrap_port );
+			break;
+		case BOOTSTRAP_LAZY:
+			for( int i=0; i<BOOTSTRAP_SIZE; i++ ) {
+				p2p_bootstrap_this( _main->conf->bootstrap_lazy[i],
+					_main->conf->bootstrap_port );
+			}
+			break;
+		default:
+			exit(1);
+	}
+}
+
+void p2p_bootstrap_this( const char *bootstrap_node, int bootstrap_port ) {
 	struct addrinfo hints;
 	struct addrinfo *addrinfo = NULL;
 	struct addrinfo *p = NULL;
@@ -69,12 +92,7 @@ void p2p_bootstrap( void ) {
 	ITEM *ti = NULL;
 	char port[6];
 
-	/* Do nothing if neighbourhood is crowded */
-	if( ! nbhd_is_empty() ) {
-		return;
-	}
-
-	snprintf( port, 6, "%i", _main->conf->bootstrap_port );
+	snprintf( port, 6, "%i", bootstrap_port );
 
 	/* Compute address of bootstrap node */
 	memset( &hints, '\0', sizeof(struct addrinfo) );
@@ -85,10 +103,10 @@ void p2p_bootstrap( void ) {
 #elif IPV4
 	hints.ai_family = AF_INET;
 #endif
-	rc = getaddrinfo( _main->conf->bootstrap_node, port,
+	rc = getaddrinfo( bootstrap_node, port,
 		&hints, &addrinfo );
 	if( rc != 0 ) {
-		info( _log, NULL, "getaddrinfo: %s", gai_strerror( rc ) );
+		/* info( _log, NULL, "getaddrinfo: %s", gai_strerror( rc ) ); */
 		return;
 	}
 
@@ -96,7 +114,7 @@ void p2p_bootstrap( void ) {
 	while( p != NULL && i < P2P_MAX_BOOTSTRAP_NODES ) {
 
 		/* Send PING to a bootstrap node */
-		if( strcmp( _main->conf->bootstrap_node, MULTICAST_DEFAULT ) == 0 ) {
+		if( strcmp( _main->conf->bootstrap_node, BOOTSTRAP_MCAST ) == 0 ) {
 			ti = tdb_put( P2P_PING_MULTICAST );
 			send_ping( (IP *)p->ai_addr, tdb_tid( ti ) );
 		} else {
@@ -109,6 +127,8 @@ void p2p_bootstrap( void ) {
 
 	freeaddrinfo( addrinfo );
 }
+
+
 
 void p2p_cron( void ) {
 	/* Tick Tock */

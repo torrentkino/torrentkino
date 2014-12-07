@@ -63,6 +63,7 @@ P2P *p2p_init( void );
 void p2p_free( void );
 
 void p2p_bootstrap( void );
+void p2p_bootstrap_this( const char *bootstrap_node, int bootstrap_port );
 
 void p2p_cron( void );
 void p2p_cron_ping( void );

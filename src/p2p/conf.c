@@ -48,7 +48,13 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 #endif
 	memset( conf->null_id, '\0', SHA1_SIZE );
 	strncpy( conf->realm, CONF_REALM, BUF_OFF1 );
-	strncpy( conf->bootstrap_node, MULTICAST_DEFAULT, BUF_OFF1 );
+
+	strncpy( conf->bootstrap_node, BOOTSTRAP_MCAST, BUF_OFF1 );
+	strncpy( conf->bootstrap_lazy[0], "dht.transmissionbt.com", BUF_OFF1 );
+	strncpy( conf->bootstrap_lazy[1], "router.bittorrent.com", BUF_OFF1 );
+	strncpy( conf->bootstrap_lazy[2], "router.utorrent.com", BUF_OFF1 );
+	conf->bootstrap_mode = BOOTSTRAP_LOCAL;
+
 	rand_urandom( conf->node_id, SHA1_SIZE );
 
 	/* Arguments */
@@ -70,8 +76,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 #endif
 				break;
 			case 'l':
-				snprintf( conf->bootstrap_node, BUF_SIZE,
-						"%s", BOOTSTRAP_DEFAULT );
+				conf->bootstrap_mode = BOOTSTRAP_LAZY;
 				break;
 			case 'n':
 				sha1_hash( conf->node_id, optarg, strlen( optarg ) );
@@ -91,6 +96,7 @@ struct obj_conf *conf_init( int argc, char **argv ) {
 				break;
 			case 'x':
 				snprintf( conf->bootstrap_node, BUF_SIZE, "%s", optarg );
+				conf->bootstrap_mode = BOOTSTRAP_HOST;
 				break;
 			case 'y':
 				conf->bootstrap_port = str_safe_port( optarg );
@@ -172,7 +178,23 @@ void conf_print( void ) {
 
 	info( _log, NULL, "P2P daemon is listening to UDP/%i (-p)", _main->conf->p2p_port );
 	info( _log, NULL, "DNS daemon is listening to UDP/%i (-P)", _main->conf->dns_port );
-	info( _log, NULL, "Bootstrap node: %s (-x/-l)", _main->conf->bootstrap_node );
+
+	switch( _main->conf->bootstrap_mode ) {
+		case BOOTSTRAP_LOCAL:
+		case BOOTSTRAP_HOST:
+			info( _log, NULL, "Bootstrap node: %s (-x/-l)",
+				_main->conf->bootstrap_node );
+			break;
+		case BOOTSTRAP_LAZY:
+			for( int i=0; i<BOOTSTRAP_SIZE; i++ ) {
+				info( _log, NULL, "Bootstrap node: %s (-x/-l)",
+					_main->conf->bootstrap_lazy[i] );
+			}
+			break;
+		default:
+			exit(1);
+	}
+
 	info( _log, NULL, "Bootstrap port: UDP/%i (-y)", _main->conf->bootstrap_port );
 	info( _log, NULL, "Announced port: %i (-y)", _main->conf->announce_port );
 

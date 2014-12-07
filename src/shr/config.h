@@ -68,12 +68,12 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef IPV6
 #define LOG_NAME "tk6"
-#define MULTICAST_DEFAULT "ff0e::1"
+#define BOOTSTRAP_MCAST "ff0e::1"
 #define BOOTSTRAP_DEFAULT "dht.transmissionbt.com"
 #define DNS_SERVER "::1"
 #elif IPV4
 #define LOG_NAME "tk4"
-#define MULTICAST_DEFAULT "224.0.0.252"
+#define BOOTSTRAP_MCAST "224.0.0.252"
 #define BOOTSTRAP_DEFAULT "dht.transmissionbt.com"
 #define DNS_SERVER "127.0.0.1"
 #endif
