@@ -36,19 +36,19 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ip.h"
 
-int ip_is_localhost( IP *from ) {
+int ip_is_localhost(IP * from)
+{
 #ifdef IPV6
-	const UCHAR localhost[] = 
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+	const UCHAR localhost[] =
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 
-	if( memcmp( &from->sin6_addr.s6_addr, localhost, IP_SIZE ) == 0 ) {
+	if (memcmp(&from->sin6_addr.s6_addr, localhost, IP_SIZE) == 0) {
 		return TRUE;
 	}
 #elif IPV4
-	const UCHAR localhost[] = 
-		{ 0x7f, 0, 0, 1 };
+	const UCHAR localhost[] = { 0x7f, 0, 0, 1 };
 
-	if( memcmp( &from->sin_addr.s_addr, localhost, IP_SIZE ) == 0 ) {
+	if (memcmp(&from->sin_addr.s_addr, localhost, IP_SIZE) == 0) {
 		return TRUE;
 	}
 #endif
@@ -59,12 +59,13 @@ int ip_is_localhost( IP *from ) {
 /* In the Internet Protocol Version 6 (IPv6), the address block fe80::/10 has
  * been reserved for link-local unicast addressing.[2] The actual link local
  * addresses are assigned with the prefix fe80::/64. */
-int ip_is_linklocal( IP *from ) {
+int ip_is_linklocal(IP * from)
+{
 #ifdef IPV6
-	const UCHAR linklocal[] = 
-		{ 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	const UCHAR linklocal[] =
+	    { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	if( memcmp(from->sin6_addr.s6_addr, linklocal, 8) == 0 ) {
+	if (memcmp(from->sin6_addr.s6_addr, linklocal, 8) == 0) {
 		return TRUE;
 	}
 #endif
@@ -72,69 +73,85 @@ int ip_is_linklocal( IP *from ) {
 	return FALSE;
 }
 
-UCHAR *ip_tuple_to_sin( IP *sin, UCHAR *p ) {
-	memset( sin, '\0', sizeof(IP) );
+UCHAR *ip_tuple_to_sin(IP * sin, UCHAR * p)
+{
+	memset(sin, '\0', sizeof(IP));
 #ifdef IPV6
 	sin->sin6_family = AF_INET6;
-	memcpy( &sin->sin6_addr, p, IP_SIZE ); p += IP_SIZE;
-	memcpy( &sin->sin6_port, p, 2 ); p += 2;
+	memcpy(&sin->sin6_addr, p, IP_SIZE);
+	p += IP_SIZE;
+	memcpy(&sin->sin6_port, p, 2);
+	p += 2;
 #elif IPV4
 	sin->sin_family = AF_INET;
-	memcpy( &sin->sin_addr, p, IP_SIZE ); p += IP_SIZE;
-	memcpy( &sin->sin_port, p, 2 ); p += 2;
+	memcpy(&sin->sin_addr, p, IP_SIZE);
+	p += IP_SIZE;
+	memcpy(&sin->sin_port, p, 2);
+	p += 2;
 #endif
 
 	return p;
 }
 
-UCHAR *ip_sin_to_tuple( IP *sin, UCHAR *p ) {
-		/* IP + Port */
+UCHAR *ip_sin_to_tuple(IP * sin, UCHAR * p)
+{
+	/* IP + Port */
 #ifdef IPV6
-		memcpy( p, (UCHAR *)&sin->sin6_addr, IP_SIZE ); p += IP_SIZE;
-		memcpy( p, (UCHAR *)&sin->sin6_port, 2 ); p += 2;
+	memcpy(p, (UCHAR *) & sin->sin6_addr, IP_SIZE);
+	p += IP_SIZE;
+	memcpy(p, (UCHAR *) & sin->sin6_port, 2);
+	p += 2;
 #elif IPV4
-		memcpy( p, (UCHAR *)&sin->sin_addr, IP_SIZE ); p += IP_SIZE;
-		memcpy( p, (UCHAR *)&sin->sin_port, 2 ); p += 2;
+	memcpy(p, (UCHAR *) & sin->sin_addr, IP_SIZE);
+	p += IP_SIZE;
+	memcpy(p, (UCHAR *) & sin->sin_port, 2);
+	p += 2;
 #endif
 
 	return p;
 }
 
-UCHAR *ip_bytes_to_sin( IP *sin, UCHAR *p ) {
-	memset( sin, '\0', sizeof(IP) );
+UCHAR *ip_bytes_to_sin(IP * sin, UCHAR * p)
+{
+	memset(sin, '\0', sizeof(IP));
 #ifdef IPV6
 	sin->sin6_family = AF_INET6;
-	memcpy( &sin->sin6_addr, p, IP_SIZE ); p += IP_SIZE;
+	memcpy(&sin->sin6_addr, p, IP_SIZE);
+	p += IP_SIZE;
 #elif IPV4
 	sin->sin_family = AF_INET;
-	memcpy( &sin->sin_addr, p, IP_SIZE ); p += IP_SIZE;
+	memcpy(&sin->sin_addr, p, IP_SIZE);
+	p += IP_SIZE;
 #endif
 
 	return p;
 }
 
-void ip_merge_port_to_sin( IP *sin, USHORT port ) {
+void ip_merge_port_to_sin(IP * sin, USHORT port)
+{
 #ifdef IPV6
-	sin->sin6_port = htons( port );
+	sin->sin6_port = htons(port);
 #elif IPV4
-	sin->sin_port = htons( port );
+	sin->sin_port = htons(port);
 #endif
 }
 
-USHORT ip_sin_to_port( IP *sin ) {
+USHORT ip_sin_to_port(IP * sin)
+{
 #ifdef IPV6
-	return ntohs( sin->sin6_port );
+	return ntohs(sin->sin6_port);
 #elif IPV4
-	return ntohs( sin->sin_port );
+	return ntohs(sin->sin_port);
 #endif
 }
 
-void ip_sin_to_string( IP *sin, char *buf ) {
+void ip_sin_to_string(IP * sin, char *buf)
+{
 #ifdef IPV6
-	memset( buf, '\0', INET6_ADDRSTRLEN+1 );
-	inet_ntop( AF_INET6, &sin->sin6_addr, buf, INET6_ADDRSTRLEN );
+	memset(buf, '\0', INET6_ADDRSTRLEN + 1);
+	inet_ntop(AF_INET6, &sin->sin6_addr, buf, INET6_ADDRSTRLEN);
 #elif IPV4
-	memset( buf, '\0', INET_ADDRSTRLEN+1 );
-	inet_ntop( AF_INET, &sin->sin_addr, buf, INET_ADDRSTRLEN );
+	memset(buf, '\0', INET_ADDRSTRLEN + 1);
+	inet_ntop(AF_INET, &sin->sin_addr, buf, INET_ADDRSTRLEN);
 #endif
 }
