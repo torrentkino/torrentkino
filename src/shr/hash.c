@@ -22,98 +22,104 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "hash.h"
 
-HASH *hash_init( LONG capacity ) {
-	HASH *map = myalloc( sizeof( HASH ) );
+HASH *hash_init(LONG capacity)
+{
+	HASH *map = myalloc(sizeof(HASH));
 
 	map->size = capacity;
-	map->buckets = myalloc( map->size * sizeof( BUCKET ) );
+	map->buckets = myalloc(map->size * sizeof(BUCKET));
 
 	return map;
 }
 
-void hash_free( HASH *map ) {
+void hash_free(HASH * map)
+{
 	LONG i = 0;
 	BUCKET *bucket = NULL;
 
-	if( map == NULL ) {
+	if (map == NULL) {
 		return;
 	}
 
 	bucket = map->buckets;
-	for( i=0; i<map->size; i++ ) {
-		myfree( bucket->pairs );
+	for (i = 0; i < map->size; i++) {
+		myfree(bucket->pairs);
 		bucket++;
 	}
 
-	myfree( map->buckets );
-	myfree( map );
+	myfree(map->buckets);
+	myfree(map);
 	map = NULL;
 }
 
-int hash_exists( const HASH *map, UCHAR *key, LONG size ) {
-	if( map == NULL ) {
+int hash_exists(const HASH * map, UCHAR * key, LONG size)
+{
+	if (map == NULL) {
 		return FALSE;
 	}
 
-	if( hash_get( map, key, size ) != NULL ) {
+	if (hash_get(map, key, size) != NULL) {
 		return TRUE;
 	}
 
 	return FALSE;
 }
 
-void *hash_get( const HASH *map, UCHAR *key, LONG size ) {
+void *hash_get(const HASH * map, UCHAR * key, LONG size)
+{
 	LONG index = 0;
 	BUCKET *bucket = NULL;
 	PAIR *pair = NULL;
 
-	if( map == NULL || key == NULL ) {
+	if (map == NULL || key == NULL) {
 		return NULL;
 	}
 
-	index = hash_this( key, size ) % map->size;
-	bucket = &( map->buckets[index] );
-	pair = hash_getpair( bucket, key, size );
+	index = hash_this(key, size) % map->size;
+	bucket = &(map->buckets[index]);
+	pair = hash_getpair(bucket, key, size);
 
-	if( pair == NULL ) {
+	if (pair == NULL) {
 		return NULL;
 	}
 
 	return pair->value;
 }
 
-int hash_put( HASH *map, UCHAR *key, LONG size, void *value ) {
+int hash_put(HASH * map, UCHAR * key, LONG size, void *value)
+{
 	LONG index = 0;
 	BUCKET *bucket = NULL;
 	PAIR *pair = NULL;
 
-	if( map == NULL || key == NULL || value == NULL ) {
+	if (map == NULL || key == NULL || value == NULL) {
 		return FALSE;
 	}
 
-	index = hash_this( key, size ) % map->size;
-	bucket = &( map->buckets[index] );
+	index = hash_this(key, size) % map->size;
+	bucket = &(map->buckets[index]);
 
 	/* Key already exists */
-	if( ( pair = hash_getpair( bucket, key, size ) ) != NULL ) {
+	if ((pair = hash_getpair(bucket, key, size)) != NULL) {
 		pair->value = value;
 		return TRUE;
 	}
 
 	/* Create new obj_pair */
-	if( bucket->size == 0 ) {
-		bucket->pairs = myalloc( sizeof( PAIR ) );
+	if (bucket->size == 0) {
+		bucket->pairs = myalloc(sizeof(PAIR));
 		bucket->size = 1;
-	} else if( bucket->size == LONG_MAX ) {
+	} else if (bucket->size == LONG_MAX) {
 		/* Overflow */
 		return FALSE;
 	} else {
-		bucket->pairs = myrealloc( bucket->pairs, ( bucket->size + 1 ) * sizeof( PAIR ) );
+		bucket->pairs =
+		    myrealloc(bucket->pairs, (bucket->size + 1) * sizeof(PAIR));
 		bucket->size++;
 	}
 
 	/* Store key pairs */
-	pair = &( bucket->pairs[bucket->size - 1] );
+	pair = &(bucket->pairs[bucket->size - 1]);
 	pair->key = key;
 	pair->size = size;
 	pair->value = value;
@@ -121,7 +127,8 @@ int hash_put( HASH *map, UCHAR *key, LONG size, void *value ) {
 	return TRUE;
 }
 
-void hash_del( HASH *map, UCHAR *key, LONG size ) {
+void hash_del(HASH * map, UCHAR * key, LONG size)
+{
 	BUCKET *bucket = NULL;
 	PAIR *thispair = NULL;
 	PAIR *oldpair = NULL;
@@ -131,58 +138,59 @@ void hash_del( HASH *map, UCHAR *key, LONG size ) {
 	LONG index = 0;
 	LONG i = 0;
 
-	if( map == NULL || key == NULL ) {
+	if (map == NULL || key == NULL) {
 		return;
 	}
 
 	/* Compute bucket */
-	index = hash_this( key, size ) % map->size;
-	bucket = &( map->buckets[index] );
+	index = hash_this(key, size) % map->size;
+	bucket = &(map->buckets[index]);
 
 	/* Not found */
-	if( ( thispair = hash_getpair( bucket, key, size ) ) == NULL ) {
+	if ((thispair = hash_getpair(bucket, key, size)) == NULL) {
 		return;
 	}
 
-	if( bucket->size == 1 ) {
-		myfree( bucket->pairs );
+	if (bucket->size == 1) {
+		myfree(bucket->pairs);
 		bucket->pairs = NULL;
 		bucket->size = 0;
-	} else if( bucket->size > 1 ) {
+	} else if (bucket->size > 1) {
 		/* Get new memory and remember the old one */
 		oldpair = bucket->pairs;
-		newpair = myalloc( ( bucket->size - 1 ) * sizeof( PAIR ) );
+		newpair = myalloc((bucket->size - 1) * sizeof(PAIR));
 
 		/* Copy pairs except the one to delete */
 		p_old = oldpair;
 		p_new = newpair;
-		for( i=0; i<bucket->size; i++ ) {
-			if( p_old != thispair ) {
-				memcpy( p_new++, p_old, sizeof( PAIR ) );
+		for (i = 0; i < bucket->size; i++) {
+			if (p_old != thispair) {
+				memcpy(p_new++, p_old, sizeof(PAIR));
 			}
 
 			p_old++;
 		}
 
-		myfree( oldpair );
+		myfree(oldpair);
 		bucket->pairs = newpair;
 		bucket->size--;
 	}
 }
 
-PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, LONG size ) {
+PAIR *hash_getpair(BUCKET * bucket, UCHAR * key, LONG size)
+{
 	LONG i = 0;
 	PAIR *pair = NULL;
 
-	if( bucket->size == 0 ) {
+	if (bucket->size == 0) {
 		return NULL;
 	}
 
 	pair = bucket->pairs;
-	for( i=0; i<bucket->size; i++ ) {
-		if( pair->size == size ) {
-			if( pair->key != NULL && pair->value != NULL ) {
-				if( memcmp( pair->key, key, size ) == 0 ) {
+	for (i = 0; i < bucket->size; i++) {
+		if (pair->size == size) {
+			if (pair->key != NULL && pair->value != NULL) {
+				if (memcmp(pair->key, key, size) == 0) {
 					return pair;
 				}
 			}
@@ -193,12 +201,13 @@ PAIR *hash_getpair( BUCKET *bucket, UCHAR *key, LONG size ) {
 	return NULL;
 }
 
-ULONG hash_this( UCHAR *key, LONG size ) {
+ULONG hash_this(UCHAR * key, LONG size)
+{
 	ULONG result = 5381;
 	LONG i = 0;
 
-	for( i=0; i<size; i++ ) {
-		result = ( ( result << 5 ) + result ) + *( key++ );
+	for (i = 0; i < size; i++) {
+		result = ((result << 5) + result) + *(key++);
 	}
 
 	return result;

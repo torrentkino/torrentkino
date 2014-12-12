@@ -22,6 +22,6 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #define HEX_LEN 2*SHA1_SIZE+1
 
-void hex_hash_encode( char *out, const UCHAR *in );
+void hex_hash_encode(char *out, const UCHAR * in);
 
 #endif

@@ -38,20 +38,20 @@ struct obj_mdb {
 };
 
 struct obj_mime {
-	char key[MIME_KEYLEN+1];
-	char val[MIME_VALLEN+1];
+	char key[MIME_KEYLEN + 1];
+	char val[MIME_VALLEN + 1];
 };
 
-struct obj_mdb *mime_init( void );
-void mime_free( void );
+struct obj_mdb *mime_init(void);
+void mime_free(void);
 
-struct obj_mime *mime_add( const char *key, const char *value );
-void mime_load( void );
-void mime_hash( void );
-const char *mime_find( char *filename );
+struct obj_mime *mime_add(const char *key, const char *value);
+void mime_load(void);
+void mime_hash(void);
+const char *mime_find(char *filename);
 #ifdef MAGIC
-void mime_magic( char *filename, char *key );
+void mime_magic(char *filename, char *key);
 #endif
-char *mime_extension( char *filename );
+char *mime_extension(char *filename);
 
-#endif /* MIME_H */
+#endif				/* MIME_H */

@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void send_tcp( TCP_NODE *n );
-void send_cork_start( TCP_NODE *n );
-void send_data( TCP_NODE *n );
-void send_mem( TCP_NODE *n, ITEM *item_r );
-void send_file( TCP_NODE *n, ITEM *item_r );
-void send_cork_stop( TCP_NODE *n );
+void send_tcp(TCP_NODE * n);
+void send_cork_start(TCP_NODE * n);
+void send_data(TCP_NODE * n);
+void send_mem(TCP_NODE * n, ITEM * item_r);
+void send_file(TCP_NODE * n, ITEM * item_r);
+void send_cork_stop(TCP_NODE * n);

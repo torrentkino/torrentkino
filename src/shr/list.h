@@ -52,25 +52,25 @@ struct obj_item {
 };
 typedef struct obj_item ITEM;
 
-LIST *list_init( void );
-void list_free( LIST *list );
-void list_clear( LIST *list );
+LIST *list_init(void);
+void list_free(LIST * list);
+void list_clear(LIST * list);
 
-ITEM *list_start( LIST *list );
-ITEM *list_stop( LIST *list );
-LONG list_size( LIST *list );
+ITEM *list_start(LIST * list);
+ITEM *list_stop(LIST * list);
+LONG list_size(LIST * list);
 
-ITEM *list_put( LIST *list, void *payload );
-ITEM *list_del( LIST *list, ITEM *item );
+ITEM *list_put(LIST * list, void *payload);
+ITEM *list_del(LIST * list, ITEM * item);
 
-ITEM *list_ins( LIST *list, ITEM *here, void *payload );
-ITEM *list_add( LIST *list, ITEM *here, void *payload );
+ITEM *list_ins(LIST * list, ITEM * here, void *payload);
+ITEM *list_add(LIST * list, ITEM * here, void *payload);
 
-ITEM *list_next( ITEM *item );
-ITEM *list_prev( ITEM *item );
+ITEM *list_next(ITEM * item);
+ITEM *list_prev(ITEM * item);
 
-void list_rotate( LIST *list );
+void list_rotate(LIST * list);
 
-void *list_value( ITEM *item );
+void *list_value(ITEM * item);
 
 #endif

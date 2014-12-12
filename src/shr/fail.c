@@ -35,7 +35,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "fail.h"
 
-void fail( const char *format, ... ) {
+void fail(const char *format, ...)
+{
 	char va_buf[BUF_SIZE];
 	va_list vlist;
 
@@ -43,7 +44,7 @@ void fail( const char *format, ... ) {
 	vsnprintf(va_buf, BUF_SIZE, format, vlist);
 	va_end(vlist);
 
-	fprintf( stderr, "%s\n", va_buf );
+	fprintf(stderr, "%s\n", va_buf);
 
-	exit( EXIT_FAILURE );
+	exit(EXIT_FAILURE);
 }

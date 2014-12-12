@@ -26,67 +26,74 @@ along with torrentkino. If not, see <http://www.gnu.org/licenses/>.
 
 #include "log.h"
 
-LOG *log_init( void ) {
-	LOG *log = myalloc( sizeof( LOG ) );
+LOG *log_init(void)
+{
+	LOG *log = myalloc(sizeof(LOG));
 	log->verbosity = CONF_VERBOSE;
 	log->mode = CONF_CONSOLE;
 	return log;
 }
 
-void log_free( LOG *log ) {
-	myfree( log );
+void log_free(LOG * log)
+{
+	myfree(log);
 }
 
-void log_set_verbosity( LOG *log, int verbosity ) {
+void log_set_verbosity(LOG * log, int verbosity)
+{
 	log->verbosity = verbosity;
 }
 
-void log_set_mode( LOG *log, int mode ) {
+void log_set_mode(LOG * log, int mode)
+{
 	log->mode = mode;
 }
 
-int log_verbosely( LOG *log ) {
+int log_verbosely(LOG * log)
+{
 	return log->verbosity;
 }
 
-int log_console( LOG *log ) {
+int log_console(LOG * log)
+{
 	return log->mode;
 }
 
-void info( LOG *log, IP *from, const char *format, ... ) {
+void info(LOG * log, IP * from, const char *format, ...)
+{
 	char log_buf[BUF_SIZE];
 	char va_buf[BUF_SIZE];
-	char ip_buf[IP_ADDRLEN+1];
+	char ip_buf[IP_ADDRLEN + 1];
 	va_list vlist;
 
-	if( ! log_verbosely( log ) ) {
+	if (!log_verbosely(log)) {
 		return;
 	}
 
-	va_start( vlist, format );
-	vsnprintf( va_buf, BUF_SIZE, format, vlist );
-	va_end( vlist );
+	va_start(vlist, format);
+	vsnprintf(va_buf, BUF_SIZE, format, vlist);
+	va_end(vlist);
 
-	if( from != NULL ) {
+	if (from != NULL) {
 
 #ifdef TUMBLEWEED
-		ip_sin_to_string( from, ip_buf );
-		snprintf( log_buf, BUF_SIZE, "%s %s", ip_buf, va_buf);
+		ip_sin_to_string(from, ip_buf);
+		snprintf(log_buf, BUF_SIZE, "%s %s", ip_buf, va_buf);
 #elif TORRENTKINO
-		ip_sin_to_string( from, ip_buf );
-		snprintf( log_buf, BUF_SIZE, "%s %s", va_buf, ip_buf );
+		ip_sin_to_string(from, ip_buf);
+		snprintf(log_buf, BUF_SIZE, "%s %s", va_buf, ip_buf);
 #endif
 
 	} else {
-		strncpy( log_buf, va_buf, BUF_OFF1 );
+		strncpy(log_buf, va_buf, BUF_OFF1);
 	}
 
 	/* Console or Syslog */
-	if( log_console( log ) ) {
-		printf( "%s\n", log_buf );
+	if (log_console(log)) {
+		printf("%s\n", log_buf);
 	} else {
-		openlog( LOG_NAME, LOG_PID|LOG_CONS,LOG_USER );
-		syslog( LOG_INFO, "%s", log_buf );
+		openlog(LOG_NAME, LOG_PID | LOG_CONS, LOG_USER);
+		syslog(LOG_INFO, "%s", log_buf);
 		closelog();
 	}
 }

@@ -46,8 +46,10 @@ struct obj_main *_main = NULL;
 struct obj_log *_log = NULL;
 int status = RUMBLE;
 
-struct obj_main *main_init( int argc, char **argv ) {
-	struct obj_main *_main = (struct obj_main *) myalloc( sizeof(struct obj_main) );
+struct obj_main *main_init(int argc, char **argv)
+{
+	struct obj_main *_main =
+	    (struct obj_main *)myalloc(sizeof(struct obj_main));
 
 	_main->argv = argv;
 	_main->argc = argc;
@@ -70,18 +72,20 @@ struct obj_main *main_init( int argc, char **argv ) {
 	return _main;
 }
 
-void main_free( void ) {
-	myfree( _main );
+void main_free(void)
+{
+	myfree(_main);
 }
 
-int main( int argc, char **argv ) {
+int main(int argc, char **argv)
+{
 	struct sigaction sig_stop;
 	struct sigaction sig_time;
 
-	_main = main_init( argc, argv );
+	_main = main_init(argc, argv);
 	_log = log_init();
 	_main->identity = id_init();
-	_main->conf = conf_init( argc, argv );
+	_main->conf = conf_init(argc, argv);
 	_main->work = work_init();
 
 	_main->nbhd = nbhd_init();
@@ -97,20 +101,20 @@ int main( int argc, char **argv ) {
 	conf_print();
 
 	/* Catch SIG INT */
-	unix_signal( &sig_stop, &sig_time );
+	unix_signal(&sig_stop, &sig_time);
 
 	/* Fork daemon */
-	unix_fork( log_console( _log ) );
+	unix_fork(log_console(_log));
 
 	/* Create kademlia token */
 	tkn_put();
 
 	/* Increase limits */
-	unix_limits( _main->conf->cores, CONF_EPOLL_MAX_EVENTS );
+	unix_limits(_main->conf->cores, CONF_EPOLL_MAX_EVENTS);
 
 	/* Prepare UDP daemon */
-	udp_start( _main->udp, _main->conf->p2p_port, multicast_enabled );
-	udp_start( _main->dns, _main->conf->dns_port, multicast_disabled );
+	udp_start(_main->udp, _main->conf->p2p_port, multicast_enabled);
+	udp_start(_main->dns, _main->conf->dns_port, multicast_disabled);
 
 	/* Drop privileges */
 	unix_dropuid0();
@@ -122,8 +126,8 @@ int main( int argc, char **argv ) {
 	work_stop();
 
 	/* Stop UDP daemon */
-	udp_stop( _main->dns, multicast_disabled );
-	udp_stop( _main->udp, multicast_enabled );
+	udp_stop(_main->dns, multicast_disabled);
+	udp_stop(_main->udp, multicast_enabled);
 
 	cache_free();
 	val_free();
@@ -131,12 +135,12 @@ int main( int argc, char **argv ) {
 	tdb_free();
 	tkn_free();
 	p2p_free();
-	udp_free( _main->dns );
-	udp_free( _main->udp );
-	id_free( _main->identity );
+	udp_free(_main->dns);
+	udp_free(_main->udp);
+	id_free(_main->identity);
 	work_free();
 	conf_free();
-	log_free( _log );
+	log_free(_log);
 	main_free();
 
 	return 0;

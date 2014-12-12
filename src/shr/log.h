@@ -31,15 +31,15 @@ struct obj_log {
 };
 typedef struct obj_log LOG;
 
-LOG *log_init( void );
-void log_free( LOG *log );
+LOG *log_init(void);
+void log_free(LOG * log);
 
-void log_set_verbosity( LOG *log, int verbosity );
-void log_set_mode( LOG *log, int mode );
+void log_set_verbosity(LOG * log, int verbosity);
+void log_set_mode(LOG * log, int mode);
 
-int log_verbosely( LOG *log );
-int log_console( LOG *log );
+int log_verbosely(LOG * log);
+int log_console(LOG * log);
 
-void info( LOG *log, IP *from, const char *format, ... );
+void info(LOG * log, IP * from, const char *format, ...);
 
 #endif

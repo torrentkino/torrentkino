@@ -39,10 +39,10 @@ struct obj_work {
 	pthread_mutex_t *tcp_node;
 };
 
-struct obj_work *work_init( void );
-void work_free( void );
+struct obj_work *work_init(void);
+void work_free(void);
 
-void work_start( void );
-void work_stop( void );
+void work_start(void);
+void work_stop(void);
 
 #endif

@@ -24,15 +24,17 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "sha1.h"
 
 #ifdef POLARSSL
-void sha1_hash( UCHAR *hash, const char *buffer, long int bytes ) {
-	memset( hash, '\0', SHA1_SIZE );
-	sha1( (const UCHAR *)buffer, bytes, hash );
+void sha1_hash(UCHAR * hash, const char *buffer, long int bytes)
+{
+	memset(hash, '\0', SHA1_SIZE);
+	sha1((const UCHAR *)buffer, bytes, hash);
 }
 #else
-void sha1_hash( UCHAR *hash, const char *buffer, long int bytes ) {
+void sha1_hash(UCHAR * hash, const char *buffer, long int bytes)
+{
 	blk_SHA_CTX c;
-	blk_SHA1_Init( &c );
-	blk_SHA1_Update( &c, buffer, bytes );
-	blk_SHA1_Final( hash, &c );
+	blk_SHA1_Init(&c);
+	blk_SHA1_Update(&c, buffer, bytes);
+	blk_SHA1_Final(hash, &c);
 }
 #endif

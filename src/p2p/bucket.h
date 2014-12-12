@@ -34,24 +34,24 @@ struct obj_neighboorhood_bucket {
 };
 typedef struct obj_neighboorhood_bucket BUCK;
 
-LIST *bckt_init( void );
-void bckt_free( LIST *thislist );
-int bckt_put( LIST *l, UDP_NODE *n );
-void bckt_del( LIST *l, UDP_NODE *n );
+LIST *bckt_init(void);
+void bckt_free(LIST * thislist);
+int bckt_put(LIST * l, UDP_NODE * n);
+void bckt_del(LIST * l, UDP_NODE * n);
 
-ITEM *bckt_find_best_match( LIST *thislist, const UCHAR *id );
-ITEM *bckt_find_any_match( LIST *thislist, const UCHAR *id );
-ITEM *bckt_find_node( LIST *thislist, const UCHAR *id );
+ITEM *bckt_find_best_match(LIST * thislist, const UCHAR * id);
+ITEM *bckt_find_any_match(LIST * thislist, const UCHAR * id);
+ITEM *bckt_find_node(LIST * thislist, const UCHAR * id);
 
-int bckt_split( LIST *thislist, const UCHAR *target );
-void bckt_split_loop( LIST *l, UCHAR *target, int verbose );
-void bckt_split_print( LIST *l );
+int bckt_split(LIST * thislist, const UCHAR * target);
+void bckt_split_loop(LIST * l, UCHAR * target, int verbose);
+void bckt_split_print(LIST * l);
 
-int bckt_is_empty( LIST *l );
+int bckt_is_empty(LIST * l);
 
-int bckt_compute_id( LIST *thislist, ITEM *item_b, UCHAR *id_return );
-int bckt_significant_bit( const UCHAR *id );
+int bckt_compute_id(LIST * thislist, ITEM * item_b, UCHAR * id_return);
+int bckt_significant_bit(const UCHAR * id);
 
-int bckt_compact_list( LIST *l, UCHAR *nodes_compact_list, UCHAR *target );
+int bckt_compact_list(LIST * l, UCHAR * nodes_compact_list, UCHAR * target);
 
 #endif

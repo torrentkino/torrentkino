@@ -47,149 +47,160 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "send_tcp.h"
 #include "http.h"
 
-void send_tcp( TCP_NODE *n ) {
-	switch( n->pipeline ) {
-		case NODE_SEND_INIT:
-			send_cork_start( n );
+void send_tcp(TCP_NODE * n)
+{
+	switch (n->pipeline) {
+	case NODE_SEND_INIT:
+		send_cork_start(n);
 
-		case NODE_SEND_DATA:
-			send_data( n );
+	case NODE_SEND_DATA:
+		send_data(n);
 
-		case NODE_SEND_STOP:
-			send_cork_stop( n );
+	case NODE_SEND_STOP:
+		send_cork_stop(n);
 	}
 }
 
-void send_cork_start( TCP_NODE *n ) {
+void send_cork_start(TCP_NODE * n)
+{
 	int on = 1;
 
-	if( n->pipeline != NODE_SEND_INIT ) {
+	if (n->pipeline != NODE_SEND_INIT) {
 		return;
 	}
 
-	if( setsockopt( n->connfd, IPPROTO_TCP, TCP_CORK, &on, sizeof(on)) != 0 ) {
-		fail( strerror( errno ) );
+	if (setsockopt(n->connfd, IPPROTO_TCP, TCP_CORK, &on, sizeof(on)) != 0) {
+		fail(strerror(errno));
 	}
 
-	node_status( n, NODE_SEND_DATA );
+	node_status(n, NODE_SEND_DATA);
 }
 
-void send_data( TCP_NODE *n ) {
+void send_data(TCP_NODE * n)
+{
 	ITEM *i = NULL;
 	RESPONSE *r = NULL;
 
-	if( n->pipeline != NODE_SEND_DATA ) {
+	if (n->pipeline != NODE_SEND_DATA) {
 		return;
 	}
 
-	while( status == RUMBLE && list_size( n->response ) > 0 ) {
-		i = list_start( n->response );
-		r = list_value( i );
+	while (status == RUMBLE && list_size(n->response) > 0) {
+		i = list_start(n->response);
+		r = list_value(i);
 
-		if( r->type == RESPONSE_FROM_MEMORY ) {
-			send_mem( n, i );
+		if (r->type == RESPONSE_FROM_MEMORY) {
+			send_mem(n, i);
 		} else {
-			send_file( n, i );
+			send_file(n, i);
 		}
 
-		if( n->pipeline == NODE_SHUTDOWN ) {
+		if (n->pipeline == NODE_SHUTDOWN) {
 			return;
 		}
 	}
 
-	node_status( n, NODE_SEND_STOP );
+	node_status(n, NODE_SEND_STOP);
 }
 
-void send_mem( TCP_NODE *n, ITEM *item_r ) {
-	RESPONSE *r = list_value( item_r );
+void send_mem(TCP_NODE * n, ITEM * item_r)
+{
+	RESPONSE *r = list_value(item_r);
 	ssize_t bytes_sent = 0;
 	ssize_t bytes_todo = 0;
 	char *p = NULL;
 
-	while( status == RUMBLE ) {
+	while (status == RUMBLE) {
 		p = r->data.memory.send_buf + r->data.memory.send_offset;
-		bytes_todo = r->data.memory.send_size - r->data.memory.send_offset;
+		bytes_todo =
+		    r->data.memory.send_size - r->data.memory.send_offset;
 
-		bytes_sent = send( n->connfd, p, bytes_todo, 0 );
+		bytes_sent = send(n->connfd, p, bytes_todo, 0);
 
-		if( bytes_sent < 0 ) {
-			if( errno == EAGAIN || errno == EWOULDBLOCK ) {
+		if (bytes_sent < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				return;
 			}
 
 			/* Client closed the connection, etc... */
-			node_status( n, NODE_SHUTDOWN );
+			node_status(n, NODE_SHUTDOWN);
 			return;
 		}
 
 		r->data.memory.send_offset += bytes_sent;
 
 		/* Done */
-		if( r->data.memory.send_offset >= r->data.memory.send_size ) {
-			resp_del( n->response, item_r );
+		if (r->data.memory.send_offset >= r->data.memory.send_size) {
+			resp_del(n->response, item_r);
 			return;
 		}
 	}
 }
 
-void send_file( TCP_NODE *n, ITEM *item_r ) {
-	RESPONSE *r = list_value( item_r );
+void send_file(TCP_NODE * n, ITEM * item_r)
+{
+	RESPONSE *r = list_value(item_r);
 	ssize_t bytes_sent = 0;
 	ssize_t bytes_todo = 0;
 	int fh = 0;
 
-	while( status == RUMBLE ) {
-		fh = open( r->data.file.filename, O_RDONLY );
-		if( fh < 0 ) {
-			info( _log, NULL, "Failed to open %s", r->data.file.filename );
-			fail( strerror( errno) );
+	while (status == RUMBLE) {
+		fh = open(r->data.file.filename, O_RDONLY);
+		if (fh < 0) {
+			info(_log, NULL, "Failed to open %s",
+			     r->data.file.filename);
+			fail(strerror(errno));
 		}
 
 		bytes_todo = r->data.file.f_stop + 1 - r->data.file.f_offset;
 		/* The SIGPIPE gets catched in sig.c */
-		bytes_sent = sendfile( n->connfd, fh, &r->data.file.f_offset, bytes_todo );
+		bytes_sent =
+		    sendfile(n->connfd, fh, &r->data.file.f_offset, bytes_todo);
 
-		if( close( fh ) != 0 ) {
-			info( _log, NULL, "Failed to close %s", r->data.file.filename );
-			fail( strerror( errno) );
+		if (close(fh) != 0) {
+			info(_log, NULL, "Failed to close %s",
+			     r->data.file.filename);
+			fail(strerror(errno));
 		}
 
-		if( bytes_sent < 0 ) {
-			if( errno == EAGAIN || errno == EWOULDBLOCK ) {
+		if (bytes_sent < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				/* connfd is blocking */
 				return;
 			}
 
 			/* Client closed the connection, etc... */
-			node_status( n, NODE_SHUTDOWN );
+			node_status(n, NODE_SHUTDOWN);
 			return;
 		}
 
 		/* Done */
-		if( r->data.file.f_offset > r->data.file.f_stop ) {
-			resp_del( n->response, item_r );
+		if (r->data.file.f_offset > r->data.file.f_stop) {
+			resp_del(n->response, item_r);
 			return;
 		}
 	}
 }
 
-void send_cork_stop( TCP_NODE *n ) {
+void send_cork_stop(TCP_NODE * n)
+{
 	int off = 0;
 
-	if( n->pipeline != NODE_SEND_STOP ) {
+	if (n->pipeline != NODE_SEND_STOP) {
 		return;
 	}
 
-	if( setsockopt( n->connfd, IPPROTO_TCP, TCP_CORK, &off, sizeof(off)) != 0 ) {
-		fail( strerror( errno ) );
+	if (setsockopt(n->connfd, IPPROTO_TCP, TCP_CORK, &off, sizeof(off)) !=
+	    0) {
+		fail(strerror(errno));
 	}
 
 	/* Done, Ready or shutdown connection. */
-	switch( n->keepalive ) {
-		case HTTP_KEEPALIVE:
-			node_status( n, NODE_READY );
-			break;
-		default:
-			node_status( n, NODE_SHUTDOWN );
+	switch (n->keepalive) {
+	case HTTP_KEEPALIVE:
+		node_status(n, NODE_READY);
+		break;
+	default:
+		node_status(n, NODE_SHUTDOWN);
 	}
 }

@@ -35,13 +35,13 @@ struct obj_conf {
 	unsigned int port;
 };
 
-struct obj_conf *conf_init( int argc, char **argv );
-void conf_free( void );
+struct obj_conf *conf_init(int argc, char **argv);
+void conf_free(void);
 
-void conf_usage( char *command );
-void conf_print( void );
+void conf_usage(char *command);
+void conf_print(void);
 
-void conf_home_from_env( struct obj_conf *conf );
-void conf_home_from_arg( struct obj_conf *conf, char *optarg );
+void conf_home_from_env(struct obj_conf *conf);
+void conf_home_from_arg(struct obj_conf *conf, char *optarg);
 
 #endif

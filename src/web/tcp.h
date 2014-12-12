@@ -36,24 +36,24 @@ struct obj_tcp {
 	int epollfd;
 };
 
-struct obj_tcp *tcp_init( void );
-void tcp_free( void );
+struct obj_tcp *tcp_init(void);
+void tcp_free(void);
 
-void tcp_start( void );
-void tcp_stop( void );
+void tcp_start(void);
+void tcp_stop(void);
 
-int tcp_nonblocking( int sock );
-void tcp_event( void );
+int tcp_nonblocking(int sock);
+void tcp_event(void);
 
-void *tcp_thread( void *arg );
-void tcp_worker( struct epoll_event *events, int nfds, int thrd_id );
+void *tcp_thread(void *arg);
+void tcp_worker(struct epoll_event *events, int nfds, int thrd_id);
 
-void tcp_newconn( void );
-void tcp_output( ITEM *listItem );
-void tcp_input( ITEM *listItem );
-void tcp_gate( ITEM *listItem );
-void tcp_rearm( ITEM *listItem, int mode );
+void tcp_newconn(void);
+void tcp_output(ITEM * listItem);
+void tcp_input(ITEM * listItem);
+void tcp_gate(ITEM * listItem);
+void tcp_rearm(ITEM * listItem, int mode);
 
-void tcp_buffer( TCP_NODE *n, char *buffer, ssize_t bytes );
+void tcp_buffer(TCP_NODE * n, char *buffer, ssize_t bytes);
 
-#endif /* TCP_H */
+#endif				/* TCP_H */

@@ -40,15 +40,15 @@ struct obj_tkn {
 	time_t time;
 };
 
-struct obj_token *tkn_init( void );
-void tkn_free( void );
+struct obj_token *tkn_init(void);
+void tkn_free(void);
 
-void tkn_put( void );
-void tkn_del( ITEM *item_tkn );
+void tkn_put(void);
+void tkn_del(ITEM * item_tkn);
 
-void tkn_create( UCHAR *id );
-void tkn_expire( time_t now );
-int tkn_validate( UCHAR *id );
-UCHAR *tkn_read( void );
+void tkn_create(UCHAR * id);
+void tkn_expire(time_t now);
+int tkn_validate(UCHAR * id);
+UCHAR *tkn_read(void);
 
 #endif

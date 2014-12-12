@@ -31,18 +31,18 @@ typedef struct {
 	int pinged;
 } UDP_NODE;
 
-UDP_NODE *node_init( UCHAR *node_id, IP *sa );
-void node_free( UDP_NODE *n );
+UDP_NODE *node_init(UCHAR * node_id, IP * sa);
+void node_free(UDP_NODE * n);
 
-void node_update( UDP_NODE *n, IP *sa );
+void node_update(UDP_NODE * n, IP * sa);
 
-int node_me( UCHAR *node_id );
-int node_equal( const UCHAR *node_a, const UCHAR *node_b );
+int node_me(UCHAR * node_id);
+int node_equal(const UCHAR * node_a, const UCHAR * node_b);
 
-int node_ok( UDP_NODE *n );
-int node_bad( UDP_NODE *n );
+int node_ok(UDP_NODE * n);
+int node_bad(UDP_NODE * n);
 
-void node_pinged( UDP_NODE *n );
-void node_ponged( UDP_NODE *n, IP *from );
+void node_pinged(UDP_NODE * n);
+void node_ponged(UDP_NODE * n, IP * from);
 
-#endif /* NODE_UDP_H */
+#endif				/* NODE_UDP_H */

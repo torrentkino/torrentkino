@@ -28,14 +28,15 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "random.h"
 
-void rand_urandom( void *buffer, size_t size ) {
+void rand_urandom(void *buffer, size_t size)
+{
 	UCHAR *random = NULL;
 
-	if( ( random = (UCHAR *)file_load( "/dev/urandom", 0, size)) == NULL ) {
-		fail( "Failed to read /dev/urandom" );
+	if ((random = (UCHAR *) file_load("/dev/urandom", 0, size)) == NULL) {
+		fail("Failed to read /dev/urandom");
 	}
 
-	memcpy( buffer, random, size );
+	memcpy(buffer, random, size);
 
-	myfree( random );
+	myfree(random);
 }

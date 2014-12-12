@@ -44,36 +44,40 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define _public_ __attribute__( ( visibility( "default")))
 #define _hidden_ __attribute__( ( visibility( "hidden")))
 
-enum nss_status _nss_tk_gethostbyname_r( const char *hostname,
-		struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
-		int *h_errnop) _public_;
+enum nss_status _nss_tk_gethostbyname_r(const char *hostname,
+					struct hostent *host,
+					char *buffer, size_t buflen,
+					int *errnop, int *h_errnop) _public_;
 
-enum nss_status _nss_tk_gethostbyname2_r( const char *hostname, int af,
-		struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
-		int *h_errnop) _public_;
+enum nss_status _nss_tk_gethostbyname2_r(const char *hostname, int af,
+					 struct hostent *host,
+					 char *buffer, size_t buflen,
+					 int *errnop, int *h_errnop) _public_;
 
-enum nss_status _nss_tk_gethostbyname3_r( const char *hostname, int af,
-		struct hostent *host,
-		char *buffer, size_t buflen, int *errnop,
-		int *h_errnop, int32_t *ttlp, char **canonp) _public_;
+enum nss_status _nss_tk_gethostbyname3_r(const char *hostname, int af,
+					 struct hostent *host,
+					 char *buffer, size_t buflen,
+					 int *errnop, int *h_errnop,
+					 int32_t * ttlp,
+					 char **canonp) _public_;
 
-enum nss_status _nss_tk_gethostbyname4_r( const char *hostname,
-		struct gaih_addrtuple **pat,
-		char *buffer, size_t buflen, int *errnop,
-		int *h_errnop, int32_t *ttlp) _public_;
+enum nss_status _nss_tk_gethostbyname4_r(const char *hostname,
+					 struct gaih_addrtuple **pat,
+					 char *buffer, size_t buflen,
+					 int *errnop, int *h_errnop,
+					 int32_t * ttlp) _public_;
 
-enum nss_status _nss_tk_hostent( const char *hostname, int hostsize, int af,
-		struct hostent *host, char *buffer, size_t buflen, int *errnop,
-		int *h_errnop, int32_t *ttlp, char **canonp );
+enum nss_status _nss_tk_hostent(const char *hostname, int hostsize, int af,
+				struct hostent *host, char *buffer,
+				size_t buflen, int *errnop, int *h_errnop,
+				int32_t * ttlp, char **canonp);
 
-enum nss_status _nss_tk_gaih_tuple( const char *hostname, int hostsize, struct
-		gaih_addrtuple **pat, char *buffer, size_t buflen, int *errnop,
-		int *h_errnop, int32_t *ttlp );
+enum nss_status _nss_tk_gaih_tuple(const char *hostname, int hostsize, struct
+				   gaih_addrtuple **pat, char *buffer,
+				   size_t buflen, int *errnop, int *h_errnop,
+				   int32_t * ttlp);
 
+int _nss_tk_lookup(const char *hostname, int hostsize, UCHAR * address,
+		   int address_size);
 
-int _nss_tk_lookup( const char *hostname, int hostsize, UCHAR *address,
-		int address_size );
-
-#endif /* NSS_H */
+#endif				/* NSS_H */

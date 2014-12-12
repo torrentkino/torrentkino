@@ -30,13 +30,14 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../dns/dns.h"
 #include "../p2p/lookup.h"
 
-void r_parse( UCHAR *buffer, size_t bufsize, IP *from );
-void r_lookup( char *hostname, IP *from, DNS_MSG *msg );
-int r_lookup_cache_db( UCHAR *target, IP *from, DNS_MSG *msg );
-int r_lookup_local_db( UCHAR *target, IP *from, DNS_MSG *msg );
-void r_lookup_remote( UCHAR *target, int type, IP *from, DNS_MSG *msg );
+void r_parse(UCHAR * buffer, size_t bufsize, IP * from);
+void r_lookup(char *hostname, IP * from, DNS_MSG * msg);
+int r_lookup_cache_db(UCHAR * target, IP * from, DNS_MSG * msg);
+int r_lookup_local_db(UCHAR * target, IP * from, DNS_MSG * msg);
+void r_lookup_remote(UCHAR * target, int type, IP * from, DNS_MSG * msg);
 
-void r_success( IP *from, DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_size );
-void r_failure( IP *from, DNS_MSG *msg );
+void r_success(IP * from, DNS_MSG * msg, UCHAR * nodes_compact_list,
+	       int nodes_compact_size);
+void r_failure(IP * from, DNS_MSG * msg);
 
-#endif /* RESOLVER_H */
+#endif				/* RESOLVER_H */

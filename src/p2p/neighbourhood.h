@@ -31,18 +31,18 @@ struct obj_nbhd {
 };
 typedef struct obj_nbhd NBHD;
 
-NBHD *nbhd_init( void );
-void nbhd_free( void );
+NBHD *nbhd_init(void);
+void nbhd_free(void);
 
-void nbhd_put( UCHAR *id, IP *sa );
-void nbhd_del( UDP_NODE *n );
+void nbhd_put(UCHAR * id, IP * sa);
+void nbhd_del(UDP_NODE * n);
 
-void nbhd_pinged( UCHAR *id );
-void nbhd_ponged( UCHAR *id, IP *from );
+void nbhd_pinged(UCHAR * id);
+void nbhd_ponged(UCHAR * id, IP * from);
 
-void nbhd_expire( time_t now );
-void nbhd_split( UCHAR *target, int verbose );
+void nbhd_expire(time_t now);
+void nbhd_split(UCHAR * target, int verbose);
 
-int nbhd_is_empty( void );
+int nbhd_is_empty(void);
 
 #endif

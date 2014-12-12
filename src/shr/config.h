@@ -112,4 +112,4 @@ typedef struct in_addr IN_ADDR;
 
 extern int status;
 
-#endif /* CONFIG_H */
+#endif				/* CONFIG_H */

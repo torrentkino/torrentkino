@@ -28,8 +28,8 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #define myrealloc _nss_tk_myrealloc
 #endif
 
-void *myalloc( long int size );
-void *myrealloc( void *arg, long int size );
-void myfree( void *arg );
+void *myalloc(long int size);
+void *myrealloc(void *arg, long int size);
+void myfree(void *arg);
 
-#endif /* MALLOC_H */
+#endif				/* MALLOC_H */

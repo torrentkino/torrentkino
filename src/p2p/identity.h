@@ -33,11 +33,11 @@ typedef struct {
 	time_t time_announce_host;
 } ID;
 
-LIST *id_init( void );
-void id_free( LIST *l );
+LIST *id_init(void);
+void id_free(LIST * l);
 
-void id_put( char *hostname, UCHAR *node_id, char *realm, int bool_realm );
-void id_hostid( UCHAR *host_id, char *hostname, char *realm, int bool );
-void id_print( void );
+void id_put(char *hostname, UCHAR * node_id, char *realm, int bool_realm);
+void id_hostid(UCHAR * host_id, char *hostname, char *realm, int bool);
+void id_print(void);
 
-#endif /* IDENTITY_H */
+#endif				/* IDENTITY_H */

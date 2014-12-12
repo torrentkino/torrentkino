@@ -56,23 +56,23 @@ typedef struct obj_udp UDP;
 
 #include "p2p.h"
 
-UDP *udp_init( void );
-void udp_free( UDP *udp );
+UDP *udp_init(void);
+void udp_free(UDP * udp);
 
-void udp_start( UDP *udp, int port, int multicast_mode );
-void udp_stop( UDP *udp, int multicast_mode );
+void udp_start(UDP * udp, int port, int multicast_mode);
+void udp_stop(UDP * udp, int multicast_mode);
 
-int udp_nonblocking( int sock );
-void udp_event( UDP *udp );
+int udp_nonblocking(int sock);
+void udp_event(UDP * udp);
 
-void *udp_thread( void *arg );
-void *udp_client( void *arg );
-void udp_worker( UDP *udp, struct epoll_event *events, int nfds );
-void udp_rearm( UDP *udp, int sockfd );
+void *udp_thread(void *arg);
+void *udp_client(void *arg);
+void udp_worker(UDP * udp, struct epoll_event *events, int nfds);
+void udp_rearm(UDP * udp, int sockfd);
 
-void udp_input( UDP *udp, int sockfd );
-void udp_cron( UDP *udp );
+void udp_input(UDP * udp, int sockfd);
+void udp_cron(UDP * udp);
 
-void udp_multicast( UDP *udp, int mode, int runmode );
+void udp_multicast(UDP * udp, int mode, int runmode);
 
 #endif

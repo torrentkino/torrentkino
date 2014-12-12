@@ -35,16 +35,17 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../shr/malloc.h"
 #include "../shr/log.h"
 
-void hex_hash_encode( char *out, const UCHAR *in ) {
-	UCHAR *p0 = (UCHAR *)in;
+void hex_hash_encode(char *out, const UCHAR * in)
+{
+	UCHAR *p0 = (UCHAR *) in;
 	char *p1 = out;
 	long int i = 0;
 
-	memset( out, '\0', HEX_LEN );
+	memset(out, '\0', HEX_LEN);
 
-	for( i=0; i<SHA1_SIZE; i++ ) {
-		snprintf( p1, 3, "%02x", *p0 ); 
+	for (i = 0; i < SHA1_SIZE; i++) {
+		snprintf(p1, 3, "%02x", *p0);
 		p0++;
-		p1+=2;
+		p1 += 2;
 	}
 }

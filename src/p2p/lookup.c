@@ -36,94 +36,101 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "lookup.h"
 
-LOOKUP *ldb_init( UCHAR *target, IP *from, DNS_MSG *msg ) {
-	LOOKUP *l = (LOOKUP *) myalloc( sizeof(LOOKUP) );
+LOOKUP *ldb_init(UCHAR * target, IP * from, DNS_MSG * msg)
+{
+	LOOKUP *l = (LOOKUP *) myalloc(sizeof(LOOKUP));
 
-	memcpy( l->target, target, SHA1_SIZE );
+	memcpy(l->target, target, SHA1_SIZE);
 	l->send_response_to_initiator = FALSE;
 	l->number_of_dns_responses = 0;
-	memset( &l->c_addr, '\0', sizeof( IP ) );
+	memset(&l->c_addr, '\0', sizeof(IP));
 
-	if( from != NULL ) {
+	if (from != NULL) {
 		l->send_response_to_initiator = TRUE;
-		memcpy( &l->c_addr, from, sizeof( IP ) );
-		memcpy( &l->msg, msg, sizeof( DNS_MSG ) );
+		memcpy(&l->c_addr, from, sizeof(IP));
+		memcpy(&l->msg, msg, sizeof(DNS_MSG));
 	}
 
-	l->hash = hash_init( 1000 );
+	l->hash = hash_init(1000);
 	l->list = list_init();
 
 	return l;
 }
 
-void ldb_free( LOOKUP *l ) {
-	if( l == NULL ) {
+void ldb_free(LOOKUP * l)
+{
+	if (l == NULL) {
 		return;
 	}
-	hash_free( l->hash );
-	list_clear( l->list );
-	list_free( l->list );
-	myfree( l );
+	hash_free(l->hash);
+	list_clear(l->list);
+	list_free(l->list);
+	myfree(l);
 }
 
-LONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from ) {
+LONG ldb_put(LOOKUP * l, UCHAR * node_id, IP * from)
+{
 	ITEM *i = NULL;
 	NODE_L *new = NULL;
 	NODE_L *n = NULL;
 	LONG index = 0;
 
 	/* Wow. Something is broken or this Kademlia cloud is huge. */
-	if( list_size( l->list ) >= 32767 ) {
-		info( _log, from, "ldb_put(): Too many nodes without end in sight." );
+	if (list_size(l->list) >= 32767) {
+		info(_log, from,
+		     "ldb_put(): Too many nodes without end in sight.");
 		return 32767;
 	}
 
-	new = (NODE_L *) myalloc( sizeof( NODE_L ) );
-	memcpy( new->id, node_id, SHA1_SIZE );
-	memcpy( &new->c_addr, from, sizeof( IP ) );
-	memset( new->token, '\0', TOKEN_SIZE_MAX );
+	new = (NODE_L *) myalloc(sizeof(NODE_L));
+	memcpy(new->id, node_id, SHA1_SIZE);
+	memcpy(&new->c_addr, from, sizeof(IP));
+	memset(new->token, '\0', TOKEN_SIZE_MAX);
 	new->token_size = 0;
 
 	/* Create a sorted list. The first nodes are the best fitting. */
-	i = list_start( l->list );
-	while( i != NULL ) {
-		n = list_value( i );
+	i = list_start(l->list);
+	while (i != NULL) {
+		n = list_value(i);
 
 		/* Look, whose node_id fits better to the target */
-		if( str_sha1_compare( node_id, n->id, l->target ) < 0 ) {
-			list_ins( l->list, i, new );
-			hash_put( l->hash, new->id, SHA1_SIZE, new );
+		if (str_sha1_compare(node_id, n->id, l->target) < 0) {
+			list_ins(l->list, i, new);
+			hash_put(l->hash, new->id, SHA1_SIZE, new);
 			return index;
 		}
 
-		i = list_next( i );
+		i = list_next(i);
 		index++;
 	}
 
 	/* Last resort. Append the node, so that it does not get a query again. */
-	list_put( l->list, new );
-	hash_put( l->hash, new->id, SHA1_SIZE, new );
+	list_put(l->list, new);
+	hash_put(l->hash, new->id, SHA1_SIZE, new);
 
 	return index;
 }
 
-NODE_L *ldb_find( LOOKUP *l, UCHAR *node_id ) {
-	return hash_get( l->hash, node_id, SHA1_SIZE );
+NODE_L *ldb_find(LOOKUP * l, UCHAR * node_id)
+{
+	return hash_get(l->hash, node_id, SHA1_SIZE);
 }
 
-void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from ) {
+void ldb_update(LOOKUP * l, UCHAR * node_id, BEN * token, IP * from)
+{
 	NODE_L *n = NULL;
 
-	if( ( n = hash_get( l->hash, node_id, SHA1_SIZE ) ) == NULL ) {
+	if ((n = hash_get(l->hash, node_id, SHA1_SIZE)) == NULL) {
 		return;
 	}
 
-	memcpy( &n->c_addr, from, sizeof( IP ) );
-	memcpy( &n->token, ben_str_s( token ), ben_str_i( token ) );
-	n->token_size = ben_str_i( token );
+	memcpy(&n->c_addr, from, sizeof(IP));
+	memcpy(&n->token, ben_str_s(token), ben_str_i(token));
+	n->token_size = ben_str_i(token);
 }
 
-int ldb_number_of_dns_responses( LOOKUP *l ) {
+int ldb_number_of_dns_responses(LOOKUP * l)
+{
 	int current_number = l->number_of_dns_responses;
 
 	/* Increase the number of send DNS responses to a client by 1

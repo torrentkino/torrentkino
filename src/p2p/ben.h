@@ -83,7 +83,7 @@ typedef struct {
 typedef struct {
 	int t;
 
-	union  {
+	union {
 		LONG i;
 		STR *s;
 		LIST *d;
@@ -102,54 +102,54 @@ typedef struct {
 	UCHAR *p;
 } RAW;
 
-BEN *ben_init( int type );
-void ben_free( BEN *node );
-void ben_free_r( BEN *node );
-ITEM *ben_free_item( BEN *node, ITEM *item );
+BEN *ben_init(int type);
+void ben_free(BEN * node);
+void ben_free_r(BEN * node);
+ITEM *ben_free_item(BEN * node, ITEM * item);
 
-RAW *raw_init( void );
-void raw_free( RAW *raw );
+RAW *raw_init(void);
+void raw_free(RAW * raw);
 
-void ben_dict( BEN *node, BEN *key, BEN *val );
-void ben_list( BEN *node, BEN *val );
-void ben_str( BEN *node, UCHAR *str, LONG len );
-void ben_int( BEN *node, LONG i );
+void ben_dict(BEN * node, BEN * key, BEN * val);
+void ben_list(BEN * node, BEN * val);
+void ben_str(BEN * node, UCHAR * str, LONG len);
+void ben_int(BEN * node, LONG i);
 
-TUPLE *tuple_init( BEN *key, BEN *val );
-void tuple_free( TUPLE *tuple );
+TUPLE *tuple_init(BEN * key, BEN * val);
+void tuple_free(TUPLE * tuple);
 
-RAW *ben_enc( BEN *node );
-UCHAR *ben_enc_rec( BEN *node, UCHAR *p );
-LONG ben_enc_size( BEN *node );
+RAW *ben_enc(BEN * node);
+UCHAR *ben_enc_rec(BEN * node, UCHAR * p);
+LONG ben_enc_size(BEN * node);
 
-int ben_validate( UCHAR *bencode, LONG bensize );
-int ben_validate_r( RAW *raw );
-int ben_validate_d( RAW *raw );
-int ben_validate_l( RAW *raw );
-int ben_validate_i( RAW *raw );
-int ben_validate_s( RAW *raw );
+int ben_validate(UCHAR * bencode, LONG bensize);
+int ben_validate_r(RAW * raw);
+int ben_validate_d(RAW * raw);
+int ben_validate_l(RAW * raw);
+int ben_validate_i(RAW * raw);
+int ben_validate_s(RAW * raw);
 
-BEN *ben_dec( UCHAR *bencode, LONG bensize );
-BEN *ben_dec_r( RAW *raw );
-BEN *ben_dec_d( RAW *raw );
-BEN *ben_dec_l( RAW *raw );
-BEN *ben_dec_i( RAW *raw );
-BEN *ben_dec_s( RAW *raw );
+BEN *ben_dec(UCHAR * bencode, LONG bensize);
+BEN *ben_dec_r(RAW * raw);
+BEN *ben_dec_d(RAW * raw);
+BEN *ben_dec_l(RAW * raw);
+BEN *ben_dec_i(RAW * raw);
+BEN *ben_dec_s(RAW * raw);
 
-int ben_is_dict( BEN *node );
-int ben_is_list( BEN *node );
-int ben_is_str( BEN *node );
-int ben_is_int( BEN *node );
+int ben_is_dict(BEN * node);
+int ben_is_list(BEN * node);
+int ben_is_str(BEN * node);
+int ben_is_int(BEN * node);
 
-BEN *ben_dict_search_key( BEN *node, BEN *key );
-BEN *ben_dict_search_str( BEN *node, const char *buffer );
+BEN *ben_dict_search_key(BEN * node, BEN * key);
+BEN *ben_dict_search_str(BEN * node, const char *buffer);
 
-int ben_compare( BEN *key1, BEN *key2 );
+int ben_compare(BEN * key1, BEN * key2);
 
-UCHAR *ben_str_s( BEN *node );
-LONG ben_str_i( BEN *node );
+UCHAR *ben_str_s(BEN * node);
+LONG ben_str_i(BEN * node);
 
-STR *str_init( UCHAR *buf, LONG size );
-void str_free( STR *str );
+STR *str_init(UCHAR * buf, LONG size);
+void str_free(STR * str);
 
 #endif

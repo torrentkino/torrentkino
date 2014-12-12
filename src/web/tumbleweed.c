@@ -45,8 +45,10 @@ struct obj_main *_main = NULL;
 struct obj_log *_log = NULL;
 int status = RUMBLE;
 
-struct obj_main *main_init( int argc, char **argv ) {
-	struct obj_main *_main = (struct obj_main *) myalloc( sizeof(struct obj_main) );
+struct obj_main *main_init(int argc, char **argv)
+{
+	struct obj_main *_main =
+	    (struct obj_main *)myalloc(sizeof(struct obj_main));
 
 	_main->argv = argv;
 	_main->argc = argc;
@@ -56,24 +58,26 @@ struct obj_main *main_init( int argc, char **argv ) {
 
 	_main->node = NULL;
 	_main->mime = NULL;
-	_main->tcp  = NULL;
+	_main->tcp = NULL;
 
 	_log = NULL;
 
 	return _main;
 }
 
-void main_free( void ) {
-	myfree( _main );
+void main_free(void)
+{
+	myfree(_main);
 }
 
-int main( int argc, char **argv ) {
+int main(int argc, char **argv)
+{
 	struct sigaction sig_stop;
 	struct sigaction sig_time;
 
-	_main = main_init( argc, argv );
+	_main = main_init(argc, argv);
 	_log = log_init();
-	_main->conf = conf_init( argc, argv );
+	_main->conf = conf_init(argc, argv);
 	_main->work = work_init();
 
 	_main->tcp = tcp_init();
@@ -84,13 +88,13 @@ int main( int argc, char **argv ) {
 	conf_print();
 
 	/* Catch SIG INT */
-	unix_signal( &sig_stop, &sig_time );
+	unix_signal(&sig_stop, &sig_time);
 
 	/* Fork daemon */
-	unix_fork( log_console( _log ) );
+	unix_fork(log_console(_log));
 
 	/* Increase limits */
-	unix_limits( _main->conf->cores, CONF_EPOLL_MAX_EVENTS );
+	unix_limits(_main->conf->cores, CONF_EPOLL_MAX_EVENTS);
 
 	/* Load mime types */
 	mime_load();
@@ -117,7 +121,7 @@ int main( int argc, char **argv ) {
 
 	work_free();
 	conf_free();
-	log_free( _log );
+	log_free(_log);
 	main_free();
 
 	return 0;

@@ -62,10 +62,10 @@ struct obj_conf {
 };
 typedef struct obj_conf CONF;
 
-struct obj_conf *conf_init( int argc, char **argv );
-void conf_free( void );
+struct obj_conf *conf_init(int argc, char **argv);
+void conf_free(void);
 
-void conf_usage( char *command );
-void conf_print( void );
+void conf_usage(char *command);
+void conf_print(void);
 
 #endif

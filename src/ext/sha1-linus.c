@@ -57,11 +57,11 @@
  */
 
 #if defined(__i386__) || defined(__x86_64__)
-  #define setW(x, val) (*(volatile unsigned int *)&W(x) = (val))
+#define setW(x, val) (*(volatile unsigned int *)&W(x) = (val))
 #elif defined(__GNUC__) && defined(__arm__)
-  #define setW(x, val) do { W(x) = (val); __asm__("":::"memory"); } while (0)
+#define setW(x, val) do { W(x) = (val); __asm__("":::"memory"); } while (0)
 #else
-  #define setW(x, val) (W(x) = (val))
+#define setW(x, val) (W(x) = (val))
 #endif
 
 /*
@@ -117,9 +117,9 @@
 #define T_40_59(t, A, B, C, D, E) SHA_ROUND(t, SHA_MIX, ((B&C)+(D&(B^C))) , 0x8f1bbcdc, A, B, C, D, E )
 #define T_60_79(t, A, B, C, D, E) SHA_ROUND(t, SHA_MIX, (B^C^D) ,  0xca62c1d6, A, B, C, D, E )
 
-static void blk_SHA1_Block(blk_SHA_CTX *ctx, const void *block)
+static void blk_SHA1_Block(blk_SHA_CTX * ctx, const void *block)
 {
-	unsigned int A,B,C,D,E;
+	unsigned int A, B, C, D, E;
 	unsigned int array[16];
 
 	A = ctx->H[0];
@@ -129,16 +129,16 @@ static void blk_SHA1_Block(blk_SHA_CTX *ctx, const void *block)
 	E = ctx->H[4];
 
 	/* Round 1 - iterations 0-16 take their input from 'block' */
-	T_0_15( 0, A, B, C, D, E);
-	T_0_15( 1, E, A, B, C, D);
-	T_0_15( 2, D, E, A, B, C);
-	T_0_15( 3, C, D, E, A, B);
-	T_0_15( 4, B, C, D, E, A);
-	T_0_15( 5, A, B, C, D, E);
-	T_0_15( 6, E, A, B, C, D);
-	T_0_15( 7, D, E, A, B, C);
-	T_0_15( 8, C, D, E, A, B);
-	T_0_15( 9, B, C, D, E, A);
+	T_0_15(0, A, B, C, D, E);
+	T_0_15(1, E, A, B, C, D);
+	T_0_15(2, D, E, A, B, C);
+	T_0_15(3, C, D, E, A, B);
+	T_0_15(4, B, C, D, E, A);
+	T_0_15(5, A, B, C, D, E);
+	T_0_15(6, E, A, B, C, D);
+	T_0_15(7, D, E, A, B, C);
+	T_0_15(8, C, D, E, A, B);
+	T_0_15(9, B, C, D, E, A);
 	T_0_15(10, A, B, C, D, E);
 	T_0_15(11, E, A, B, C, D);
 	T_0_15(12, D, E, A, B, C);
@@ -225,7 +225,7 @@ static void blk_SHA1_Block(blk_SHA_CTX *ctx, const void *block)
 	ctx->H[4] += E;
 }
 
-void blk_SHA1_Init(blk_SHA_CTX *ctx)
+void blk_SHA1_Init(blk_SHA_CTX * ctx)
 {
 	ctx->size = 0;
 
@@ -237,7 +237,7 @@ void blk_SHA1_Init(blk_SHA_CTX *ctx)
 	ctx->H[4] = 0xc3d2e1f0;
 }
 
-void blk_SHA1_Update(blk_SHA_CTX *ctx, const void *data, unsigned long len)
+void blk_SHA1_Update(blk_SHA_CTX * ctx, const void *data, unsigned long len)
 {
 	unsigned int lenW = ctx->size & 63;
 
@@ -265,21 +265,21 @@ void blk_SHA1_Update(blk_SHA_CTX *ctx, const void *data, unsigned long len)
 		memcpy(ctx->W, data, len);
 }
 
-void blk_SHA1_Final(unsigned char hashout[20], blk_SHA_CTX *ctx)
+void blk_SHA1_Final(unsigned char hashout[20], blk_SHA_CTX * ctx)
 {
 	static const unsigned char pad[64] = { 0x80 };
 	unsigned int padlen[2];
 	int i;
 
 	/* Pad with a binary 1 (ie 0x80), then zeroes, then length */
-	padlen[0] = htonl((uint32_t)(ctx->size >> 29));
-	padlen[1] = htonl((uint32_t)(ctx->size << 3));
+	padlen[0] = htonl((uint32_t) (ctx->size >> 29));
+	padlen[1] = htonl((uint32_t) (ctx->size << 3));
 
 	i = ctx->size & 63;
-	blk_SHA1_Update(ctx, pad, 1+ (63 & (55 - i)));
+	blk_SHA1_Update(ctx, pad, 1 + (63 & (55 - i)));
 	blk_SHA1_Update(ctx, padlen, 8);
 
 	/* Output hash */
 	for (i = 0; i < 5; i++)
-		put_be32(hashout + i*4, ctx->H[i]);
+		put_be32(hashout + i * 4, ctx->H[i]);
 }

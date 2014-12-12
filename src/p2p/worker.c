@@ -39,8 +39,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "../dns/dns.h"
 #include "torrentkino.h"
 
-struct obj_work *work_init( void ) {
-	struct obj_work *work = (struct obj_work *) myalloc( sizeof(struct obj_work) );
+struct obj_work *work_init(void)
+{
+	struct obj_work *work =
+	    (struct obj_work *)myalloc(sizeof(struct obj_work));
 	work->mutex = mutex_init();
 	work->threads = NULL;
 	work->id = 0;
@@ -51,55 +53,60 @@ struct obj_work *work_init( void ) {
 	return work;
 }
 
-void work_free( void ) {
-	mutex_destroy( _main->work->mutex );
-	myfree( _main->work );
+void work_free(void)
+{
+	mutex_destroy(_main->work->mutex);
+	myfree(_main->work);
 }
 
-void work_start( void ) {
-	int number_of_worker = _main->work->number_of_threads-1;
+void work_start(void)
+{
+	int number_of_worker = _main->work->number_of_threads - 1;
 
-	info( _log, NULL, "Worker: %i", number_of_worker );
+	info(_log, NULL, "Worker: %i", number_of_worker);
 
 	/* Initialize and set thread detached attribute */
-	pthread_attr_init( &_main->work->attr );
-	pthread_attr_setdetachstate( &_main->work->attr, PTHREAD_CREATE_JOINABLE );
+	pthread_attr_init(&_main->work->attr);
+	pthread_attr_setdetachstate(&_main->work->attr,
+				    PTHREAD_CREATE_JOINABLE);
 
-	_main->work->threads = (pthread_t **) myalloc(
-		_main->work->number_of_threads * sizeof(pthread_t *) );
+	_main->work->threads =
+	    (pthread_t **) myalloc(_main->work->number_of_threads *
+				   sizeof(pthread_t *));
 
 	/* P2P Server */
-	_main->work->threads[0] = (pthread_t *) myalloc( sizeof(pthread_t) );
-	if( pthread_create( _main->work->threads[0], &_main->work->attr,
-			udp_thread, _main->udp ) != 0 ) {
-		fail( "pthread_create()" );
+	_main->work->threads[0] = (pthread_t *) myalloc(sizeof(pthread_t));
+	if (pthread_create(_main->work->threads[0], &_main->work->attr,
+			   udp_thread, _main->udp) != 0) {
+		fail("pthread_create()");
 	}
 
 	/* DNS Server */
-	_main->work->threads[1] = (pthread_t *) myalloc( sizeof(pthread_t) );
-	if( pthread_create( _main->work->threads[1], &_main->work->attr,
-			udp_thread, _main->dns ) != 0 ) {
-		fail( "pthread_create()" );
+	_main->work->threads[1] = (pthread_t *) myalloc(sizeof(pthread_t));
+	if (pthread_create(_main->work->threads[1], &_main->work->attr,
+			   udp_thread, _main->dns) != 0) {
+		fail("pthread_create()");
 	}
 
 	/* Send 1st request while the P2P worker is starting */
-	_main->work->threads[2] = (pthread_t *) myalloc( sizeof(pthread_t) );
-	if( pthread_create( _main->work->threads[2], &_main->work->attr,
-			udp_client, _main->udp ) != 0 ) {
-		fail( "pthread_create()" );
+	_main->work->threads[2] = (pthread_t *) myalloc(sizeof(pthread_t));
+	if (pthread_create(_main->work->threads[2], &_main->work->attr,
+			   udp_client, _main->udp) != 0) {
+		fail("pthread_create()");
 	}
 }
 
-void work_stop( void ) {
+void work_stop(void)
+{
 	int i = 0;
 
 	/* Join threads */
-	pthread_attr_destroy( &_main->work->attr );
-	for( i=0; i < _main->work->number_of_threads; i++ ) {
-		if( pthread_join( *_main->work->threads[i], NULL) != 0 ) {
-			fail( "pthread_join() failed" );
+	pthread_attr_destroy(&_main->work->attr);
+	for (i = 0; i < _main->work->number_of_threads; i++) {
+		if (pthread_join(*_main->work->threads[i], NULL) != 0) {
+			fail("pthread_join() failed");
 		}
-		myfree( _main->work->threads[i] );
+		myfree(_main->work->threads[i]);
 	}
-	myfree( _main->work->threads );
+	myfree(_main->work->threads);
 }

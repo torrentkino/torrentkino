@@ -47,22 +47,27 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "p2p.h"
 #include "time.h"
 
-void time_add_1_min( time_t *time ) {
+void time_add_1_min(time_t * time)
+{
 	*time = _main->p2p->time_now.tv_sec + 60;
 }
 
-void time_add_30_min( time_t *time ) {
+void time_add_30_min(time_t * time)
+{
 	*time = _main->p2p->time_now.tv_sec + 1800;
 }
 
-void time_add_5_sec_approx( time_t *time ) {
+void time_add_5_sec_approx(time_t * time)
+{
 	*time = _main->p2p->time_now.tv_sec + 4 + random() % 3;
 }
 
-void time_add_1_min_approx( time_t *time ) {
+void time_add_1_min_approx(time_t * time)
+{
 	*time = _main->p2p->time_now.tv_sec + 50 + random() % 20;
 }
 
-void time_add_5_min_approx( time_t *time ) {
+void time_add_5_min_approx(time_t * time)
+{
 	*time = _main->p2p->time_now.tv_sec + 240 + random() % 120;
 }

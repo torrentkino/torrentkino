@@ -28,7 +28,7 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 typedef struct {
 	/* What are we looking for */
-    UCHAR target[SHA1_SIZE];
+	UCHAR target[SHA1_SIZE];
 
 	LIST *list;
 	HASH *hash;
@@ -48,14 +48,14 @@ typedef struct {
 	int token_size;
 } NODE_L;
 
-LOOKUP *ldb_init( UCHAR *target, IP *from, DNS_MSG *msg );
-void ldb_free( LOOKUP *l );
+LOOKUP *ldb_init(UCHAR * target, IP * from, DNS_MSG * msg);
+void ldb_free(LOOKUP * l);
 
-LONG ldb_put( LOOKUP *l, UCHAR *node_id, IP *from );
+LONG ldb_put(LOOKUP * l, UCHAR * node_id, IP * from);
 
-NODE_L *ldb_find( LOOKUP *l, UCHAR *node_id );
-void ldb_update( LOOKUP *l, UCHAR *node_id, BEN *token, IP *from );
+NODE_L *ldb_find(LOOKUP * l, UCHAR * node_id);
+void ldb_update(LOOKUP * l, UCHAR * node_id, BEN * token, IP * from);
 
-int ldb_number_of_dns_responses( LOOKUP *l );
+int ldb_number_of_dns_responses(LOOKUP * l);
 
 #endif

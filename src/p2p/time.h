@@ -20,10 +20,10 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef TIME_H
 #define TIME_H
 
-void time_add_1_min( time_t *time );
-void time_add_30_min( time_t *time );
-void time_add_5_sec_approx( time_t *time );
-void time_add_1_min_approx( time_t *time );
-void time_add_5_min_approx( time_t *time );
+void time_add_1_min(time_t * time);
+void time_add_30_min(time_t * time);
+void time_add_5_sec_approx(time_t * time);
+void time_add_1_min_approx(time_t * time);
+void time_add_5_min_approx(time_t * time);
 
 #endif

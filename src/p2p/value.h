@@ -51,28 +51,28 @@ typedef struct {
 	time_t eol;
 } NODE_V;
 
-VALUE *val_init( void );
-void val_free( void );
-void val_clean( void );
-void val_put( UCHAR *target_id, UCHAR *node_id, int port, IP *from );
-void val_del( ITEM *i );
-TARGET_V *val_ins_sort( UCHAR *target_id );
-void val_expire( time_t now );
-void val_print( void );
-int val_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id );
-TARGET_V *val_find( UCHAR *target_id );
+VALUE *val_init(void);
+void val_free(void);
+void val_clean(void);
+void val_put(UCHAR * target_id, UCHAR * node_id, int port, IP * from);
+void val_del(ITEM * i);
+TARGET_V *val_ins_sort(UCHAR * target_id);
+void val_expire(time_t now);
+void val_print(void);
+int val_compact_list(UCHAR * nodes_compact_list, UCHAR * target_id);
+TARGET_V *val_find(UCHAR * target_id);
 
-TARGET_V *tgt_v_init( UCHAR *target_id );
-void tgt_v_free( TARGET_V *target );
-void tgt_v_put( TARGET_V *target, UCHAR *node_id, IP *from, int port );
-void tgt_v_del( TARGET_V *target, ITEM *i );
-void tgt_v_expire( TARGET_V *target, time_t now );
-void tgt_v_print( TARGET_V *target );
-ITEM *tgt_v_find( TARGET_V *target, UCHAR *pair );
-void tgt_v_update( TARGET_V *target, UCHAR *node_id, IP *from, int port );
+TARGET_V *tgt_v_init(UCHAR * target_id);
+void tgt_v_free(TARGET_V * target);
+void tgt_v_put(TARGET_V * target, UCHAR * node_id, IP * from, int port);
+void tgt_v_del(TARGET_V * target, ITEM * i);
+void tgt_v_expire(TARGET_V * target, time_t now);
+void tgt_v_print(TARGET_V * target);
+ITEM *tgt_v_find(TARGET_V * target, UCHAR * pair);
+void tgt_v_update(TARGET_V * target, UCHAR * node_id, IP * from, int port);
 
-NODE_V *node_v_init( UCHAR *node_id, IP *from, int port );
-void node_v_free( NODE_V *node_v );
-void node_v_update( NODE_V *node_v, UCHAR *node_id, IP *from, int port );
+NODE_V *node_v_init(UCHAR * node_id, IP * from, int port);
+void node_v_free(NODE_V * node_v);
+void node_v_update(NODE_V * node_v, UCHAR * node_id, IP * from, int port);
 
 #endif

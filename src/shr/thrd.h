@@ -23,19 +23,19 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "fail.h"
 #include "malloc.h"
 
-pthread_mutex_t *mutex_init( void );
-void mutex_destroy( pthread_mutex_t *mutex );
-void mutex_block( pthread_mutex_t *mutex );
-void mutex_unblock( pthread_mutex_t *mutex );
+pthread_mutex_t *mutex_init(void);
+void mutex_destroy(pthread_mutex_t * mutex);
+void mutex_block(pthread_mutex_t * mutex);
+void mutex_unblock(pthread_mutex_t * mutex);
 
 #if 0
-sem_t *thrd_init( const char *semname );
-void thrd_destroy( sem_t *mutex );
-void thrd_block( sem_t *mutex );
-void thrd_unblock( sem_t *mutex );
+sem_t *thrd_init(const char *semname);
+void thrd_destroy(sem_t * mutex);
+void thrd_block(sem_t * mutex);
+void thrd_unblock(sem_t * mutex);
 
-pthread_cond_t *cond_init( void );
-void cond_destroy( pthread_cond_t *cond );
+pthread_cond_t *cond_init(void);
+void cond_destroy(pthread_cond_t * cond);
 #endif
 
 #endif

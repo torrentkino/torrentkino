@@ -27,8 +27,8 @@ struct obj_main {
 	char **argv;
 	int argc;
 
-	struct obj_conf	*conf;
-	struct obj_work	*work;
+	struct obj_conf *conf;
+	struct obj_work *work;
 
 #ifdef TORRENTKINO
 	struct obj_transaction *transaction;
@@ -50,7 +50,7 @@ struct obj_main {
 
 extern struct obj_main *_main;
 
-struct obj_main *main_init( int argc, char **argv );
-void main_free( void );
+struct obj_main *main_init(int argc, char **argv);
+void main_free(void);
 
 #endif

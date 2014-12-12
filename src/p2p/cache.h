@@ -52,31 +52,32 @@ typedef struct {
 	time_t eol;
 } NODE_C;
 
-CACHE *cache_init( void );
-void cache_free( void );
-void cache_clean( void );
-void cache_put( UCHAR *target_id, UCHAR *nodes_compact_list, int nodes_compact_size );
-void cache_del( ITEM *i );
-TARGET_C *cache_prepare( UCHAR *target_id );
-void cache_expire( time_t now );
-void cache_renew( time_t now );
-void cache_print( void );
-int cache_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id );
-TARGET_C *cache_find( UCHAR *target_id );
+CACHE *cache_init(void);
+void cache_free(void);
+void cache_clean(void);
+void cache_put(UCHAR * target_id, UCHAR * nodes_compact_list,
+	       int nodes_compact_size);
+void cache_del(ITEM * i);
+TARGET_C *cache_prepare(UCHAR * target_id);
+void cache_expire(time_t now);
+void cache_renew(time_t now);
+void cache_print(void);
+int cache_compact_list(UCHAR * nodes_compact_list, UCHAR * target_id);
+TARGET_C *cache_find(UCHAR * target_id);
 
-TARGET_C *tgt_c_init( UCHAR *target_id );
-void tgt_c_free( TARGET_C *target );
-void tgt_c_put( TARGET_C *target, UCHAR *pair );
-void tgt_c_del( TARGET_C *target, ITEM *i );
-void tgt_c_expire( TARGET_C *target, time_t now );
-void tgt_c_print( TARGET_C *target );
-ITEM *tgt_c_find( TARGET_C *target, UCHAR *pair );
-void tgt_c_update( TARGET_C *target, UCHAR *pair );
+TARGET_C *tgt_c_init(UCHAR * target_id);
+void tgt_c_free(TARGET_C * target);
+void tgt_c_put(TARGET_C * target, UCHAR * pair);
+void tgt_c_del(TARGET_C * target, ITEM * i);
+void tgt_c_expire(TARGET_C * target, time_t now);
+void tgt_c_print(TARGET_C * target);
+ITEM *tgt_c_find(TARGET_C * target, UCHAR * pair);
+void tgt_c_update(TARGET_C * target, UCHAR * pair);
 
-NODE_C *node_c_init( UCHAR *pair );
-void node_c_free( NODE_C *node_c );
-void node_c_update( NODE_C *node_c, UCHAR *pair );
+NODE_C *node_c_init(UCHAR * pair);
+void node_c_free(NODE_C * node_c);
+void node_c_update(NODE_C * node_c, UCHAR * pair);
 
-int cache_strict_error( UCHAR *p );
+int cache_strict_error(UCHAR * p);
 
-#endif /* CACHE_H */
+#endif				/* CACHE_H */

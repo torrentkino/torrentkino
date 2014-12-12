@@ -59,49 +59,51 @@ struct obj_p2p {
 };
 typedef struct obj_p2p P2P;
 
-P2P *p2p_init( void );
-void p2p_free( void );
+P2P *p2p_init(void);
+void p2p_free(void);
 
-void p2p_bootstrap( void );
-void p2p_bootstrap_this( const char *bootstrap_node, int bootstrap_port );
+void p2p_bootstrap(void);
+void p2p_bootstrap_this(const char *bootstrap_node, int bootstrap_port);
 
-void p2p_cron( void );
-void p2p_cron_ping( void );
-void p2p_cron_find_myself( void );
-void p2p_cron_find_random( void );
-void p2p_cron_find( UCHAR *target );
-void p2p_cron_announce( ITEM *ti );
-void p2p_cron_lookup_all( void );
-void p2p_cron_lookup( UCHAR *target, int type );
+void p2p_cron(void);
+void p2p_cron_ping(void);
+void p2p_cron_find_myself(void);
+void p2p_cron_find_random(void);
+void p2p_cron_find(UCHAR * target);
+void p2p_cron_announce(ITEM * ti);
+void p2p_cron_lookup_all(void);
+void p2p_cron_lookup(UCHAR * target, int type);
 
-void p2p_parse( UCHAR *bencode, size_t bensize, IP *from );
+void p2p_parse(UCHAR * bencode, size_t bensize, IP * from);
 #ifdef POLARSSL
-void p2p_decrypt( UCHAR *bencode, size_t bensize, IP *from );
+void p2p_decrypt(UCHAR * bencode, size_t bensize, IP * from);
 #endif
-void p2p_decode( UCHAR *bencode, size_t bensize, IP *from );
+void p2p_decode(UCHAR * bencode, size_t bensize, IP * from);
 
-void p2p_request( BEN *packet, IP *from );
-void p2p_reply( BEN *packet, IP *from );
-void p2p_error( BEN *packet, IP *from );
+void p2p_request(BEN * packet, IP * from);
+void p2p_reply(BEN * packet, IP * from);
+void p2p_error(BEN * packet, IP * from);
 
-void p2p_ping( BEN *tid, IP *from );
-void p2p_pong( UCHAR *node_id, IP *from );
+void p2p_ping(BEN * tid, IP * from);
+void p2p_pong(UCHAR * node_id, IP * from);
 
-void p2p_find_node_get_request( BEN *arg, BEN *tid, IP *from );
-void p2p_find_node_get_reply( BEN *arg, UCHAR *node_id, IP *from );
+void p2p_find_node_get_request(BEN * arg, BEN * tid, IP * from);
+void p2p_find_node_get_reply(BEN * arg, UCHAR * node_id, IP * from);
 
-void p2p_get_peers_get_request( BEN *arg, BEN *tid, IP *from );
-void p2p_get_peers_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from );
-void p2p_get_peers_get_nodes( BEN *nodes, UCHAR *node_id, ITEM *ti, BEN *token, IP *from );
-void p2p_get_peers_get_values( BEN *values, UCHAR *node_id, ITEM *ti, BEN *token, IP *from );
+void p2p_get_peers_get_request(BEN * arg, BEN * tid, IP * from);
+void p2p_get_peers_get_reply(BEN * arg, UCHAR * node_id, ITEM * ti, IP * from);
+void p2p_get_peers_get_nodes(BEN * nodes, UCHAR * node_id, ITEM * ti,
+			     BEN * token, IP * from);
+void p2p_get_peers_get_values(BEN * values, UCHAR * node_id, ITEM * ti,
+			      BEN * token, IP * from);
 
-void p2p_announce_get_request( BEN *arg, UCHAR *node_id, BEN *tid, IP *from );
-void p2p_announce_get_reply( BEN *arg, UCHAR *node_id, ITEM *ti, IP *from );
+void p2p_announce_get_request(BEN * arg, UCHAR * node_id, BEN * tid, IP * from);
+void p2p_announce_get_reply(BEN * arg, UCHAR * node_id, ITEM * ti, IP * from);
 
-int p2p_packet_from_myself( UCHAR *node_id );
+int p2p_packet_from_myself(UCHAR * node_id);
 
-int p2p_is_hash( BEN *node );
-int p2p_is_ip( BEN *node );
-int p2p_is_port( BEN *node );
+int p2p_is_hash(BEN * node);
+int p2p_is_ip(BEN * node);
+int p2p_is_port(BEN * node);
 
 #endif

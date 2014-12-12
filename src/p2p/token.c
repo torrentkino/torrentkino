@@ -38,91 +38,100 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 #include "torrentkino.h"
 #include "value.h"
 
-struct obj_token *tkn_init( void ) {
-	struct obj_token *token = (struct obj_token *) myalloc( sizeof(struct obj_token) );
+struct obj_token *tkn_init(void)
+{
+	struct obj_token *token =
+	    (struct obj_token *)myalloc(sizeof(struct obj_token));
 	token->list = list_init();
-	token->hash = hash_init( 10 );
+	token->hash = hash_init(10);
 	/* memset( token->null, '\0', TOKEN_SIZE ); */
 	return token;
 }
 
-void tkn_free( void ) {
-	list_clear( _main->token->list );
-	list_free( _main->token->list );
-	hash_free( _main->token->hash );
-	myfree( _main->token );
+void tkn_free(void)
+{
+	list_clear(_main->token->list);
+	list_free(_main->token->list);
+	hash_free(_main->token->hash);
+	myfree(_main->token);
 }
 
-void tkn_put( void ) {
+void tkn_put(void)
+{
 	ITEM *item_tkn = NULL;
 	struct obj_tkn *tkn = NULL;
 
-	tkn = (struct obj_tkn *) myalloc( sizeof(struct obj_tkn) );
+	tkn = (struct obj_tkn *)myalloc(sizeof(struct obj_tkn));
 
 	/* ID */
-	tkn_create( tkn->id );
+	tkn_create(tkn->id);
 
 	/* Availability */
-	time_add_30_min( &tkn->time );
+	time_add_30_min(&tkn->time);
 
-	item_tkn = list_put( _main->token->list, tkn );
-	hash_put( _main->token->hash, tkn->id, TOKEN_SIZE, item_tkn );
+	item_tkn = list_put(_main->token->list, tkn);
+	hash_put(_main->token->hash, tkn->id, TOKEN_SIZE, item_tkn);
 }
 
-void tkn_del( ITEM *item_tkn ) {
-	struct obj_tkn *tkn = list_value( item_tkn );
-	hash_del( _main->token->hash, tkn->id, TOKEN_SIZE );
-	list_del( _main->token->list, item_tkn );
-	myfree( tkn );
+void tkn_del(ITEM * item_tkn)
+{
+	struct obj_tkn *tkn = list_value(item_tkn);
+	hash_del(_main->token->hash, tkn->id, TOKEN_SIZE);
+	list_del(_main->token->list, item_tkn);
+	myfree(tkn);
 }
 
-void tkn_expire( time_t now ) {
+void tkn_expire(time_t now)
+{
 	ITEM *item_tkn = NULL;
 	ITEM *next_tkn = NULL;
 	struct obj_tkn *tkn = NULL;
 
-	item_tkn = list_start( _main->token->list );
-	while( item_tkn != NULL ) {
-		tkn = list_value( item_tkn );
-		next_tkn = list_next( item_tkn );
+	item_tkn = list_start(_main->token->list);
+	while (item_tkn != NULL) {
+		tkn = list_value(item_tkn);
+		next_tkn = list_next(item_tkn);
 
 		/* Bad token */
-		if( now > tkn->time ) {
-			tkn_del( item_tkn );
+		if (now > tkn->time) {
+			tkn_del(item_tkn);
 		}
 		item_tkn = next_tkn;
 	}
 }
 
-int tkn_validate( UCHAR *id ) {
+int tkn_validate(UCHAR * id)
+{
 	ITEM *item_tkn = NULL;
 
 	/* Token not found */
-	if( ( item_tkn = hash_get( _main->token->hash, id, TOKEN_SIZE)) == NULL ) {
+	if ((item_tkn = hash_get(_main->token->hash, id, TOKEN_SIZE)) == NULL) {
 		return 0;
 	}
 
 	return 1;
 }
 
-void tkn_create( UCHAR *id ) {
+void tkn_create(UCHAR * id)
+{
 	int i = 0;
 	int max = 1000;
 
 	/* Create unique ID but do not try this forever */
 	do {
-		rand_urandom( id, TOKEN_SIZE );
+		rand_urandom(id, TOKEN_SIZE);
 		i++;
-	} while( hash_exists( _main->token->hash, id, TOKEN_SIZE) && i < max );
+	} while (hash_exists(_main->token->hash, id, TOKEN_SIZE) && i < max);
 
-	if( i >= max ) {
-		info( _log, NULL, "Tokens exhausted. Giving up." );
+	if (i >= max) {
+		info(_log, NULL, "Tokens exhausted. Giving up.");
 	}
 }
 
-UCHAR *tkn_read( void ) {
-	ITEM *item_tkn = list_stop( _main->token->list );
-	struct obj_tkn *tkn = list_value( item_tkn );
+UCHAR *tkn_read(void)
+{
+	ITEM *item_tkn = list_stop(_main->token->list);
+	struct obj_tkn *tkn = list_value(item_tkn);
 
 	/* Return newest token */
 	return tkn->id;

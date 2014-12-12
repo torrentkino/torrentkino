@@ -53,15 +53,15 @@ typedef struct {
 
 } TCP_NODE;
 
-LIST *node_init( void );
-void node_free( void );
+LIST *node_init(void);
+void node_free(void);
 
-ITEM *node_put( void );
-void node_disconnect( int connfd );
-void node_shutdown( ITEM *thisnode );
-void node_status( TCP_NODE *n, int status );
+ITEM *node_put(void);
+void node_disconnect(int connfd);
+void node_shutdown(ITEM * thisnode);
+void node_status(TCP_NODE * n, int status);
 
-ssize_t node_appendBuffer( TCP_NODE *n, char *buffer, ssize_t bytes );
-void node_clearRecvBuf( TCP_NODE *n );
+ssize_t node_appendBuffer(TCP_NODE * n, char *buffer, ssize_t bytes);
+void node_clearRecvBuf(TCP_NODE * n);
 
-#endif /* NODE_TCP_H */
+#endif				/* NODE_TCP_H */

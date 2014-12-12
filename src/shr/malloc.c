@@ -23,44 +23,47 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "malloc.h"
 
-void *myalloc( long int size ) {
+void *myalloc(long int size)
+{
 	void *memory = NULL;
 
-	if( size == 0 ) {
-		fprintf( stderr, "myalloc(): Zero size?!" );
-	} else if( size < 0 ) {
-		fprintf( stderr, "myalloc(): Negative size?!" );
+	if (size == 0) {
+		fprintf(stderr, "myalloc(): Zero size?!");
+	} else if (size < 0) {
+		fprintf(stderr, "myalloc(): Negative size?!");
 	}
 
-	memory = (void *) malloc( size );
+	memory = (void *)malloc(size);
 
-	if( memory == NULL ) {
-		fprintf( stderr, "malloc() failed." );
+	if (memory == NULL) {
+		fprintf(stderr, "malloc() failed.");
 	}
 
-	memset( memory, '\0', size );
+	memset(memory, '\0', size);
 
 	return memory;
 }
 
-void *myrealloc( void *arg, long int size ) {
-	if( size == 0 ) {
-		fprintf( stderr, "myrealloc(): Zero size?!" );
-	} else if( size < 0 ) {
-		fprintf( stderr, "myrealloc(): Negative size?!" );
+void *myrealloc(void *arg, long int size)
+{
+	if (size == 0) {
+		fprintf(stderr, "myrealloc(): Zero size?!");
+	} else if (size < 0) {
+		fprintf(stderr, "myrealloc(): Negative size?!");
 	}
 
-	arg = (void *) realloc( arg, size );
-	
-	if( arg == NULL ) {
-		fprintf( stderr, "realloc() failed." );
+	arg = (void *)realloc(arg, size);
+
+	if (arg == NULL) {
+		fprintf(stderr, "realloc() failed.");
 	}
 
 	return arg;
 }
 
-void myfree( void *arg ) {
-	if( arg != NULL ) {
-		free( arg );
+void myfree(void *arg)
+{
+	if (arg != NULL) {
+		free(arg);
 	}
 }

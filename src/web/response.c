@@ -34,71 +34,75 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "response.h"
 
-LIST *resp_init( void ) {
+LIST *resp_init(void)
+{
 	return list_init();
 }
 
-void resp_free( LIST *list ) {
-	list_clear( list );
-	list_free( list );
+void resp_free(LIST * list)
+{
+	list_clear(list);
+	list_free(list);
 }
 
-RESPONSE *resp_put( LIST *list, int type ) {
+RESPONSE *resp_put(LIST * list, int type)
+{
 	RESPONSE *r = NULL;
 
 	/* Enough */
-	if( list_size( list ) > 100 ) {
+	if (list_size(list) > 100) {
 		return NULL;
 	}
 
-	r = (RESPONSE *) myalloc( sizeof( RESPONSE ) );
+	r = (RESPONSE *) myalloc(sizeof(RESPONSE));
 
 	/* Init response */
-	if( type == RESPONSE_FROM_MEMORY ) {
+	if (type == RESPONSE_FROM_MEMORY) {
 		r->type = RESPONSE_FROM_MEMORY;
-		memset( r->data.memory.send_buf, '\0', BUF_SIZE );
+		memset(r->data.memory.send_buf, '\0', BUF_SIZE);
 		r->data.memory.send_offset = 0;
 		r->data.memory.send_size = 0;
 	} else {
 		r->type = RESPONSE_FROM_FILE;
-		memset( r->data.file.filename, '\0', BUF_SIZE );
+		memset(r->data.file.filename, '\0', BUF_SIZE);
 		r->data.file.f_offset = 0;
 		r->data.file.f_stop = 0;
 	}
 
 	/* Connect response to the list */
-	list_put( list, r );
+	list_put(list, r);
 
 	return r;
 }
 
-
-void resp_del( LIST *list, ITEM *item ) {
+void resp_del(LIST * list, ITEM * item)
+{
 	RESPONSE *r = NULL;
 
-	if( list == NULL ) {
+	if (list == NULL) {
 		return;
 	}
-	if( item == NULL ) {
+	if (item == NULL) {
 		return;
 	}
 
-	r = list_value( item );
-	myfree( r );
+	r = list_value(item);
+	myfree(r);
 
-	list_del( list, item );
+	list_del(list, item);
 }
 
-int resp_set_memory( RESPONSE *r, const char *format, ... ) {
+int resp_set_memory(RESPONSE * r, const char *format, ...)
+{
 	va_list vlist;
 
-	memset( r->data.memory.send_buf, '\0', BUF_SIZE );
+	memset(r->data.memory.send_buf, '\0', BUF_SIZE);
 
-	va_start( vlist, format );
-	vsnprintf( r->data.memory.send_buf, BUF_SIZE, format, vlist );
-	va_end( vlist );
+	va_start(vlist, format);
+	vsnprintf(r->data.memory.send_buf, BUF_SIZE, format, vlist);
+	va_end(vlist);
 
-	r->data.memory.send_size = strlen( r->data.memory.send_buf );
+	r->data.memory.send_size = strlen(r->data.memory.send_buf);
 
 	return r->data.memory.send_size;
 }

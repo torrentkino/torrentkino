@@ -40,18 +40,18 @@ typedef struct {
 typedef struct {
 	int type;
 
-	union  {
+	union {
 		R_MEMORY memory;
 		R_FILE file;
 	} data;
 } RESPONSE;
 
-LIST *resp_init( void );
-void resp_free( LIST *list );
+LIST *resp_init(void);
+void resp_free(LIST * list);
 
-RESPONSE *resp_put( LIST *list, int TYPE );
-void resp_del( LIST *list, ITEM *item );
+RESPONSE *resp_put(LIST * list, int TYPE);
+void resp_del(LIST * list, ITEM * item);
 
-int resp_set_memory( RESPONSE *r, const char *format, ... );
+int resp_set_memory(RESPONSE * r, const char *format, ...);
 
-#endif /* RESPONSE_H */
+#endif				/* RESPONSE_H */

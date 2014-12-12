@@ -24,108 +24,116 @@ along with torrentkino.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cache.h"
 
-CACHE *cache_init( void ) {
-	CACHE *cache = ( CACHE * ) myalloc( sizeof( CACHE ) );
+CACHE *cache_init(void)
+{
+	CACHE *cache = (CACHE *) myalloc(sizeof(CACHE));
 	cache->list = list_init();
-	cache->hash = hash_init( CACHE_SIZE_MAX + 1 );
+	cache->hash = hash_init(CACHE_SIZE_MAX + 1);
 	return cache;
 }
 
-void cache_free( void ) {
+void cache_free(void)
+{
 	cache_clean();
-	list_clear( _main->cache->list );
-	list_free( _main->cache->list );
-	hash_free( _main->cache->hash );
-	myfree( _main->cache );
+	list_clear(_main->cache->list);
+	list_free(_main->cache->list);
+	hash_free(_main->cache->hash);
+	myfree(_main->cache);
 }
 
-void cache_clean( void ) {
-	while( _main->cache->list->item != NULL ) {
-		cache_del( _main->cache->list->item );
+void cache_clean(void)
+{
+	while (_main->cache->list->item != NULL) {
+		cache_del(_main->cache->list->item);
 	}
 }
 
-void cache_put( UCHAR *target_id, UCHAR *nodes_compact_list, int nodes_compact_size ) {
-	TARGET_C *target = cache_prepare( target_id );
+void cache_put(UCHAR * target_id, UCHAR * nodes_compact_list,
+	       int nodes_compact_size)
+{
+	TARGET_C *target = cache_prepare(target_id);
 	UCHAR *pair = NULL;
 	int j = 0;
 
 	/* Overflow */
-	if( target == NULL ) {
+	if (target == NULL) {
 		return;
 	}
 
 	/* Update target list */
 	pair = nodes_compact_list;
-	for( j=0; j<nodes_compact_size; j+=IP_SIZE_META_PAIR ) {
+	for (j = 0; j < nodes_compact_size; j += IP_SIZE_META_PAIR) {
 
 #if 0
 		/* Compare the port in the reply to my own announced port. */
-		if( cache_strict_error( pair ) ) {
+		if (cache_strict_error(pair)) {
 			pair += IP_SIZE_META_PAIR;
 			continue;
 		}
 #endif
 
 		/* Update cache */
-		tgt_c_update( target, pair );
+		tgt_c_update(target, pair);
 		pair += IP_SIZE_META_PAIR;
 	}
 
 	/* Limit reached after list_ins(). Delete the last target. */
-	if( list_size( _main->cache->list ) > CACHE_SIZE_MAX ) {
-		cache_del( list_stop( _main->cache->list ) );
+	if (list_size(_main->cache->list) > CACHE_SIZE_MAX) {
+		cache_del(list_stop(_main->cache->list));
 	}
 }
 
-void cache_del( ITEM *i ) {
-	TARGET_C *target = list_value( i );
-	hash_del( _main->cache->hash, target->target, SHA1_SIZE );
-	list_del( _main->cache->list, i );
-	tgt_c_free( target );
+void cache_del(ITEM * i)
+{
+	TARGET_C *target = list_value(i);
+	hash_del(_main->cache->hash, target->target, SHA1_SIZE);
+	list_del(_main->cache->list, i);
+	tgt_c_free(target);
 }
 
-TARGET_C *cache_prepare( UCHAR *target_id ) {
-	TARGET_C *target = cache_find( target_id );
+TARGET_C *cache_prepare(UCHAR * target_id)
+{
+	TARGET_C *target = cache_find(target_id);
 	ITEM *i = NULL;
 
 	/* Target is in the cache */
-	if( target != NULL ) {
+	if (target != NULL) {
 		return target;
 	}
 
 	/* Create a new target */
-	target = tgt_c_init( target_id );
-	i = list_ins( _main->cache->list,
-		list_start( _main->cache->list ), target );
+	target = tgt_c_init(target_id);
+	i = list_ins(_main->cache->list,
+		     list_start(_main->cache->list), target);
 
 	/* Overflow */
-	if( i == NULL ) {
-		tgt_c_free( target );
+	if (i == NULL) {
+		tgt_c_free(target);
 		return NULL;
 	}
 
-	hash_put( _main->cache->hash, target->target, SHA1_SIZE, target );
+	hash_put(_main->cache->hash, target->target, SHA1_SIZE, target);
 
 	return target;
 }
 
-void cache_expire( time_t now ) {
+void cache_expire(time_t now)
+{
 	ITEM *i = NULL, *n = NULL;
 	TARGET_C *target = NULL;
 	int index = 0;
 
-	i = list_start( _main->cache->list );
-	while( i != NULL ) {
-		n = list_next( i );
-		target = list_value( i );
+	i = list_start(_main->cache->list);
+	while (i != NULL) {
+		n = list_next(i);
+		target = list_value(i);
 
 		/* Look at the nodes within the target */
-		tgt_c_expire( target, now );
+		tgt_c_expire(target, now);
 
 		/* 30 minutes without activity. Kill it. */
-		if( now > target->lifetime ) {
-			cache_del( i );
+		if (now > target->lifetime) {
+			cache_del(i);
 		}
 
 		i = n;
@@ -133,54 +141,57 @@ void cache_expire( time_t now ) {
 	}
 }
 
-void cache_renew( time_t now ) {
+void cache_renew(time_t now)
+{
 	ITEM *i = NULL;
 	TARGET_C *t = NULL;
 	int changes = FALSE;
 
-	i = list_start( _main->cache->list );
-	while( i != NULL ) {
+	i = list_start(_main->cache->list);
+	while (i != NULL) {
 
 		/* Lookup target on my own every 5 minutes */
-		t = list_value( i );
-		if( now > t->refresh ) {
-			p2p_cron_lookup( t->target, P2P_GET_PEERS );
-			time_add_5_min_approx( &t->refresh );
+		t = list_value(i);
+		if (now > t->refresh) {
+			p2p_cron_lookup(t->target, P2P_GET_PEERS);
+			time_add_5_min_approx(&t->refresh);
 			changes = TRUE;
 		}
 
-		i = list_next( i );
+		i = list_next(i);
 	}
 
-	if( changes ) {
+	if (changes) {
 		cache_print();
 	}
 }
 
-void cache_print( void ) {
+void cache_print(void)
+{
 	ITEM *i = NULL;
 	TARGET_C *t = NULL;
 	char hex[HEX_LEN];
 
-	if( log_verbosely( _log ) ) {
+	if (log_verbosely(_log)) {
 		return;
 	}
 
-	info( _log, NULL, "Cache renewal triggered:" );
-	i = list_start( _main->cache->list );
-	while( i != NULL ) {
-		t = list_value( i );
+	info(_log, NULL, "Cache renewal triggered:");
+	i = list_start(_main->cache->list);
+	while (i != NULL) {
+		t = list_value(i);
 
-		hex_hash_encode( hex, t->target );
-		info( _log, NULL, " Target: %s", hex );
+		hex_hash_encode(hex, t->target);
+		info(_log, NULL, " Target: %s", hex);
 
-		tgt_c_print( t );
+		tgt_c_print(t);
 
-		i = list_next( i );
+		i = list_next(i);
 	}
 }
 
-int cache_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id ) {
+int cache_compact_list(UCHAR * nodes_compact_list, UCHAR * target_id)
+{
 	UCHAR *p = nodes_compact_list;
 	NODE_C *node_c = NULL;
 	TARGET_C *target = NULL;
@@ -189,177 +200,190 @@ int cache_compact_list( UCHAR *nodes_compact_list, UCHAR *target_id ) {
 	int size = 0;
 
 	/* Look into the local database */
-	if( ( target = cache_find( target_id ) ) == NULL ) {
+	if ((target = cache_find(target_id)) == NULL) {
 		return 0;
 	}
 
 	/* Walkthrough local database */
-	item = list_start( target->list );
-	while( item != NULL && j < 8 ) {
-		node_c = list_value( item );
+	item = list_start(target->list);
+	while (item != NULL && j < 8) {
+		node_c = list_value(item);
 
 		/* IP + Port */
-		memcpy( p, node_c->pair, IP_SIZE_META_PAIR );
+		memcpy(p, node_c->pair, IP_SIZE_META_PAIR);
 
 		p += IP_SIZE_META_PAIR;
 		size += IP_SIZE_META_PAIR;
 
-		item = list_next( item );
+		item = list_next(item);
 		j++;
 	}
 
 	/* Request for existing cache entry.
 	   Extend its valid lifetime to keep in warm. */
-	time_add_30_min( &target->lifetime );
+	time_add_30_min(&target->lifetime);
 
 	return size;
 }
 
-TARGET_C *cache_find( UCHAR *target_id ) {
-	return hash_get( _main->cache->hash, target_id, SHA1_SIZE );
+TARGET_C *cache_find(UCHAR * target_id)
+{
+	return hash_get(_main->cache->hash, target_id, SHA1_SIZE);
 }
 
-TARGET_C *tgt_c_init( UCHAR *target_id ) {
-	TARGET_C *target = ( TARGET_C * ) myalloc( sizeof( TARGET_C ) );
+TARGET_C *tgt_c_init(UCHAR * target_id)
+{
+	TARGET_C *target = (TARGET_C *) myalloc(sizeof(TARGET_C));
 
-	memcpy( target->target, target_id, SHA1_SIZE );
+	memcpy(target->target, target_id, SHA1_SIZE);
 	target->list = list_init();
-	target->hash = hash_init( TGT_C_SIZE_MAX + 1 );
+	target->hash = hash_init(TGT_C_SIZE_MAX + 1);
 
 	return target;
 }
 
-void tgt_c_free( TARGET_C *target ) {
-	list_clear( target->list );
-	list_free( target->list );
-	hash_free( target->hash );
-	myfree( target );
+void tgt_c_free(TARGET_C * target)
+{
+	list_clear(target->list);
+	list_free(target->list);
+	hash_free(target->hash);
+	myfree(target);
 }
 
-void tgt_c_put( TARGET_C *target, UCHAR *pair ) {
+void tgt_c_put(TARGET_C * target, UCHAR * pair)
+{
 	NODE_C *node = NULL;
 	ITEM *i = NULL;
 	ITEM *s = NULL;
 
-	node = node_c_init( pair );
-	s = list_start( target->list );
-	i = list_ins( target->list, s, node );
-	hash_put( target->hash, node->pair, IP_SIZE_META_PAIR, i );
+	node = node_c_init(pair);
+	s = list_start(target->list);
+	i = list_ins(target->list, s, node);
+	hash_put(target->hash, node->pair, IP_SIZE_META_PAIR, i);
 
 	/* Lifetime + Refresh timer */
-	time_add_30_min( &target->lifetime );
-	time_add_5_min_approx( &target->refresh );
+	time_add_30_min(&target->lifetime);
+	time_add_5_min_approx(&target->refresh);
 
 	/* Limit reached. Delete last node */
-	if( list_size( target->list ) > TGT_C_SIZE_MAX ) {
-		s = list_stop( target->list );
-		tgt_c_del( target, s );
+	if (list_size(target->list) > TGT_C_SIZE_MAX) {
+		s = list_stop(target->list);
+		tgt_c_del(target, s);
 	}
 }
 
-void tgt_c_del( TARGET_C *target, ITEM *i ) {
-	NODE_C *node_c = list_value( i );
-	hash_del( target->hash, node_c->pair, IP_SIZE_META_PAIR );
-	list_del( target->list, i );
-	node_c_free( node_c );
+void tgt_c_del(TARGET_C * target, ITEM * i)
+{
+	NODE_C *node_c = list_value(i);
+	hash_del(target->hash, node_c->pair, IP_SIZE_META_PAIR);
+	list_del(target->list, i);
+	node_c_free(node_c);
 }
 
-void tgt_c_expire( TARGET_C *target, time_t now ) {
+void tgt_c_expire(TARGET_C * target, time_t now)
+{
 	ITEM *i = NULL;
 	ITEM *n = NULL;
 	NODE_C *node = NULL;
 
-	i = list_start( target->list );
-	while( i != NULL ) {
-		n = list_next( i );
-		node = list_value( i );
+	i = list_start(target->list);
+	while (i != NULL) {
+		n = list_next(i);
+		node = list_value(i);
 
 		/* Delete info_hash after 30 minutes without announcement. */
-		if( now > node->eol ) {
-			tgt_c_del( target, i );
+		if (now > node->eol) {
+			tgt_c_del(target, i);
 		}
 
 		i = n;
 	}
 }
 
-void tgt_c_print( TARGET_C *target ) {
+void tgt_c_print(TARGET_C * target)
+{
 	ITEM *i = NULL;
 	NODE_C *node = NULL;
 	IP sin;
 
-	i = list_start( target->list );
-	while( i != NULL ) {
-		node = list_value( i );
+	i = list_start(target->list);
+	while (i != NULL) {
+		node = list_value(i);
 
-		ip_tuple_to_sin( &sin, node->pair );
-		info( _log, &sin, "  IP:");
+		ip_tuple_to_sin(&sin, node->pair);
+		info(_log, &sin, "  IP:");
 
-		i = list_next( i );
+		i = list_next(i);
 	}
 }
 
-ITEM *tgt_c_find( TARGET_C *target, UCHAR *pair ) {
-	return hash_get( target->hash, pair, IP_SIZE_META_PAIR );
+ITEM *tgt_c_find(TARGET_C * target, UCHAR * pair)
+{
+	return hash_get(target->hash, pair, IP_SIZE_META_PAIR);
 }
 
-void tgt_c_update( TARGET_C *target, UCHAR *pair ) {
+void tgt_c_update(TARGET_C * target, UCHAR * pair)
+{
 	NODE_C *node = NULL;
 	ITEM *i = NULL;
 
-	if( ( i = tgt_c_find( target, pair ) ) == NULL ) {
+	if ((i = tgt_c_find(target, pair)) == NULL) {
 
 		/* New node */
-		tgt_c_put( target, pair );
+		tgt_c_put(target, pair);
 
 	} else {
 
 		/* Update node */
-		node = list_value( i );
-		node_c_update( node, pair );
+		node = list_value(i);
+		node_c_update(node, pair);
 
 		/* Put the updated node on top of the list */
-		list_del( target->list, i );
-		i = list_ins( target->list, list_start( target->list ), node );
-		hash_put( target->hash, node->pair, IP_SIZE_META_PAIR, i );
+		list_del(target->list, i);
+		i = list_ins(target->list, list_start(target->list), node);
+		hash_put(target->hash, node->pair, IP_SIZE_META_PAIR, i);
 	}
 }
 
-NODE_C *node_c_init( UCHAR *pair ) {
-	NODE_C *node_c = ( NODE_C * ) myalloc( sizeof( NODE_C ) );
-	node_c_update( node_c, pair );
+NODE_C *node_c_init(UCHAR * pair)
+{
+	NODE_C *node_c = (NODE_C *) myalloc(sizeof(NODE_C));
+	node_c_update(node_c, pair);
 	return node_c;
 }
 
-void node_c_free( NODE_C *node_c ) {
-	myfree( node_c );
+void node_c_free(NODE_C * node_c)
+{
+	myfree(node_c);
 }
 
-void node_c_update( NODE_C *node_c, UCHAR *pair ) {
-	memcpy( node_c->pair, pair, IP_SIZE_META_PAIR );
-	time_add_30_min( &node_c->eol );
+void node_c_update(NODE_C * node_c, UCHAR * pair)
+{
+	memcpy(node_c->pair, pair, IP_SIZE_META_PAIR);
+	time_add_30_min(&node_c->eol);
 }
 
 #if 0
-int cache_strict_error( UCHAR *p ) {
+int cache_strict_error(UCHAR * p)
+{
 	IP sin;
 	unsigned int port = 0;
 
 	/* Accept any reply when inactive */
-	if( _main->conf->strict == FALSE ) {
+	if (_main->conf->strict == FALSE) {
 		return FALSE;
 	}
 
-	ip_tuple_to_sin( &sin, p );
+	ip_tuple_to_sin(&sin, p);
 
 #ifdef IPV6
-	port = ntohs( sin.sin6_port );
+	port = ntohs(sin.sin6_port);
 #elif IPV4
-	port = ntohs( sin.sin_port );
+	port = ntohs(sin.sin_port);
 #endif
 
 	/* Limit cache replies to those matching my port. */
-	if( port == _main->conf->p2p_port ) {
+	if (port == _main->conf->p2p_port) {
 		return FALSE;
 	}
 

@@ -36,21 +36,21 @@ struct obj_tid {
 };
 typedef struct obj_tid TID;
 
-struct obj_transaction *tdb_init( void );
-void tdb_free( void );
+struct obj_transaction *tdb_init(void);
+void tdb_free(void);
 
-ITEM *tdb_put( int type );
-void tdb_del( ITEM *i );
+ITEM *tdb_put(int type);
+void tdb_del(ITEM * i);
 
-void tdb_clean( void );
-void tdb_expire( time_t now );
+void tdb_clean(void);
+void tdb_expire(time_t now);
 
-void tdb_link_ldb( ITEM *i, LOOKUP *l );
+void tdb_link_ldb(ITEM * i, LOOKUP * l);
 
-void tdb_create_random_id( UCHAR *id );
-ITEM *tdb_item( UCHAR *id );
-int tdb_type( ITEM *i );
-LOOKUP *tdb_ldb( ITEM *i );
-UCHAR *tdb_tid( ITEM *i );
+void tdb_create_random_id(UCHAR * id);
+ITEM *tdb_item(UCHAR * id);
+int tdb_type(ITEM * i);
+LOOKUP *tdb_ldb(ITEM * i);
+UCHAR *tdb_tid(ITEM * i);
 
 #endif

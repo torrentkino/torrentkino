@@ -139,26 +139,27 @@ typedef struct {
 	char qName_buffer[256];
 } DNS_MSG;
 
-int p_get16bits( const UCHAR** buffer );
-void p_put16bits( UCHAR** buffer, USHORT value );
-void p_put32bits( UCHAR** buffer, unsigned long long value );
+int p_get16bits(const UCHAR ** buffer);
+void p_put16bits(UCHAR ** buffer, USHORT value);
+void p_put32bits(UCHAR ** buffer, unsigned long long value);
 
-int p_decode_domain( char *domain, const UCHAR** buffer, size_t size );
-void p_encode_domain( UCHAR** buffer, const char *domain );
+int p_decode_domain(char *domain, const UCHAR ** buffer, size_t size);
+void p_encode_domain(UCHAR ** buffer, const char *domain);
 
-int p_decode_header( DNS_MSG *msg, const UCHAR** buffer );
-void p_encode_header( DNS_MSG *msg, UCHAR** buffer );
+int p_decode_header(DNS_MSG * msg, const UCHAR ** buffer);
+void p_encode_header(DNS_MSG * msg, UCHAR ** buffer);
 
-int p_decode_query( DNS_MSG *msg, const UCHAR *buffer, int size );
-UCHAR *p_encode_response( DNS_MSG *msg, UCHAR *buffer );
+int p_decode_query(DNS_MSG * msg, const UCHAR * buffer, int size);
+UCHAR *p_encode_response(DNS_MSG * msg, UCHAR * buffer);
 
-void p_prepare_msg( DNS_MSG *msg, USHORT arCount );
-void p_reply_msg( DNS_MSG *msg, UCHAR *nodes_compact_list, int nodes_compact_size );
-void p_reset_msg( DNS_MSG *msg );
+void p_prepare_msg(DNS_MSG * msg, USHORT arCount);
+void p_reply_msg(DNS_MSG * msg, UCHAR * nodes_compact_list,
+		 int nodes_compact_size);
+void p_reset_msg(DNS_MSG * msg);
 
-void p_put_srv( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name );
-void p_put_addr( DNS_RR *rr, DNS_Q *qu, UCHAR *p, char *name );
+void p_put_srv(DNS_RR * rr, DNS_Q * qu, UCHAR * p, char *name);
+void p_put_addr(DNS_RR * rr, DNS_Q * qu, UCHAR * p, char *name);
 
-char *p_get_domain_from_srv_record( char *name );
+char *p_get_domain_from_srv_record(char *name);
 
-#endif /* PACKER_H */
+#endif				/* PACKER_H */
