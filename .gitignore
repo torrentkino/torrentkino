@@ -11,3 +11,4 @@ debian/torrentkino.postrm.debhelper
 debian/files
 debian/torrentkino.substvars
 *.o
+*~
