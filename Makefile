@@ -28,6 +28,9 @@ debian:
 ubuntu:
 	./bin/debian.sh
 
+indent:
+	./bin/indent.sh
+
 clean:
 	for dir in $(SUBDIRS); do \
 		$(MAKE) clean -C $$dir; \
