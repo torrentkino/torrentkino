@@ -178,9 +178,9 @@ void conf_print(void)
 	}
 #endif
 
-	info(_log, NULL, "P2P daemon is listening to UDP/%i (-p)",
+	info(_log, NULL, "P2P daemon is listening on UDP/%i (-p)",
 	     _main->conf->p2p_port);
-	info(_log, NULL, "DNS daemon is listening to UDP/%i (-P)",
+	info(_log, NULL, "DNS daemon is listening on UDP/%i (-P)",
 	     _main->conf->dns_port);
 
 	switch (_main->conf->bootstrap_mode) {

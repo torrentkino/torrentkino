@@ -12,3 +12,4 @@ debian/files
 debian/torrentkino.substvars
 *.o
 *~
+debian/.debhelper
