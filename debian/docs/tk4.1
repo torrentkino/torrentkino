@@ -41,7 +41,7 @@ By default a random node id gets computed on every startup\. For testing purpose
 .
 .TP
 \fB\-r\fR \fIrealm\fR
-Creating a realm affects the method to compute the "SHA1" hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own https://owncloud\.p2p for example\. Technically, the realm is a SHA1 hash too\. It gets merged to the hostname\'s SHA1 hash by using XOR\.
+Creating a realm affects the method to compute the "SHA1" hash\. It helps you to isolate your nodes and be part of a bigger swarm at the same time\. This is useful to handle duplicate hostnames\. With different realms everybody may have his own https://nextcloud\.p2p for example\. Technically, the realm is a SHA1 hash too\. It gets merged to the hostname\'s SHA1 hash by using XOR\.
 .
 .TP
 \fB\-x\fR \fIserver\fR
@@ -63,15 +63,21 @@ Fork and become a daemon\.
 \fB\-q\fR
 Be quiet\.
 .
+.SH "NSS"
+Torrentkino also provides a NSS module\. Add \fItk4\fR or \fItk6\fR to your \fI/etc/nsswitch\.conf\fR file\. Hostnames with a \fI\.p2p\fR TLD will be redirected to the Torrentkino daemon\. See the examples below\.
+.
+.P
+hosts: files tk4 dns
+.
 .SH "EXAMPLES"
-Announce the hostnames \fIowncloud\.p2p\fR and \fI_http\._tcp\.foo\.bar\fR globally\.
+Announce the hostnames \fInextcloud\.p2p\fR and \fI_http\._tcp\.foo\.bar\fR globally\.
 .
 .IP "" 4
 .
 .nf
 
-$ sudo tk6 \-P 53 \-l owncloud\.p2p _http\._tcp\.foo\.bar
-$ dig AAAA owncloud\.p2p @localhost
+$ sudo tk6 \-P 53 \-l nextcloud\.p2p _http\._tcp\.foo\.bar
+$ dig AAAA nextcloud\.p2p @localhost
 $ dig SRV _http\._tcp\.foo\.bar @localhost
 .
 .fi
@@ -105,6 +111,12 @@ $ dig torrentkino\.cloud @localhost
 .fi
 .
 .IP "" 0
+.
+.P
+With the NSS daemon in place, you can use the \fI\.p2p\fR system\-wide\.
+.
+.P
+$ getent hosts nextcloud\.p2p $ ping nextcloud\.p2p $ curl nextcloud\.p2p
 .
 .SH "INSTALLATION"
 There is a simple installation helper for Debian/Ubuntu\. Just run one of the following commands to create a installable package\.

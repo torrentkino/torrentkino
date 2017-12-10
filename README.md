@@ -44,7 +44,7 @@ Torrentkino runs as user *nobody* when started with root priviledges.
 	Creating a realm affects the method to compute the "SHA1" hash. It helps
 	you to isolate your nodes and be part of a bigger swarm at the same time.
 	This is useful to handle duplicate hostnames. With different realms
-	everybody may have his own https://owncloud.p2p for example.
+	everybody may have his own https://nextcloud.p2p for example.
 	Technically, the realm is a SHA1 hash too. It gets merged to the hostname's
 	SHA1 hash by using XOR.
 
@@ -65,12 +65,20 @@ Torrentkino runs as user *nobody* when started with root priviledges.
   * `-q`:
 	Be quiet.
 
+## NSS
+
+Torrentkino also provides a NSS module. Add *tk4* or *tk6* to your
+*/etc/nsswitch.conf* file. Hostnames with a *.p2p* TLD will be redirected to the
+Torrentkino daemon. See the examples below.
+
+  hosts:          files tk4 dns
+
 ## EXAMPLES
 
-Announce the hostnames *owncloud.p2p* and *\_http.\_tcp.foo.bar* globally.
+Announce the hostnames *nextcloud.p2p* and *\_http.\_tcp.foo.bar* globally.
 
-	$ sudo tk6 -P 53 -l owncloud.p2p _http._tcp.foo.bar
-	$ dig AAAA owncloud.p2p @localhost
+	$ sudo tk6 -P 53 -l nextcloud.p2p _http._tcp.foo.bar
+	$ dig AAAA nextcloud.p2p @localhost
 	$ dig SRV _http._tcp.foo.bar @localhost
 
 Announce the hostname *mycloud.p2p* within the LAN.
@@ -83,6 +91,12 @@ and be quiet.
 
 	$ sudo tk6 -r darkness -l -P 53 -d -q torrentkino.cloud
 	$ dig torrentkino.cloud @localhost
+
+With the NSS daemon in place, you can use the *.p2p* system-wide.
+
+  $ getent hosts nextcloud.p2p
+	$ ping nextcloud.p2p
+	$ curl nextcloud.p2p
 
 ## INSTALLATION
 
