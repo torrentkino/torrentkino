@@ -66,8 +66,15 @@ Be quiet\.
 .SH "NSS"
 Torrentkino also provides a NSS module\. Add \fItk4\fR or \fItk6\fR to your \fI/etc/nsswitch\.conf\fR file\. Hostnames with a \fI\.p2p\fR TLD will be redirected to the Torrentkino daemon\. See the examples below\.
 .
-.P
-hosts: files tk4 dns
+.IP "" 4
+.
+.nf
+
+hosts:          files tk4 dns
+.
+.fi
+.
+.IP "" 0
 .
 .SH "EXAMPLES"
 Announce the hostnames \fInextcloud\.p2p\fR and \fI_http\._tcp\.foo\.bar\fR globally\.
@@ -115,8 +122,17 @@ $ dig torrentkino\.cloud @localhost
 .P
 With the NSS daemon in place, you can use the \fI\.p2p\fR system\-wide\.
 .
-.P
-$ getent hosts nextcloud\.p2p $ ping nextcloud\.p2p $ curl nextcloud\.p2p
+.IP "" 4
+.
+.nf
+
+$ getent hosts nextcloud\.p2p
+$ ping nextcloud\.p2p
+$ curl nextcloud\.p2p
+.
+.fi
+.
+.IP "" 0
 .
 .SH "INSTALLATION"
 There is a simple installation helper for Debian/Ubuntu\. Just run one of the following commands to create a installable package\.
