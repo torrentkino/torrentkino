@@ -65,6 +65,14 @@ Torrentkino runs as user *nobody* when started with root priviledges.
   * `-q`:
 	Be quiet.
 
+## NSS
+
+Torrentkino also provides a NSS module. Add *tk4* or *tk6* to your
+*/etc/nsswitch.conf* file. Hostnames with a *.p2p* TLD will be redirected to the
+Torrentkino daemon. See the examples below.
+
+  hosts:          files tk4 dns
+
 ## EXAMPLES
 
 Announce the hostnames *owncloud.p2p* and *\_http.\_tcp.foo.bar* globally.
@@ -83,6 +91,12 @@ and be quiet.
 
 	$ sudo tk6 -r darkness -l -P 53 -d -q torrentkino.cloud
 	$ dig torrentkino.cloud @localhost
+
+With the NSS daemon in place, you can use the *.p2p* system-wide.
+
+  $ getent hosts nextcloud.p2p
+	$ ping nextcloud.p2p
+	$ curl nextcloud.p2p
 
 ## INSTALLATION
 
