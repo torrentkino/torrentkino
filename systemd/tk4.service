@@ -1,0 +1,12 @@
+[Unit]
+Description=Torrentkino IPv4
+After=local-fs.target network-online.target network.target
+Wants=local-fs.target network-online.target network.target
+
+[Service]
+ExecStart=/bin/sh -c '/usr/bin/tk4 -x marjorie.torrentkino.de -q $(hostname -s).p2p'
+Type=simple
+User=tk
+
+[Install]
+WantedBy=multi-user.target

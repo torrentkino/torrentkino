@@ -1,4 +1,19 @@
 #!/bin/sh
 set -e
 
+case "$1" in
+  configure)
+    if ! getent passwd tk >/dev/null; then
+      adduser --disabled-password --quiet --system \
+        --home /var/run/tk --no-create-home \
+        --gecos "Torrentkino" --group tk
+
+      for d in /var/lib/tk /var/run/tk /usr/share/tk; do
+        chown tk:tk $d
+        chmod 700 $d
+      done
+    fi
+  ;;
+esac
+
 #DEBHELPER#

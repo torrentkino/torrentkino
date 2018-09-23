@@ -1,3 +1,8 @@
+torrentkino (0.36) stretch; urgency=low
+
+  * Add a systemd unit file
+
+ -- Aiko Barz <aiko@torrentkino.de>  Sun, 23 Dec 2018 14:53:00 +0100
 torrentkino (0.35) wheezy; urgency=low
 
   * Use multiple bootstrap servers for the lazy option.

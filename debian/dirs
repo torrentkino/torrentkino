@@ -1,2 +1,7 @@
 usr/bin
 lib
+lib/systemd/system
+usr/share/tk
+var/lib/tk
+var/run/tk
+

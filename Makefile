@@ -15,6 +15,11 @@ $(SUBDIRS):
 	$(MAKE) -C $@
 
 install:
+	mkdir -p $(DESTDIR)/usr/share/tk
+	mkdir -p $(DESTDIR)/var/lib/tk
+	mkdir -p $(DESTDIR)/var/run/tk
+	cp -f systemd/tk4.service $(DESTDIR)/lib/systemd/system/
+	cp -f systemd/tk6.service $(DESTDIR)/lib/systemd/system/
 	for dir in $(SUBDIRS); do \
 		$(MAKE) install -C $$dir; \
 	done
