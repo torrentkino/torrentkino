@@ -65,6 +65,7 @@ void info(LOG * log, IP * from, const char *format, ...)
 	char va_buf[BUF_SIZE];
 	char ip_buf[IP_ADDRLEN + 1];
 	va_list vlist;
+	int result;
 
 	if (!log_verbosely(log)) {
 		return;
@@ -78,14 +79,19 @@ void info(LOG * log, IP * from, const char *format, ...)
 
 #ifdef TUMBLEWEED
 		ip_sin_to_string(from, ip_buf);
-		snprintf(log_buf, BUF_SIZE, "%s %s", ip_buf, va_buf);
+		result = snprintf(log_buf, BUF_SIZE, "%s %s", ip_buf, va_buf);
 #elif TORRENTKINO
 		ip_sin_to_string(from, ip_buf);
-		snprintf(log_buf, BUF_SIZE, "%s %s", va_buf, ip_buf);
+		result = snprintf(log_buf, BUF_SIZE, "%s %s", va_buf, ip_buf);
 #endif
 
 	} else {
-		strncpy(log_buf, va_buf, BUF_OFF1);
+		result = snprintf(log_buf, BUF_SIZE, "%s", va_buf);
+	}
+
+	/* -Wformat-truncation */
+	if( result >= BUF_SIZE ) {
+		return;
 	}
 
 	/* Console or Syslog */

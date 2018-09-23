@@ -510,14 +510,20 @@ int http_resource(TCP_NODE * n, char *p_url, char *resource)
 
 int http_filename(char *resource, char *filename)
 {
+	int result;
+
 	snprintf(filename, BUF_SIZE, "%s%s", _main->conf->home, resource);
 
 	if (file_isreg(filename)) {
 		return TRUE;
 	} else if (file_isdir(filename)) {
 		/* There is a index.html file within that directory? */
-		snprintf(filename, BUF_SIZE, "%s%s/%s",
+		result = snprintf(filename, BUF_SIZE, "%s%s/%s",
 			 _main->conf->home, resource, _main->conf->file);
+
+		if( result >= BUF_SIZE ) {
+			return FALSE;
+		}
 
 		if (file_isreg(filename)) {
 			return TRUE;
