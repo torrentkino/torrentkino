@@ -1,3 +1,8 @@
+torrentkino (0.37) stretch; urgency=low
+
+  * Merge Makefile patch from cryptarch
+
+ -- Aiko Barz <aiko@torrentkino.de>  Fri, 18 Jan 2019 20:50:00 +0100
 torrentkino (0.36) stretch; urgency=low
 
   * Add a systemd unit file

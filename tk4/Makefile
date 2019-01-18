@@ -46,5 +46,4 @@ clean:
 
 install:
 	strip $(CODENAME)
-	mkdir -p $(DESTDIR)/usr/bin/
 	cp $(CODENAME) $(DESTDIR)/usr/bin/
